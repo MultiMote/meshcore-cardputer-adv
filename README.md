@@ -32,12 +32,13 @@ Currently implemented (companion):
 - G0 Button
 - Basic display
 - BLE connection
+- GPS support
 
 Todo:
 
 - Store data to SD card (radio stops working for some reason when using SD instead of SPIFFS)
 - Keyboard support
 - More complex UI with ability to change settings, write messages
-- GPS
 - Speaker
+- GPS power management
 - Find a way to include MeshCore as submodule in this repository and build it from here
