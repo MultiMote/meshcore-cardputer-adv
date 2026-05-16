@@ -1,6 +1,7 @@
 #include "target.h"
 
 #include <Arduino.h>
+#include <helpers/sensors/MicroNMEALocationProvider.h>
 
 CardputerAdvBoard board;
 m5::PI4IOE5V6408_Class ioe(0x43, 400000, &m5::In_I2C);
@@ -9,13 +10,8 @@ RADIO_CLASS radio = new Module(P_LORA_NSS, P_LORA_DIO_1, P_LORA_RESET, P_LORA_BU
 WRAPPER_CLASS radio_driver(radio, board);
 ESP32RTCClock rtc_clock;
 
-#if ENV_INCLUDE_GPS
-  #include <helpers/sensors/MicroNMEALocationProvider.h>
 MicroNMEALocationProvider nmea = MicroNMEALocationProvider(Serial1, &rtc_clock);
-EnvironmentSensorManager sensors = EnvironmentSensorManager(nmea);
-#else
-EnvironmentSensorManager sensors;
-#endif
+CardputerSensorManager sensors = CardputerSensorManager(nmea);
 
 DISPLAY_CLASS display;
 MomentaryButton user_btn(PIN_USER_BTN, 1000, true);
