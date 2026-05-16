@@ -5,7 +5,7 @@
 /.github/workflows/*
 !/.github/workflows/build-firmware.yml
 !/LICENSE
-!/photo.jpg
+!/photo*.jpg
 !/.gitignore
 !/README.md
 !/variants/

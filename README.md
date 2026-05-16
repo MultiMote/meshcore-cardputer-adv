@@ -1,6 +1,8 @@
 ## MeshCore Cardputer ADV + Cap LoRa 1262 variant
 
-![alt text](photo.jpg)
+![photo](photo1.jpg) 
+
+![photo](photo2.jpg)
 
 This variant designed to not change the original codebase. I tried to make the implementation as clean as possible.
 
