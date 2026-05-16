@@ -1,0 +1,46 @@
+name: Build firmware
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          repository: 'meshcore-dev/meshcore'
+          ref: 'companion-v1.15.0'
+          path: MeshCore
+      
+      - uses: actions/checkout@v6
+        with:
+          path: Variant
+
+      - name: Copy variant
+        run: |
+          cp -r Variant/variants/cardputer_adv MeshCore/variants/
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Build PlatformIO Project
+        run: platformio run --environment cardputer_adv_companion_radio_ble
+        working-directory: MeshCore
+
+      - name: Update release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: latest
+          files: MeshCore/.pio/build/cardputer_adv_companion_radio_ble/firmware.bin
