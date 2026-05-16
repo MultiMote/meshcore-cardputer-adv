@@ -54,7 +54,11 @@ void CardputerSensorManager::loop() {
       node_lat = ((double)_location->getLatitude()) / 1000000.;
       node_lon = ((double)_location->getLongitude()) / 1000000.;
       node_altitude = ((double)_location->getAltitude()) / 1000.0;
+      MESH_DEBUG_PRINTLN("VALID location: lat %f lon %f", node_lat, node_lon);
+    } else {
+      MESH_DEBUG_PRINTLN("INVALID location, waiting for fix");
     }
+    MESH_DEBUG_PRINTLN("GPS satellites: %d", _location->satellitesCount());
     next_gps_update = millis() + 1000;
   }
 }

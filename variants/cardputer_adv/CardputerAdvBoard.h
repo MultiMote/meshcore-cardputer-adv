@@ -26,8 +26,6 @@ public:
       rtc_gpio_hold_dis((gpio_num_t)P_LORA_NSS);
       rtc_gpio_deinit((gpio_num_t)P_LORA_DIO_1);
     }
-
-    Serial.println("Done init");
   }
 
   void loop() { M5Cardputer.update(); }
