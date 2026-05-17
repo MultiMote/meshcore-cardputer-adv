@@ -3,9 +3,7 @@
 
 #include <Arduino.h>
 #include <Mesh.h>
-#include <SD.h>
 #include <helpers/esp32/SerialBLEInterface.h>
-
 
 static uint32_t _atoi(const char *sp) {
   uint32_t n = 0;
@@ -16,7 +14,14 @@ static uint32_t _atoi(const char *sp) {
   return n;
 }
 
+#ifdef USE_SD_CARD
+  #include <SD.h>
 DataStore store(SD, rtc_clock);
+#else
+  #include <SPIFFS.h>
+DataStore store(SPIFFS, rtc_clock);
+#endif
+
 SerialBLEInterface serial_interface;
 
 UITask ui_task(&board, &serial_interface);
@@ -49,6 +54,7 @@ void setup() {
 
   fast_rng.begin(radio_get_rng_seed());
 
+#ifdef USE_SD_CARD
   // SPI setup done in radio.std_init so not calling SPI.begin
   if (!SD.begin(PIN_SD_CS, SPI)) {
     if (disp) {
@@ -59,6 +65,9 @@ void setup() {
     }
     halt();
   }
+#else
+  SPIFFS.begin(true);
+#endif
 
   store.begin();
   the_mesh.begin(true);
