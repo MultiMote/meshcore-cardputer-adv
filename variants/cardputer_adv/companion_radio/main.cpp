@@ -3,8 +3,9 @@
 
 #include <Arduino.h>
 #include <Mesh.h>
-#include <SPIFFS.h>
+#include <SD.h>
 #include <helpers/esp32/SerialBLEInterface.h>
+
 
 static uint32_t _atoi(const char *sp) {
   uint32_t n = 0;
@@ -15,7 +16,7 @@ static uint32_t _atoi(const char *sp) {
   return n;
 }
 
-DataStore store(SPIFFS, rtc_clock);
+DataStore store(SD, rtc_clock);
 SerialBLEInterface serial_interface;
 
 UITask ui_task(&board, &serial_interface);
@@ -48,7 +49,17 @@ void setup() {
 
   fast_rng.begin(radio_get_rng_seed());
 
-  SPIFFS.begin(true);
+  // SPI setup done in radio.std_init so not calling SPI.begin
+  if (!SD.begin(PIN_SD_CS, SPI)) {
+    if (disp) {
+      disp->startFrame();
+      disp->setTextSize(2);
+      disp->drawTextCentered(disp->width() / 2, 28, "Insert SD Card");
+      disp->endFrame();
+    }
+    halt();
+  }
+
   store.begin();
   the_mesh.begin(true);
 

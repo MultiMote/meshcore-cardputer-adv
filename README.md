@@ -36,11 +36,11 @@ Currently implemented (companion):
 - BLE connection
 - GPS support
 - GPS power management with CAS commands (Cap LoRa-1262 does not have a GPS switch pin)
+- Store data to SD card
 
 
 Todo:
 
-- Store data to SD card (radio stops working for some reason when using SD instead of SPIFFS)
 - Keyboard support
 - More complex UI with ability to change settings, write messages
 - Speaker

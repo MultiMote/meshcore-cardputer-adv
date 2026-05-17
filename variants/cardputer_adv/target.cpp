@@ -5,8 +5,7 @@
 
 CardputerAdvBoard board;
 m5::PI4IOE5V6408_Class ioe(0x43, 400000, &m5::In_I2C);
-static SPIClass spi;
-RADIO_CLASS radio = new Module(P_LORA_NSS, P_LORA_DIO_1, P_LORA_RESET, P_LORA_BUSY, spi);
+RADIO_CLASS radio = new Module(P_LORA_NSS, P_LORA_DIO_1, P_LORA_RESET, P_LORA_BUSY, SPI);
 WRAPPER_CLASS radio_driver(radio, board);
 ESP32RTCClock rtc_clock;
 
@@ -27,7 +26,7 @@ bool radio_init() {
     MESH_DEBUG_PRINTLN("Cap LoRa-1262 not found");
   }
 
-  return radio.std_init(&spi);
+  return radio.std_init(&SPI);
 }
 
 uint32_t radio_get_rng_seed() {
