@@ -58,16 +58,9 @@ void setup() {
 
 #if ENV_INCLUDE_GPS == 1
   the_mesh.applyGpsPrefs();
-  // todo:
-  // cap lora-1262 do not have gps power management and gps drains battery even when not in use
-  // PCAS12 command can disable gps for 1-65535 seconds
-  // we can use this command for power management
-  // this example will disable gps for 60 seconds
-  // Serial1.print("$PCAS12,60*28\r\n");
 #endif
 
-  ui_task.begin(disp, &sensors,
-                the_mesh.getNodePrefs()); // still want to pass this in as dependency, as prefs might be moved
+  ui_task.begin(disp, &sensors, the_mesh.getNodePrefs());
 }
 
 void loop() {

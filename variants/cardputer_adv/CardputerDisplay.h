@@ -1,11 +1,37 @@
 #pragma once
 
+#include <M5Cardputer.h>
 #include <helpers/ui/DisplayDriver.h>
+
 
 class CardputerDisplay : public DisplayDriver {
 private:
   bool _isOn;
-  uint16_t _color;
+  uint16_t _lastColor = 0;
+  M5GFX &LCD = M5Cardputer.Display;
+
+  inline uint16_t convertColor(Color c) {
+    {
+      switch (c) {
+      case DARK:
+        return TFT_BLACK;
+      case LIGHT:
+        return TFT_WHITE;
+      case RED:
+        return TFT_RED;
+      case GREEN:
+        return TFT_GREEN;
+      case BLUE:
+        return TFT_BLUE;
+      case YELLOW:
+        return TFT_YELLOW;
+      case ORANGE:
+        return TFT_ORANGE;
+      default:
+        return TFT_WHITE;
+      }
+    }
+  }
 
 public:
   CardputerDisplay() : DisplayDriver(240, 135) { _isOn = false; }
