@@ -66,7 +66,6 @@ void setup() {
 void loop() {
   the_mesh.loop();
   sensors.loop();
-  board.loop();
   ui_task.loop();
   rtc_clock.tick();
 }

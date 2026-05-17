@@ -28,8 +28,6 @@ public:
     }
   }
 
-  void loop() { M5Cardputer.update(); }
-
   // Copied from HeltecV4Board, not sure if this applies to Cardputer
   void enterDeepSleep(uint32_t secs, int pin_wake_btn = -1) {
     esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
