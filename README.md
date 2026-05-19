@@ -37,11 +37,11 @@ Currently implemented (companion):
 - GPS support
 - GPS power management with CAS commands (Cap LoRa-1262 does not have a GPS switch pin)
 - Store data to SD card
+- Basic speaker support (keyboard/message beeps)
+- Basic keyboard support (left/right/enter)
 
 
 Todo:
 
-- Keyboard support
 - More complex UI with ability to change settings, write messages
-- Speaker
 - Find a way to include MeshCore as submodule in this repository and build it from here
