@@ -45,3 +45,4 @@ Todo:
 
 - More complex UI with ability to change settings, write messages
 - Find a way to include MeshCore as submodule in this repository and build it from here
+- GPS will turn on again after 18 hours (max standby time is 65535 seconds)
