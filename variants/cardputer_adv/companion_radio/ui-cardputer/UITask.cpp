@@ -49,11 +49,11 @@ void UITask::notify(UIEventType t) {
   switch (t) {
   case UIEventType::contactMessage:
   case UIEventType::channelMessage:
-  case UIEventType::ack:
   case UIEventType::roomMessage:
-  case UIEventType::newContactMessage:
     notifyBeep();
     break;
+  case UIEventType::ack:
+  case UIEventType::newContactMessage:
   case UIEventType::none:
   default:
     break;
@@ -115,7 +115,8 @@ bool UITask::isButtonPressed() const {
 }
 
 void UITask::loop() {
-  M5Cardputer.update();
+  M5Cardputer.Keyboard.updateKeyList();
+  M5Cardputer.Keyboard.updateKeysState();
 
   char c = 0;
   if (M5Cardputer.Keyboard.isChange()) {

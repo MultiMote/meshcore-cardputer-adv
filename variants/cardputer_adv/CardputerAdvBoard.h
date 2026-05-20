@@ -13,8 +13,12 @@ public:
     ESP32Board::begin();
 
     auto cfg = M5.config();
+    cfg.internal_mic = false;
+    cfg.internal_imu = false;
+    cfg.pmic_button = false;
+    
     M5Cardputer.begin(cfg, true);
-    // M5Cardputer.Keyboard.begin();
+    M5Cardputer.Speaker.begin();
 
     esp_reset_reason_t reason = esp_reset_reason();
     if (reason == ESP_RST_DEEPSLEEP) {
