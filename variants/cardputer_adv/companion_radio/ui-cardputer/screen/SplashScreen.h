@@ -1,4 +1,4 @@
-#include "../UITask.h"
+#include "../CardputerUITask.h"
 #include "../icons.h"
 
 #include <MyMesh.h>
@@ -7,12 +7,12 @@
 #define BOOT_SCREEN_MILLIS 3000 // 3 seconds
 
 class SplashScreen : public UIScreen {
-  UITask *_task;
+  CardputerUITask *_task;
   unsigned long dismiss_after;
   char _version_info[12];
 
 public:
-  SplashScreen(UITask *task) : _task(task) {
+  SplashScreen(CardputerUITask *task) : _task(task) {
     // strip off dash and commit hash by changing dash to null terminator
     // e.g: v1.2.3-abcdef -> v1.2.3
     const char *ver = FIRMWARE_VERSION;

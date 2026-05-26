@@ -1,11 +1,11 @@
-#include "../UITask.h"
+#include "../CardputerUITask.h"
 #include "../icons.h"
 
 #include <MyMesh.h>
 
 
 class MsgPreviewScreen : public UIScreen {
-  UITask *_task;
+  CardputerUITask *_task;
   mesh::RTCClock *_rtc;
 
   struct MsgEntry {
@@ -19,7 +19,7 @@ class MsgPreviewScreen : public UIScreen {
   MsgEntry unread[MAX_UNREAD_MSGS];
 
 public:
-  MsgPreviewScreen(UITask *task, mesh::RTCClock *rtc) : _task(task), _rtc(rtc) { num_unread = 0; }
+  MsgPreviewScreen(CardputerUITask *task, mesh::RTCClock *rtc) : _task(task), _rtc(rtc) { num_unread = 0; }
 
   void addPreview(uint8_t path_len, const char *from_name, const char *msg) {
     head = (head + 1) % MAX_UNREAD_MSGS;

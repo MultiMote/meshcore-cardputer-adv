@@ -16,25 +16,19 @@
 
 #include "AbstractUITask.h"
 #include "NodePrefs.h"
+#include "CardputerAdvBoard.h"
 
-class UITask : public AbstractUITask {
+class CardputerUITask : public AbstractUITask {
   DisplayDriver* _display;
   SensorManager* _sensors;
-#ifdef PIN_BUZZER
-  genericBuzzer buzzer;
-#endif
-
+  CardputerAdvBoard* _board;
   unsigned long _next_refresh, _auto_off;
+  bool _sleep_enabled;
   NodePrefs* _node_prefs;
   char _alert[80];
   unsigned long _alert_expiry;
   int _msgcount;
   unsigned long ui_started_at, next_batt_chck;
-#ifdef PIN_STATUS_LED
-  int led_state = 0;
-  int next_led_change = 0;
-  int last_led_increment = 0;
-#endif
 
   UIScreen* splash;
   UIScreen* home;
@@ -53,9 +47,10 @@ class UITask : public AbstractUITask {
 
 public:
 
-  UITask(mesh::MainBoard* board, BaseSerialInterface* serial) : AbstractUITask(board, serial), _display(NULL), _sensors(NULL) {
+  CardputerUITask(CardputerAdvBoard* board, BaseSerialInterface* serial) : AbstractUITask(board, serial), _display(NULL), _sensors(NULL), _board(board) {
     next_batt_chck = _next_refresh = 0;
     ui_started_at = 0;
+    _sleep_enabled = false;
     curr = NULL;
   }
   void begin(DisplayDriver* display, SensorManager* sensors, NodePrefs* node_prefs);
@@ -75,6 +70,9 @@ public:
   void toggleGPS();
   void keyboardBeep();
   void notifyBeep();
+  unsigned long getAutoOffTime() const { return _auto_off; }
+  bool isSleepEnabled() const { return _sleep_enabled; }
+  void setSleepEnabled(bool enabled) { _sleep_enabled = enabled; }
 
 
   // from AbstractUITask

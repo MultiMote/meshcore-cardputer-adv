@@ -39,7 +39,12 @@ Currently implemented (companion):
 - Store data to SD card
 - Basic speaker support (keyboard/message beeps)
 - Basic keyboard support (left/right/enter)
-
+- Light sleep (testing)
+   * Power consumption drops to ~52mA after display off
+   * Can be enabled enabled with `s` key
+   * State is not persisted
+   * Bluetooth connection is not preserved
+   * Need some work to sleep peripherals correctly, audio codec clicks after wake for example
 
 Todo:
 

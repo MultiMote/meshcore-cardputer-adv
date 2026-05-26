@@ -1,8 +1,14 @@
-#include "MyMesh.h"
-#include "UITask.h"
+#if CUSTOM_CARDPUTER_UI
+  #include "CardputerUITask.h"
+  #define TASK_CLASS CardputerUITask
+#else
+  #include "UITask.h"
+  #define TASK_CLASS UITask
+#endif
 
 #include <Arduino.h>
 #include <Mesh.h>
+#include <MyMesh.h>
 #include <helpers/esp32/SerialBLEInterface.h>
 
 static uint32_t _atoi(const char *sp) {
@@ -24,7 +30,7 @@ DataStore store(SPIFFS, rtc_clock);
 
 SerialBLEInterface serial_interface;
 
-UITask ui_task(&board, &serial_interface);
+TASK_CLASS ui_task(&board, &serial_interface);
 
 StdRNG fast_rng;
 SimpleMeshTables tables;
@@ -88,4 +94,10 @@ void loop() {
   sensors.loop();
   ui_task.loop();
   rtc_clock.tick();
+
+#if CUSTOM_CARDPUTER_UI
+  if (ui_task.isSleepEnabled() && millis() > ui_task.getAutoOffTime()) {
+    board.enterLightSleep();
+  }
+#endif
 }

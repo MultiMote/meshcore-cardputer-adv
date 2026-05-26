@@ -16,7 +16,7 @@ public:
     cfg.internal_mic = false;
     cfg.internal_imu = false;
     cfg.pmic_button = false;
-    
+
     M5Cardputer.begin(cfg, true);
     M5Cardputer.Speaker.begin();
 
@@ -32,7 +32,6 @@ public:
     }
   }
 
-  // Copied from HeltecV4Board, not sure if this applies to Cardputer
   void enterDeepSleep(uint32_t secs, int pin_wake_btn = -1) {
     esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
 
@@ -56,6 +55,17 @@ public:
 
     // Finally set ESP32 into sleep
     esp_deep_sleep_start(); // CPU halts here and never returns!
+  }
+
+  void enterLightSleep() {
+    esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
+    // LoRa have active-high interrupt output, keyboard and user button have active-low, 
+    // so we have to use both ext0 and ext1
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)P_LORA_DIO_1, 1); // LoRa
+    esp_sleep_enable_ext1_wakeup((1L << PIN_KEYBOARD_INT) | (1L << PIN_USER_BTN),
+                                 ESP_EXT1_WAKEUP_ANY_LOW); // keyboard + G0
+    esp_light_sleep_start();
+    // also uart seems to be broken after sleep
   }
 
   void powerOff() override { enterDeepSleep(0); }

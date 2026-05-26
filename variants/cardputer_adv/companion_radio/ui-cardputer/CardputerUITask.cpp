@@ -1,13 +1,14 @@
-#include "UITask.h"
+#include "CardputerUITask.h"
 
-#include "MyMesh.h"
 #include "screen/HomeScreen.h"
 #include "screen/MsgPreviewScreen.h"
 #include "screen/SplashScreen.h"
 #include "target.h"
 
 #include <M5Cardputer.h>
+#include <MyMesh.h>
 #include <helpers/TxtDataHelpers.h>
+
 
 #ifndef AUTO_OFF_MILLIS
   #define AUTO_OFF_MILLIS 15000 // 15 seconds
@@ -15,7 +16,7 @@
 
 #define LONG_PRESS_MILLIS 1200
 
-void UITask::begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs) {
+void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs) {
   _display = display;
   _sensors = sensors;
   _auto_off = millis() + AUTO_OFF_MILLIS;
@@ -39,12 +40,12 @@ void UITask::begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *no
   setCurrScreen(splash);
 }
 
-void UITask::showAlert(const char *text, int duration_millis) {
+void CardputerUITask::showAlert(const char *text, int duration_millis) {
   strcpy(_alert, text);
   _alert_expiry = millis() + duration_millis;
 }
 
-void UITask::notify(UIEventType t) {
+void CardputerUITask::notify(UIEventType t) {
   // todo
   switch (t) {
   case UIEventType::contactMessage:
@@ -60,14 +61,14 @@ void UITask::notify(UIEventType t) {
   }
 }
 
-void UITask::msgRead(int msgcount) {
+void CardputerUITask::msgRead(int msgcount) {
   _msgcount = msgcount;
   if (msgcount == 0) {
     gotoHomeScreen();
   }
 }
 
-void UITask::newMsg(uint8_t path_len, const char *from_name, const char *text, int msgcount) {
+void CardputerUITask::newMsg(uint8_t path_len, const char *from_name, const char *text, int msgcount) {
   _msgcount = msgcount;
 
   ((MsgPreviewScreen *)msg_preview)->addPreview(path_len, from_name, text);
@@ -84,11 +85,11 @@ void UITask::newMsg(uint8_t path_len, const char *from_name, const char *text, i
   }
 }
 
-void UITask::userLedHandler() {
+void CardputerUITask::userLedHandler() {
   // todo
 }
 
-void UITask::setCurrScreen(UIScreen *c) {
+void CardputerUITask::setCurrScreen(UIScreen *c) {
   curr = c;
   _next_refresh = 100;
 }
@@ -96,7 +97,7 @@ void UITask::setCurrScreen(UIScreen *c) {
 /*
   hardware-agnostic pre-shutdown activity should be done here
 */
-void UITask::shutdown(bool restart) {
+void CardputerUITask::shutdown(bool restart) {
   if (restart) {
     _board->reboot();
   } else {
@@ -106,7 +107,7 @@ void UITask::shutdown(bool restart) {
   }
 }
 
-bool UITask::isButtonPressed() const {
+bool CardputerUITask::isButtonPressed() const {
 #ifdef PIN_USER_BTN
   return user_btn.isPressed();
 #else
@@ -114,7 +115,7 @@ bool UITask::isButtonPressed() const {
 #endif
 }
 
-void UITask::loop() {
+void CardputerUITask::loop() {
   M5Cardputer.Keyboard.updateKeyList();
   M5Cardputer.Keyboard.updateKeysState();
 
@@ -129,6 +130,8 @@ void UITask::loop() {
         c = checkDisplayOn(KEY_RIGHT);
       } else if (status.enter) { // enter
         c = checkDisplayOn(KEY_ENTER);
+      } else if (M5Cardputer.Keyboard.isKeyPressed('s')) { // s
+        c = checkDisplayOn('s');
       }
     }
   } else {
@@ -187,20 +190,6 @@ void UITask::loop() {
   if (millis() > next_batt_chck) {
     uint16_t milliVolts = getBattMilliVolts();
     if (milliVolts > 0 && milliVolts < AUTO_SHUTDOWN_MILLIVOLTS) {
-
-  // show low battery shutdown alert
-  // we should only do this for eink displays, which will persist after power loss
-  #if defined(THINKNODE_M1) || defined(LILYGO_TECHO)
-      if (_display != NULL) {
-        _display->startFrame();
-        _display->setTextSize(2);
-        _display->setColor(DisplayDriver::RED);
-        _display->drawTextCentered(_display->width() / 2, 20, "Low Battery.");
-        _display->drawTextCentered(_display->width() / 2, 40, "Shutting Down!");
-        _display->endFrame();
-      }
-  #endif
-
       shutdown();
     }
     next_batt_chck = millis() + 8000;
@@ -208,7 +197,7 @@ void UITask::loop() {
 #endif
 }
 
-char UITask::checkDisplayOn(char c) {
+char CardputerUITask::checkDisplayOn(char c) {
   if (_display != NULL) {
     if (!_display->isOn()) {
       _display->turnOn(); // turn display on and consume event
@@ -220,7 +209,7 @@ char UITask::checkDisplayOn(char c) {
   return c;
 }
 
-char UITask::handleLongPress(char c) {
+char CardputerUITask::handleLongPress(char c) {
   if (millis() - ui_started_at < 8000) { // long press in first 8 seconds since startup -> CLI/rescue
     the_mesh.enterCLIRescue();
     c = 0; // consume event
@@ -228,13 +217,13 @@ char UITask::handleLongPress(char c) {
   return c;
 }
 
-char UITask::handleDoubleClick(char c) {
+char CardputerUITask::handleDoubleClick(char c) {
   MESH_DEBUG_PRINTLN("UITask: double click triggered");
   checkDisplayOn(c);
   return c;
 }
 
-char UITask::handleTripleClick(char c) {
+char CardputerUITask::handleTripleClick(char c) {
   MESH_DEBUG_PRINTLN("UITask: triple click triggered");
   checkDisplayOn(c);
   toggleBuzzer();
@@ -242,7 +231,7 @@ char UITask::handleTripleClick(char c) {
   return c;
 }
 
-bool UITask::getGPSState() {
+bool CardputerUITask::getGPSState() {
   if (_sensors != NULL) {
     int num = _sensors->getNumSettings();
     for (int i = 0; i < num; i++) {
@@ -254,7 +243,7 @@ bool UITask::getGPSState() {
   return false;
 }
 
-void UITask::toggleGPS() {
+void CardputerUITask::toggleGPS() {
   if (_sensors != NULL) {
     // toggle GPS on/off
     int num = _sensors->getNumSettings();
@@ -278,19 +267,19 @@ void UITask::toggleGPS() {
   }
 }
 
-void UITask::toggleBuzzer() {
+void CardputerUITask::toggleBuzzer() {
   _node_prefs->buzzer_quiet = !_node_prefs->buzzer_quiet;
   the_mesh.savePrefs();
   showAlert(_node_prefs->buzzer_quiet ? "Speaker: OFF" : "Speaker: ON", 800);
   _next_refresh = 0; // trigger refresh
 }
 
-void UITask::keyboardBeep() {
+void CardputerUITask::keyboardBeep() {
   if (!_node_prefs->buzzer_quiet) {
     M5Cardputer.Speaker.tone(4000, 50);
   }
 }
-void UITask::notifyBeep() {
+void CardputerUITask::notifyBeep() {
   if (!_node_prefs->buzzer_quiet) {
     M5Cardputer.Speaker.tone(3000, 100);
   }

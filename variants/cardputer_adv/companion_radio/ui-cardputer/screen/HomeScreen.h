@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../UITask.h"
+#include "../CardputerUITask.h"
 #include "../icons.h"
 
 #include <MyMesh.h>
@@ -26,7 +26,7 @@ class HomeScreen : public UIScreen {
     Count // keep as last
   };
 
-  UITask *_task;
+  CardputerUITask *_task;
   mesh::RTCClock *_rtc;
   SensorManager *_sensors;
   NodePrefs *_node_prefs;
@@ -71,6 +71,12 @@ class HomeScreen : public UIScreen {
       display.drawXbm(iconX - 9, iconY + 1, muted_icon, 8, 8);
       display.setColor(DisplayDriver::GREEN);
     }
+    
+    if (_task->isSleepEnabled()) {
+      display.setColor(DisplayDriver::BLUE);
+      display.drawXbm(iconX - 18, iconY + 1, sleep_icon, 8, 8);
+      display.setColor(DisplayDriver::GREEN);
+    }
   }
 
   CayenneLPP sensors_lpp;
@@ -101,7 +107,7 @@ class HomeScreen : public UIScreen {
   }
 
 public:
-  HomeScreen(UITask *task, mesh::RTCClock *rtc, SensorManager *sensors, NodePrefs *node_prefs)
+  HomeScreen(CardputerUITask *task, mesh::RTCClock *rtc, SensorManager *sensors, NodePrefs *node_prefs)
       : _task(task), _rtc(rtc), _sensors(sensors), _node_prefs(node_prefs), _page(0), _shutdown_init(false),
         sensors_lpp(200) {}
 
@@ -384,6 +390,12 @@ public:
       _shutdown_init = true; // need to wait for button to be released
       return true;
     }
+
+    if (c == 's') {
+      _task->setSleepEnabled(!_task->isSleepEnabled());
+      return true;
+    }
+    
     return false;
   }
 };
