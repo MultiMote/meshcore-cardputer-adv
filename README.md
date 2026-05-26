@@ -1,6 +1,6 @@
 ## MeshCore Cardputer-Adv + Cap LoRa-1262 variant
 
-![photo](images/photo1.jpg) 
+![photo](images/photo1.jpg)
 
 ![photo](images/photo2.jpg)
 
@@ -38,16 +38,20 @@ Currently implemented (companion):
 - GPS power management with CAS commands (Cap LoRa-1262 does not have a GPS switch pin)
 - Store data to SD card
 - Basic speaker support (keyboard/message beeps)
-- Basic keyboard support (left/right/enter)
+- Keyboard support
 - Light sleep (testing)
    * Power consumption drops to ~52mA after display off
    * Can be enabled enabled with `s` key
    * State is not persisted
    * Bluetooth connection is not preserved
+- List channels
+- List contacts
+- Send messages
 
 Todo:
 
 - More complex UI with ability to change settings, write messages
+- Chat history
 - Find a way to include MeshCore as submodule in this repository and build it from here
 - GPS will turn on again after 18 hours (max standby time is 65535 seconds)
 
@@ -63,14 +67,14 @@ I also don't quite understand the decisions made by M5Stack:
 
    ![gps](images/gps.png)
 
-2. To enable radio, you need to set P0 of IO expander IC to high level. Without this, FM8625H remains unpowered. 
+2. To enable radio, you need to set P0 of IO expander IC to high level. Without this, FM8625H remains unpowered.
    Usually radio might be damaged when antenna is not connected during transmission.
 
    ![sw1](images/sw1.png)
 
    ![sw2](images/sw2.png)
 
-3. Cardputer has 1750mAh battery, but PROG resistor of TP4057 is 3.3k. Maximum charge current is 303mA. 
+3. Cardputer has 1750mAh battery, but PROG resistor of TP4057 is 3.3k. Maximum charge current is 303mA.
    Also Cardputer charges only if power switch is on.
 
    ![prog](images/prog.png)

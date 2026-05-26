@@ -9,9 +9,31 @@
   #define UI_RECENT_LIST_SIZE 4
 #endif
 
+#ifndef BATT_MIN_MILLIVOLTS
+  #define BATT_MIN_MILLIVOLTS 3000
+#endif
+#ifndef BATT_MAX_MILLIVOLTS
+  #define BATT_MAX_MILLIVOLTS 4200
+#endif
+
+#ifndef UI_CONTACT_LIST_SIZE
+  #define UI_CONTACT_LIST_SIZE 13
+#endif
+
+#ifndef UI_CHANNEL_LIST_SIZE
+  #define UI_CHANNEL_LIST_SIZE 13
+#endif
+
+#ifndef UI_TEXTBOX_MAX
+  #define UI_TEXTBOX_MAX 150
+#endif
+
 class HomeScreen : public UIScreen {
   enum HomePage {
     FIRST,
+    CHANNELS,
+    CONTACTS,
+    CHAT,
     RECENT,
     RADIO,
     BLUETOOTH,
@@ -33,15 +55,17 @@ class HomeScreen : public UIScreen {
   uint8_t _page;
   bool _shutdown_init;
   AdvertPath recent[UI_RECENT_LIST_SIZE];
+  // char text_box[TEXTBOX_MAX + 1];
+  String text_box;
+
+  int contact_list_idx;
+  int contact_open_idx;
+  int channel_list_idx;
+  int channel_open_idx;
 
   void renderBatteryIndicator(DisplayDriver &display, uint16_t batteryMilliVolts) {
     // Convert millivolts to percentage
-#ifndef BATT_MIN_MILLIVOLTS
-  #define BATT_MIN_MILLIVOLTS 3000
-#endif
-#ifndef BATT_MAX_MILLIVOLTS
-  #define BATT_MAX_MILLIVOLTS 4200
-#endif
+
     const int minMilliVolts = BATT_MIN_MILLIVOLTS;
     const int maxMilliVolts = BATT_MAX_MILLIVOLTS;
     int batteryPercentage = ((batteryMilliVolts - minMilliVolts) * 100) / (maxMilliVolts - minMilliVolts);
@@ -71,7 +95,7 @@ class HomeScreen : public UIScreen {
       display.drawXbm(iconX - 9, iconY + 1, muted_icon, 8, 8);
       display.setColor(DisplayDriver::GREEN);
     }
-    
+
     if (_task->isSleepEnabled()) {
       display.setColor(DisplayDriver::BLUE);
       display.drawXbm(iconX - 18, iconY + 1, sleep_icon, 8, 8);
@@ -108,12 +132,54 @@ class HomeScreen : public UIScreen {
 
 public:
   HomeScreen(CardputerUITask *task, mesh::RTCClock *rtc, SensorManager *sensors, NodePrefs *node_prefs)
-      : _task(task), _rtc(rtc), _sensors(sensors), _node_prefs(node_prefs), _page(0), _shutdown_init(false),
-        sensors_lpp(200) {}
+      : _task(task), _rtc(rtc), _sensors(sensors), _node_prefs(node_prefs), _page(0), sensors_lpp(200) {
+    _page = 0;
+    _shutdown_init = false;
+    contact_list_idx = 0;
+    channel_list_idx = 0;
+    contact_open_idx = -1;
+    channel_open_idx = -1;
+    text_box.reserve(UI_TEXTBOX_MAX);
+  }
 
   void poll() override {
     if (_shutdown_init && !_task->isButtonPressed()) { // must wait for USR button to be released
       _task->shutdown();
+    }
+  }
+
+  void sendChatMessage() {
+    if (text_box.isEmpty()) {
+      return;
+    }
+
+    ContactInfo contact;
+    ChannelDetails chan;
+
+    uint32_t ts = the_mesh.getRTCClock()->getCurrentTime();
+
+    if (contact_open_idx > -1 && the_mesh.getContactByIdx(contact_open_idx, contact) &&
+        contact.type == ADV_TYPE_CHAT) { // direct msg
+      uint32_t est_timeout;
+      uint32_t expected_ack;
+
+      int result = the_mesh.sendMessage(contact, ts, 0, text_box.c_str(), expected_ack, est_timeout);
+
+      if (result != MSG_SEND_FAILED) {
+        text_box.clear();
+      }
+      return;
+    }
+
+    if (channel_open_idx > -1 && the_mesh.getChannel(channel_open_idx, chan) &&
+        strlen(chan.name) > 0) { // channel msg
+
+      bool ok = the_mesh.sendGroupMessage(ts, chan.channel, _node_prefs->node_name, text_box.c_str(),
+                                          text_box.length());
+      if (ok) {
+        text_box.clear();
+      }
+      return;
     }
   }
 
@@ -158,6 +224,65 @@ public:
         sprintf(tmp, "Pin:%d", the_mesh.getBLEPin());
         display.drawTextCentered(display.width() / 2, 43, tmp);
       }
+    } else if (_page == HomePage::CHANNELS) {
+      display.setColor(DisplayDriver::GREEN);
+      display.drawTextCentered(display.width() / 2, 20, "Channels");
+
+      int real_idx = 0;
+      for (int i = 0; i < UI_CHANNEL_LIST_SIZE; i++) {
+        ChannelDetails chan;
+        real_idx = channel_list_idx + i;
+
+        if (!the_mesh.getChannel(real_idx, chan)) {
+          break;
+        }
+
+        if (real_idx == channel_list_idx) {
+          display.drawTextLeftAlign(5, 30 + i * 8, ">");
+        }
+
+        display.drawTextLeftAlign(25, 30 + i * 8, chan.name);
+      }
+    } else if (_page == HomePage::CONTACTS) {
+      display.setColor(DisplayDriver::GREEN);
+      display.drawTextCentered(display.width() / 2, 20, "Contacts");
+      int real_idx = 0;
+      for (int i = 0; i < UI_CONTACT_LIST_SIZE; i++) {
+        ContactInfo contact;
+        real_idx = contact_list_idx + i;
+
+        if (!the_mesh.getContactByIdx(real_idx, contact)) {
+          break;
+        }
+
+        if (real_idx == contact_list_idx) {
+          display.drawTextLeftAlign(5, 30 + i * 8, ">");
+        }
+
+        if (contact.type == ADV_TYPE_CHAT) {
+          display.drawTextLeftAlign(15, 30 + i * 8, "C");
+        }
+
+        display.drawTextLeftAlign(25, 30 + i * 8, contact.name);
+      }
+    } else if (_page == HomePage::CHAT) {
+      display.setColor(DisplayDriver::GREEN);
+      ContactInfo contact;
+      ChannelDetails chan;
+
+      if (contact_open_idx < 0 && channel_open_idx < 0) {
+        display.drawTextCentered(display.width() / 2, 20, "Contact/Channel not selected");
+      } else if (the_mesh.getContactByIdx(contact_open_idx, contact)) {
+        display.drawTextCentered(display.width() / 2, 20, contact.name);
+      } else if (the_mesh.getChannel(channel_open_idx, chan)) {
+        display.drawTextCentered(display.width() / 2, 20, chan.name);
+      }
+
+      display.drawRect(1, display.height() - 15, display.width() - 1, 15);
+      display.setColor(DisplayDriver::LIGHT);
+      display.drawTextLeftAlign(5, display.height() - 10, text_box.c_str()); // todo limit
+      display.setColor(DisplayDriver::GREEN);
+
     } else if (_page == HomePage::RECENT) {
       the_mesh.getRecentlyHeard(recent, UI_RECENT_LIST_SIZE);
       display.setColor(DisplayDriver::GREEN);
@@ -345,6 +470,81 @@ public:
   }
 
   bool handleInput(char c) override {
+    MESH_DEBUG_PRINT("kb %d '%c' isprint %d", c, c, isprint(c));
+
+    if (_page == HomePage::CONTACTS) {
+      if (c == KEY_UP) {
+        if (contact_list_idx == 0) {
+          contact_list_idx = the_mesh.getNumContacts() - 1;
+        } else {
+          contact_list_idx--;
+        }
+        return true;
+      }
+      if (c == KEY_DOWN) {
+        if (contact_list_idx < the_mesh.getNumContacts() - 1) {
+          contact_list_idx++;
+        } else {
+          contact_list_idx = 0;
+        }
+        return true;
+      }
+      if (c == '\n') {
+        ContactInfo contact;
+        if (the_mesh.getContactByIdx(contact_list_idx, contact) && contact.type == ADV_TYPE_CHAT) {
+          contact_open_idx = contact_list_idx;
+          channel_open_idx = -1;
+          _page = HomePage::CHAT;
+          return true;
+        }
+      }
+    }
+
+    if (_page == HomePage::CHANNELS) {
+      if (c == KEY_UP) {
+        if (channel_list_idx == 0) {
+          channel_list_idx = MAX_GROUP_CHANNELS - 1;
+        } else {
+          channel_list_idx--;
+        }
+        return true;
+      }
+      if (c == KEY_DOWN) {
+        if (channel_list_idx < MAX_GROUP_CHANNELS - 1) {
+          channel_list_idx++;
+        } else {
+          channel_list_idx = 0;
+        }
+        return true;
+      }
+      if (c == '\n') {
+        ChannelDetails chan;
+        if (the_mesh.getChannel(channel_list_idx, chan) && strlen(chan.name) > 0) {
+          channel_open_idx = channel_list_idx;
+          contact_open_idx = -1;
+          _page = HomePage::CHAT;
+          return true;
+        }
+      }
+    }
+
+    if (_page == HomePage::CHAT) {
+      if (c == KEY_BACKSPACE && !text_box.isEmpty()) {
+        text_box.remove(text_box.length() - 1);
+        return true;
+      }
+
+      if (c == '\n') {
+        sendChatMessage();
+        return true;
+      }
+
+      if (isprint(c)) {
+        text_box += c;
+        return true;
+      }
+    }
+
     if (c == KEY_LEFT || c == KEY_PREV) {
       _page = (_page + HomePage::Count - 1) % HomePage::Count;
       return true;
@@ -356,7 +556,7 @@ public:
       }
       return true;
     }
-    if (c == KEY_ENTER && _page == HomePage::BLUETOOTH) {
+    if (c == '\n' && _page == HomePage::BLUETOOTH) {
       if (_task->isSerialEnabled()) { // toggle Bluetooth on/off
         _task->disableSerial();
       } else {
@@ -364,7 +564,7 @@ public:
       }
       return true;
     }
-    if (c == KEY_ENTER && _page == HomePage::ADVERT) {
+    if (c == '\n' && _page == HomePage::ADVERT) {
       _task->notify(UIEventType::ack);
       if (the_mesh.advert()) {
         _task->showAlert("Advert sent!", 1000);
@@ -374,19 +574,19 @@ public:
       return true;
     }
 #if ENV_INCLUDE_GPS == 1
-    if (c == KEY_ENTER && _page == HomePage::GPS) {
+    if (c == '\n' && _page == HomePage::GPS) {
       _task->toggleGPS();
       return true;
     }
 #endif
 #if UI_SENSORS_PAGE == 1
-    if (c == KEY_ENTER && _page == HomePage::SENSORS) {
+    if (c == '\n' && _page == HomePage::SENSORS) {
       _task->toggleGPS();
       next_sensors_refresh = 0;
       return true;
     }
 #endif
-    if (c == KEY_ENTER && _page == HomePage::SHUTDOWN) {
+    if (c == '\n' && _page == HomePage::SHUTDOWN) {
       _shutdown_init = true; // need to wait for button to be released
       return true;
     }
@@ -395,7 +595,7 @@ public:
       _task->setSleepEnabled(!_task->isSleepEnabled());
       return true;
     }
-    
+
     return false;
   }
 };

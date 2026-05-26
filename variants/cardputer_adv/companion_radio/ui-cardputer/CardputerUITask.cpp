@@ -46,7 +46,6 @@ void CardputerUITask::showAlert(const char *text, int duration_millis) {
 }
 
 void CardputerUITask::notify(UIEventType t) {
-  // todo
   switch (t) {
   case UIEventType::contactMessage:
   case UIEventType::channelMessage:
@@ -124,14 +123,22 @@ void CardputerUITask::loop() {
     if (M5Cardputer.Keyboard.isPressed()) {
       Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
 
-      if (M5Cardputer.Keyboard.isKeyPressed(',')) { // left
+      if (M5Cardputer.Keyboard.isKeyPressed(',') && !status.alt) { // left
         c = checkDisplayOn(KEY_LEFT);
-      } else if (M5Cardputer.Keyboard.isKeyPressed('/')) { // right
+      } else if ((M5Cardputer.Keyboard.isKeyPressed('/') && !status.alt) || status.tab) { // right
         c = checkDisplayOn(KEY_RIGHT);
+      } else if (M5Cardputer.Keyboard.isKeyPressed(';') && !status.alt) { // up
+        c = checkDisplayOn(KEY_UP);
+      }else if (M5Cardputer.Keyboard.isKeyPressed('.') && !status.alt) { // down
+        c = checkDisplayOn(KEY_DOWN);
       } else if (status.enter) { // enter
-        c = checkDisplayOn(KEY_ENTER);
-      } else if (M5Cardputer.Keyboard.isKeyPressed('s')) { // s
-        c = checkDisplayOn('s');
+        c = checkDisplayOn('\n');
+      } else if (status.del) { // backspace
+        c = checkDisplayOn(KEY_BACKSPACE);
+      // } else if (status.space) { // space
+      //   c = checkDisplayOn(' ');
+      } else if(status.word.size() > 0) {
+        c = checkDisplayOn(status.word.at(0));
       }
     }
   } else {
@@ -140,7 +147,7 @@ void CardputerUITask::loop() {
     if (ev == BUTTON_EVENT_CLICK) {
       c = checkDisplayOn(KEY_NEXT);
     } else if (ev == BUTTON_EVENT_LONG_PRESS) {
-      c = handleLongPress(KEY_ENTER);
+      c = handleLongPress('\n');
     } else if (ev == BUTTON_EVENT_DOUBLE_CLICK) {
       c = handleDoubleClick(KEY_PREV);
     } else if (ev == BUTTON_EVENT_TRIPLE_CLICK) {

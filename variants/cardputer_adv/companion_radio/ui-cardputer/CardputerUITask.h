@@ -14,6 +14,7 @@
 
 #define PRESS_LABEL "long press / Enter"
 
+
 #include "AbstractUITask.h"
 #include "NodePrefs.h"
 #include "CardputerAdvBoard.h"
@@ -61,7 +62,7 @@ public:
   bool hasDisplay() const { return _display != NULL; }
   bool isButtonPressed() const;
 
-  bool isBuzzerQuiet() { 
+  bool isBuzzerQuiet() {
     return _node_prefs->buzzer_quiet;
   }
 
