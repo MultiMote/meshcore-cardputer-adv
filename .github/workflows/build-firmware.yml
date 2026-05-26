@@ -1,6 +1,8 @@
 name: Build firmware
 
-on: [push]
+on:
+  push:
+  workflow_dispatch:
 
 env:
   MESHCORE_VERSION: v1.15.0
@@ -18,11 +20,11 @@ jobs:
       
       - uses: actions/checkout@v6
         with:
-          path: Variant
+          path: meshcore-cardputer-adv
 
       - name: Copy variant
         run: |
-          cp -r Variant/variants/cardputer_adv MeshCore/variants/
+          cp -r meshcore-cardputer-adv/variants/cardputer_adv MeshCore/variants/
 
       - uses: actions/cache@v4
         with:
@@ -49,8 +51,8 @@ jobs:
         run: /usr/bin/env bash build.sh build-firmware cardputer_adv_companion_radio_ble
         working-directory: MeshCore
 
-      - name: Update release
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: latest
-          files: MeshCore/out/*
+      - name: Update GitHub release
+        if: github.repository == 'MultiMote/meshcore-cardputer-adv'
+        run: gh release upload latest MeshCore/out/* --repo MultiMote/meshcore-cardputer-adv --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
