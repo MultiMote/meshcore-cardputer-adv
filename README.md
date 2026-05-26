@@ -44,7 +44,6 @@ Currently implemented (companion):
    * Can be enabled enabled with `s` key
    * State is not persisted
    * Bluetooth connection is not preserved
-   * Need some work to sleep peripherals correctly, audio codec clicks after wake for example
 
 Todo:
 
