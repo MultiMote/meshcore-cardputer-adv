@@ -6,9 +6,9 @@
 
 class CardputerDisplay : public DisplayDriver {
 private:
-  bool _isOn;
+  bool _isOn = false;
   uint16_t _lastColor = 0;
-  M5GFX &LCD = M5Cardputer.Display;
+  LGFX_Sprite canvas = LGFX_Sprite(&M5Cardputer.Display);
 
   inline uint16_t convertColor(Color c) {
     {
@@ -34,7 +34,7 @@ private:
   }
 
 public:
-  CardputerDisplay() : DisplayDriver(240, 135) { _isOn = false; }
+  CardputerDisplay() : DisplayDriver(240, 135) {}
   bool begin();
 
   bool isOn() override { return _isOn; };

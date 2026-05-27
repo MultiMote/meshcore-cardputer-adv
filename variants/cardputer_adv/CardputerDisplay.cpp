@@ -1,71 +1,73 @@
 #include "CardputerDisplay.h"
 
 bool CardputerDisplay::begin() {
-  LCD.setBaseColor(TFT_BLACK);
+  M5Cardputer.Display.setBaseColor(TFT_BLACK);
 
-  bool success = LCD.begin();
+  bool success = M5Cardputer.Display.begin();
 
   if (!success) {
     return false;
   }
 
-  LCD.setTextColor(TFT_WHITE, TFT_BLACK);
+  canvas.createSprite(M5Cardputer.Display.width(), M5Cardputer.Display.height());
+  canvas.setTextColor(TFT_WHITE, TFT_BLACK);
+  canvas.setBaseColor(TFT_BLACK);
+
   return true;
 }
 
 void CardputerDisplay::turnOn() {
   _isOn = true;
-  LCD.wakeup();
+  M5Cardputer.Display.wakeup();
 }
 
 void CardputerDisplay::turnOff() {
   _isOn = false;
-  LCD.sleep();
+  M5Cardputer.Display.sleep();
 }
 
 void CardputerDisplay::clear() {
-  LCD.clear();
+  canvas.clear();
 }
 
 void CardputerDisplay::startFrame(Color bkg) {
-  LCD.startWrite();
-  LCD.clear(convertColor(bkg));
+  canvas.clear(convertColor(bkg));
 }
 
 void CardputerDisplay::endFrame() {
-  LCD.endWrite();
+  canvas.pushSprite(0, 0);
 }
 
 void CardputerDisplay::setTextSize(int sz) {
-  LCD.setTextSize(sz);
+  canvas.setTextSize(sz);
 }
 
 void CardputerDisplay::setColor(Color c) {
   _lastColor = convertColor(c);
-  LCD.setColor(_lastColor);
-  LCD.setTextColor(_lastColor);
+  canvas.setColor(_lastColor);
+  canvas.setTextColor(_lastColor);
 }
 
 void CardputerDisplay::setCursor(int x, int y) {
-  LCD.setCursor(x, y);
+  canvas.setCursor(x, y);
 }
 
 void CardputerDisplay::print(const char *str) {
-  LCD.print(str);
+  canvas.print(str);
 }
 
 void CardputerDisplay::fillRect(int x, int y, int w, int h) {
-  LCD.fillRect(x, y, w, h);
+  canvas.fillRect(x, y, w, h);
 }
 
 void CardputerDisplay::drawRect(int x, int y, int w, int h) {
-  LCD.drawRect(x, y, w, h);
+  canvas.drawRect(x, y, w, h);
 }
 
 void CardputerDisplay::drawXbm(int x, int y, const uint8_t *bits, int w, int h) {
-  LCD.drawBitmap(x, y, bits, w, h, _lastColor);
+  canvas.drawBitmap(x, y, bits, w, h, _lastColor);
 }
 
 uint16_t CardputerDisplay::getTextWidth(const char *str) {
-  return LCD.textWidth(str);
+  return canvas.textWidth(str);
 }
