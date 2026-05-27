@@ -1,6 +1,6 @@
 #include "CardputerUITask.h"
 
-#include "screen/HomeScreen.h"
+#include "screen/MainScreen.h"
 #include "screen/MsgPreviewScreen.h"
 #include "screen/SplashScreen.h"
 #include "target.h"
@@ -8,13 +8,6 @@
 #include <M5Cardputer.h>
 #include <MyMesh.h>
 #include <helpers/TxtDataHelpers.h>
-
-
-#ifndef AUTO_OFF_MILLIS
-  #define AUTO_OFF_MILLIS 15000 // 15 seconds
-#endif
-
-#define LONG_PRESS_MILLIS 1200
 
 void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs) {
   _display = display;
@@ -35,7 +28,7 @@ void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, Node
   _alert_expiry = 0;
 
   splash = new SplashScreen(this);
-  home = new HomeScreen(this, &rtc_clock, sensors, node_prefs);
+  home = new MainScreen(this, &rtc_clock, sensors, node_prefs);
   msg_preview = new MsgPreviewScreen(this, &rtc_clock);
   setCurrScreen(splash);
 }
@@ -129,15 +122,15 @@ void CardputerUITask::loop() {
         c = checkDisplayOn(KEY_RIGHT);
       } else if (M5Cardputer.Keyboard.isKeyPressed(';') && !status.alt) { // up
         c = checkDisplayOn(KEY_UP);
-      }else if (M5Cardputer.Keyboard.isKeyPressed('.') && !status.alt) { // down
+      } else if (M5Cardputer.Keyboard.isKeyPressed('.') && !status.alt) { // down
         c = checkDisplayOn(KEY_DOWN);
       } else if (status.enter) { // enter
-        c = checkDisplayOn('\n');
+        c = checkDisplayOn(ASCII_CTRL_LF);
       } else if (status.del) { // backspace
-        c = checkDisplayOn(KEY_BACKSPACE);
-      // } else if (status.space) { // space
-      //   c = checkDisplayOn(' ');
-      } else if(status.word.size() > 0) {
+        c = checkDisplayOn(ASCII_CTRL_BACKSPACE);
+        // } else if (status.space) { // space
+        //   c = checkDisplayOn(' ');
+      } else if (status.word.size() > 0) {
         c = checkDisplayOn(status.word.at(0));
       }
     }
@@ -147,7 +140,7 @@ void CardputerUITask::loop() {
     if (ev == BUTTON_EVENT_CLICK) {
       c = checkDisplayOn(KEY_NEXT);
     } else if (ev == BUTTON_EVENT_LONG_PRESS) {
-      c = handleLongPress('\n');
+      c = handleLongPress(ASCII_CTRL_LF);
     } else if (ev == BUTTON_EVENT_DOUBLE_CLICK) {
       c = handleDoubleClick(KEY_PREV);
     } else if (ev == BUTTON_EVENT_TRIPLE_CLICK) {

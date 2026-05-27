@@ -86,7 +86,7 @@ public:
       }
       return true;
     }
-    if (c == '\n') {
+    if (c == ASCII_CTRL_LF) {
       num_unread = 0; // clear unread queue
       _task->gotoHomeScreen();
       return true;

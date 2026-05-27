@@ -28,8 +28,11 @@
   #define UI_TEXTBOX_MAX 150
 #endif
 
-class HomeScreen : public UIScreen {
-  enum HomePage {
+#define PRESS_LABEL "long press / Enter"
+
+
+class MainScreen : public UIScreen {
+  enum MainScreenPage {
     FIRST,
     CHANNELS,
     CONTACTS,
@@ -130,8 +133,22 @@ class HomeScreen : public UIScreen {
     }
   }
 
+  int find_num_of_channels() { // not sure if there is no gaps
+    ChannelDetails chan;
+    int num = 0;
+
+    for (int i = 0; i < MAX_GROUP_CHANNELS; i++) {
+      if (!the_mesh.getChannel(i, chan) || strlen(chan.name) == 0) {
+        break;
+      }
+      num++;
+    }
+
+    return num;
+  }
+
 public:
-  HomeScreen(CardputerUITask *task, mesh::RTCClock *rtc, SensorManager *sensors, NodePrefs *node_prefs)
+  MainScreen(CardputerUITask *task, mesh::RTCClock *rtc, SensorManager *sensors, NodePrefs *node_prefs)
       : _task(task), _rtc(rtc), _sensors(sensors), _node_prefs(node_prefs), _page(0), sensors_lpp(200) {
     _page = 0;
     _shutdown_init = false;
@@ -198,8 +215,8 @@ public:
 
     // curr page indicator
     int y = 14;
-    int x = display.width() / 2 - 5 * (HomePage::Count - 1);
-    for (uint8_t i = 0; i < HomePage::Count; i++, x += 10) {
+    int x = display.width() / 2 - 5 * (MainScreenPage::Count - 1);
+    for (uint8_t i = 0; i < MainScreenPage::Count; i++, x += 10) {
       if (i == _page) {
         display.fillRect(x - 1, y - 1, 3, 3);
       } else {
@@ -207,7 +224,7 @@ public:
       }
     }
 
-    if (_page == HomePage::FIRST) {
+    if (_page == MainScreenPage::FIRST) {
       display.setColor(DisplayDriver::YELLOW);
       display.setTextSize(2);
       sprintf(tmp, "MSG: %d", _task->getMsgCount());
@@ -224,38 +241,44 @@ public:
         sprintf(tmp, "Pin:%d", the_mesh.getBLEPin());
         display.drawTextCentered(display.width() / 2, 43, tmp);
       }
-    } else if (_page == HomePage::CHANNELS) {
+    } else if (_page == MainScreenPage::CHANNELS) {
       display.setColor(DisplayDriver::GREEN);
       display.drawTextCentered(display.width() / 2, 20, "Channels");
 
       int real_idx = 0;
+      int list_page = channel_list_idx / UI_CHANNEL_LIST_SIZE;
+      int list_idx = channel_list_idx % UI_CHANNEL_LIST_SIZE;
+
       for (int i = 0; i < UI_CHANNEL_LIST_SIZE; i++) {
         ChannelDetails chan;
-        real_idx = channel_list_idx + i;
+        real_idx = list_page * UI_CHANNEL_LIST_SIZE + i;
 
-        if (!the_mesh.getChannel(real_idx, chan)) {
+        if (!the_mesh.getChannel(real_idx, chan) || strlen(chan.name) == 0) {
           break;
         }
 
-        if (real_idx == channel_list_idx) {
+        if (i == list_idx) {
           display.drawTextLeftAlign(5, 30 + i * 8, ">");
         }
 
         display.drawTextLeftAlign(25, 30 + i * 8, chan.name);
       }
-    } else if (_page == HomePage::CONTACTS) {
+    } else if (_page == MainScreenPage::CONTACTS) {
       display.setColor(DisplayDriver::GREEN);
       display.drawTextCentered(display.width() / 2, 20, "Contacts");
       int real_idx = 0;
+      int list_page = contact_list_idx / UI_CONTACT_LIST_SIZE;
+      int list_idx = contact_list_idx % UI_CONTACT_LIST_SIZE;
+
       for (int i = 0; i < UI_CONTACT_LIST_SIZE; i++) {
         ContactInfo contact;
-        real_idx = contact_list_idx + i;
+        real_idx = list_page * UI_CONTACT_LIST_SIZE + i;
 
         if (!the_mesh.getContactByIdx(real_idx, contact)) {
           break;
         }
 
-        if (real_idx == contact_list_idx) {
+        if (i == list_idx) {
           display.drawTextLeftAlign(5, 30 + i * 8, ">");
         }
 
@@ -265,7 +288,7 @@ public:
 
         display.drawTextLeftAlign(25, 30 + i * 8, contact.name);
       }
-    } else if (_page == HomePage::CHAT) {
+    } else if (_page == MainScreenPage::CHAT) {
       display.setColor(DisplayDriver::GREEN);
       ContactInfo contact;
       ChannelDetails chan;
@@ -283,7 +306,7 @@ public:
       display.drawTextLeftAlign(5, display.height() - 10, text_box.c_str()); // todo limit
       display.setColor(DisplayDriver::GREEN);
 
-    } else if (_page == HomePage::RECENT) {
+    } else if (_page == MainScreenPage::RECENT) {
       the_mesh.getRecentlyHeard(recent, UI_RECENT_LIST_SIZE);
       display.setColor(DisplayDriver::GREEN);
       int y = 20;
@@ -308,7 +331,7 @@ public:
         display.setCursor(display.width() - timestamp_width - 1, y);
         display.print(tmp);
       }
-    } else if (_page == HomePage::RADIO) {
+    } else if (_page == MainScreenPage::RADIO) {
       display.setColor(DisplayDriver::YELLOW);
       display.setTextSize(1);
       // freq / sf
@@ -327,32 +350,23 @@ public:
       display.setCursor(0, 53);
       sprintf(tmp, "Noise floor: %d", radio_driver.getNoiseFloor());
       display.print(tmp);
-    } else if (_page == HomePage::BLUETOOTH) {
+    } else if (_page == MainScreenPage::BLUETOOTH) {
       display.setColor(DisplayDriver::GREEN);
       display.drawXbm((display.width() - 32) / 2, 18, _task->isSerialEnabled() ? bluetooth_on : bluetooth_off,
                       32, 32);
       display.setTextSize(1);
       display.drawTextCentered(display.width() / 2, 64 - 11, "toggle: " PRESS_LABEL);
-    } else if (_page == HomePage::ADVERT) {
+    } else if (_page == MainScreenPage::ADVERT) {
       display.setColor(DisplayDriver::GREEN);
       display.drawXbm((display.width() - 32) / 2, 18, advert_icon, 32, 32);
       display.drawTextCentered(display.width() / 2, 64 - 11, "advert: " PRESS_LABEL);
 #if ENV_INCLUDE_GPS == 1
-    } else if (_page == HomePage::GPS) {
+    } else if (_page == MainScreenPage::GPS) {
       LocationProvider *nmea = sensors.getLocationProvider();
       char buf[50];
       int y = 18;
       bool gps_state = _task->getGPSState();
-  #ifdef PIN_GPS_SWITCH
-      bool hw_gps_state = digitalRead(PIN_GPS_SWITCH);
-      if (gps_state != hw_gps_state) {
-        strcpy(buf, gps_state ? "gps off(hw)" : "gps off(sw)");
-      } else {
-        strcpy(buf, gps_state ? "gps on" : "gps off");
-      }
-  #else
       strcpy(buf, gps_state ? "gps on" : "gps off");
-  #endif
       display.drawTextLeftAlign(0, y, buf);
       if (nmea == NULL) {
         y = y + 12;
@@ -456,7 +470,7 @@ public:
       else
         sensors_scroll_offset = 0;
 #endif
-    } else if (_page == HomePage::SHUTDOWN) {
+    } else if (_page == MainScreenPage::SHUTDOWN) {
       display.setColor(DisplayDriver::GREEN);
       display.setTextSize(1);
       if (_shutdown_init) {
@@ -472,7 +486,7 @@ public:
   bool handleInput(char c) override {
     MESH_DEBUG_PRINT("kb %d '%c' isprint %d", c, c, isprint(c));
 
-    if (_page == HomePage::CONTACTS) {
+    if (_page == MainScreenPage::CONTACTS) {
       if (c == KEY_UP) {
         if (contact_list_idx == 0) {
           contact_list_idx = the_mesh.getNumContacts() - 1;
@@ -489,52 +503,54 @@ public:
         }
         return true;
       }
-      if (c == '\n') {
+      if (c == ASCII_CTRL_LF) {
         ContactInfo contact;
         if (the_mesh.getContactByIdx(contact_list_idx, contact) && contact.type == ADV_TYPE_CHAT) {
           contact_open_idx = contact_list_idx;
           channel_open_idx = -1;
-          _page = HomePage::CHAT;
+          _page = MainScreenPage::CHAT;
           return true;
         }
       }
     }
 
-    if (_page == HomePage::CHANNELS) {
+    if (_page == MainScreenPage::CHANNELS) {
       if (c == KEY_UP) {
         if (channel_list_idx == 0) {
-          channel_list_idx = MAX_GROUP_CHANNELS - 1;
+          channel_list_idx = find_num_of_channels() - 1;
         } else {
           channel_list_idx--;
         }
         return true;
       }
       if (c == KEY_DOWN) {
-        if (channel_list_idx < MAX_GROUP_CHANNELS - 1) {
+        if (channel_list_idx < find_num_of_channels() - 1) {
           channel_list_idx++;
         } else {
           channel_list_idx = 0;
         }
         return true;
       }
-      if (c == '\n') {
+      if (c == ASCII_CTRL_LF) {
         ChannelDetails chan;
         if (the_mesh.getChannel(channel_list_idx, chan) && strlen(chan.name) > 0) {
           channel_open_idx = channel_list_idx;
           contact_open_idx = -1;
-          _page = HomePage::CHAT;
+          _page = MainScreenPage::CHAT;
           return true;
         }
       }
     }
 
-    if (_page == HomePage::CHAT) {
-      if (c == KEY_BACKSPACE && !text_box.isEmpty()) {
-        text_box.remove(text_box.length() - 1);
+    if (_page == MainScreenPage::CHAT) {
+      if (c == ASCII_CTRL_BACKSPACE) {
+        if (!text_box.isEmpty()) {
+          text_box.remove(text_box.length() - 1);
+        }
         return true;
       }
 
-      if (c == '\n') {
+      if (c == ASCII_CTRL_LF) {
         sendChatMessage();
         return true;
       }
@@ -546,17 +562,17 @@ public:
     }
 
     if (c == KEY_LEFT || c == KEY_PREV) {
-      _page = (_page + HomePage::Count - 1) % HomePage::Count;
+      _page = (_page + MainScreenPage::Count - 1) % MainScreenPage::Count;
       return true;
     }
     if (c == KEY_NEXT || c == KEY_RIGHT) {
-      _page = (_page + 1) % HomePage::Count;
-      if (_page == HomePage::RECENT) {
+      _page = (_page + 1) % MainScreenPage::Count;
+      if (_page == MainScreenPage::RECENT) {
         _task->showAlert("Recent adverts", 800);
       }
       return true;
     }
-    if (c == '\n' && _page == HomePage::BLUETOOTH) {
+    if (c == ASCII_CTRL_LF && _page == MainScreenPage::BLUETOOTH) {
       if (_task->isSerialEnabled()) { // toggle Bluetooth on/off
         _task->disableSerial();
       } else {
@@ -564,7 +580,7 @@ public:
       }
       return true;
     }
-    if (c == '\n' && _page == HomePage::ADVERT) {
+    if (c == ASCII_CTRL_LF && _page == MainScreenPage::ADVERT) {
       _task->notify(UIEventType::ack);
       if (the_mesh.advert()) {
         _task->showAlert("Advert sent!", 1000);
@@ -574,19 +590,19 @@ public:
       return true;
     }
 #if ENV_INCLUDE_GPS == 1
-    if (c == '\n' && _page == HomePage::GPS) {
+    if (c == ASCII_CTRL_LF && _page == MainScreenPage::GPS) {
       _task->toggleGPS();
       return true;
     }
 #endif
 #if UI_SENSORS_PAGE == 1
-    if (c == '\n' && _page == HomePage::SENSORS) {
+    if (c == ASCII_CTRL_LF && _page == HomePage::SENSORS) {
       _task->toggleGPS();
       next_sensors_refresh = 0;
       return true;
     }
 #endif
-    if (c == '\n' && _page == HomePage::SHUTDOWN) {
+    if (c == ASCII_CTRL_LF && _page == MainScreenPage::SHUTDOWN) {
       _shutdown_init = true; // need to wait for button to be released
       return true;
     }
