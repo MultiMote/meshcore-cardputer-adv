@@ -63,6 +63,12 @@ void MainScreen::renderFirstPage() {
     sprintf(tmp, "Pin:%d", the_mesh.getBLEPin());
     display.drawTextCentered(display.width() / 2, 43, tmp);
   }
+
+  display.setColor(DisplayDriver::GREEN);
+  display.setTextSize(1);
+
+  display.drawTextCentered(display.width() / 2, display.height() - 11, "Press OPT to open settings");
+
 }
 
 void MainScreen::renderChannelsPage() {
@@ -164,7 +170,7 @@ void MainScreen::renderRecentPage() {
   }
 }
 
-void MainScreen::renderRadioPage() {
+void MainScreen::renderRadioPage() { // todo: move to settings/statistics
   char tmp[80];
 
   display.setColor(DisplayDriver::YELLOW);
@@ -362,7 +368,7 @@ void MainScreen::sendChatMessage() {
 }
 
 bool MainScreen::handleInput(char c) { // todo: refactor this mess
-  MESH_DEBUG_PRINT("kb %d '%c' isprint %d", c, c, isprint(c));
+  MESH_DEBUG_PRINTLN("kb %d 0x%x '%c' isprint %d", c, c, c, isprint(c));
 
   if (current_page == MainScreenPage::CONTACTS) {
     if (c == KEY_UP) {
@@ -477,6 +483,11 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
 
   if (c == ASCII_CTRL_LF && current_page == MainScreenPage::SHUTDOWN) {
     shutdown_init = true; // need to wait for button to be released
+    return true;
+  }
+
+  if (c == ASCII_CTRL_DC1 && current_page == MainScreenPage::FIRST) {
+    _task->gotoSettingsScreen();
     return true;
   }
 

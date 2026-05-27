@@ -3,6 +3,7 @@
 #include "screen/MainScreen.h"
 #include "screen/MsgPreviewScreen.h"
 #include "screen/SplashScreen.h"
+#include "screen/SettingsScreen.h"
 #include "target.h"
 
 #include <M5Cardputer.h>
@@ -29,6 +30,7 @@ void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, Node
 
   splash = new SplashScreen(this);
   home = new MainScreen(this, &rtc_clock, sensors, node_prefs);
+  settings = new SettingsScreen(this, &rtc_clock, node_prefs);
   msg_preview = new MsgPreviewScreen(this, &rtc_clock);
   setCurrScreen(splash);
 }
@@ -82,7 +84,7 @@ void CardputerUITask::userLedHandler() {
 }
 
 void CardputerUITask::setCurrScreen(UIScreen *c) {
-  curr = c;
+  current_screen = c;
   next_refresh = 100;
 }
 
@@ -124,10 +126,14 @@ void CardputerUITask::loop() {
         c = checkDisplayOn(KEY_UP);
       } else if (M5Cardputer.Keyboard.isKeyPressed('.') && !status.alt) { // down
         c = checkDisplayOn(KEY_DOWN);
+      } else if (M5Cardputer.Keyboard.isKeyPressed('`') && !status.alt) { // esc
+        c = checkDisplayOn(ASCII_CTRL_ESCAPE);
       } else if (status.enter) { // enter
         c = checkDisplayOn(ASCII_CTRL_LF);
       } else if (status.del) { // backspace
         c = checkDisplayOn(ASCII_CTRL_BACKSPACE);
+      } else if (status.opt) { // opt
+        c = checkDisplayOn(ASCII_CTRL_DC1);
       } else if (status.word.size() > 0) {
         c = checkDisplayOn(status.word.at(0));
       }
@@ -147,21 +153,23 @@ void CardputerUITask::loop() {
 #endif
   }
 
-  if (c != 0 && curr) {
+  if (c != 0 && current_screen) {
     keyboardBeep();
-    curr->handleInput(c);
+    current_screen->handleInput(c);
     auto_off_time = millis() + AUTO_OFF_MILLIS; // extend auto-off timer
     next_refresh = 100;                    // trigger refresh
   }
 
   userLedHandler();
 
-  if (curr) curr->poll();
+  if (current_screen) {
+    current_screen->poll();
+  }
 
   if (_display != NULL && _display->isOn()) {
-    if (millis() >= next_refresh && curr) {
+    if (millis() >= next_refresh && current_screen) {
       _display->startFrame();
-      int delay_millis = curr->render(*_display);
+      int delay_millis = current_screen->render(*_display);
       if (millis() < alert_expiry) { // render alert popup
         _display->setTextSize(1);
         int y = _display->height() / 3;

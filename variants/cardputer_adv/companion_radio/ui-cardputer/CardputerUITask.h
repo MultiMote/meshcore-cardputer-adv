@@ -20,6 +20,8 @@
 
 #define ASCII_CTRL_LF        0x0A // newline (Enter)
 #define ASCII_CTRL_BACKSPACE 0x08
+#define ASCII_CTRL_ESCAPE    0x1B
+#define ASCII_CTRL_DC1       0x11 // well, we will use it for "OPT" button
 
 class CardputerUITask : public AbstractUITask {
   DisplayDriver *_display;
@@ -38,7 +40,8 @@ class CardputerUITask : public AbstractUITask {
   UIScreen *splash;
   UIScreen *home;
   UIScreen *msg_preview;
-  UIScreen *curr = nullptr;
+  UIScreen *settings;
+  UIScreen *current_screen = nullptr;
 
   void userLedHandler();
 
@@ -52,11 +55,11 @@ class CardputerUITask : public AbstractUITask {
 
 public:
   CardputerUITask(CardputerAdvBoard *board, BaseSerialInterface *serial)
-      : AbstractUITask(board, serial), _display(NULL), _sensors(NULL), _board(board) {
-  }
+      : AbstractUITask(board, serial), _display(NULL), _sensors(NULL), _board(board) {}
   void begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs);
 
   void gotoHomeScreen() { setCurrScreen(home); }
+  void gotoSettingsScreen() { setCurrScreen(settings); MESH_DEBUG_PRINTLN("goto settings"); }
   void showAlert(const char *text, int duration_millis);
   int getMsgCount() const { return unsynced_msg_count; }
   bool hasDisplay() const { return _display != NULL; }
