@@ -55,6 +55,8 @@ Todo:
 
 - Chat history
 - Find a way to include MeshCore as submodule in this repository and build it from here
+- Limited unicode support
+- Keyboard layouts
 
 ### Thoughts on Cardputer
 
