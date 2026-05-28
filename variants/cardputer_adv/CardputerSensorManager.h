@@ -20,4 +20,5 @@ public:
   LocationProvider *getLocationProvider() override { return _location; }
   void start_gps();
   void stop_gps();
+  void gps_standby(bool active);
 };
