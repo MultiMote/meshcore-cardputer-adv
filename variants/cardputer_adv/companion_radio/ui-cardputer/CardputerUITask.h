@@ -7,10 +7,12 @@
 #include <MeshCore.h>
 #include <NodePrefs.h>
 #include <helpers/BaseSerialInterface.h>
+#include <helpers/ContactInfo.h>
 #include <helpers/SensorManager.h>
 #include <helpers/sensors/LPPDataHelpers.h>
 #include <helpers/ui/DisplayDriver.h>
 #include <helpers/ui/UIScreen.h>
+
 
 #ifndef AUTO_OFF_MILLIS
   #define AUTO_OFF_MILLIS 15000 // 15 seconds
@@ -36,14 +38,13 @@ class CardputerUITask : public AbstractUITask {
   int unsynced_msg_count;
   unsigned long ui_started_at = 0;
   unsigned long next_batt_chck = 0;
+  uint32_t last_ping_tag = 0;
 
   UIScreen *splash;
   UIScreen *home;
   UIScreen *msg_preview;
   UIScreen *settings;
   UIScreen *current_screen = nullptr;
-
-  void userLedHandler();
 
   // Button action handlers
   char checkDisplayOn(char c);
@@ -59,7 +60,7 @@ public:
   void begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs);
 
   void gotoHomeScreen() { setCurrScreen(home); }
-  void gotoSettingsScreen() { setCurrScreen(settings); MESH_DEBUG_PRINTLN("goto settings"); }
+  void gotoSettingsScreen() { setCurrScreen(settings); }
   void showAlert(const char *text, int duration_millis);
   int getMsgCount() const { return unsynced_msg_count; }
   bool hasDisplay() const { return _display != NULL; }
@@ -76,8 +77,10 @@ public:
 
   void msgRead(int msgcount) override;
   void newMsg(uint8_t path_len, const char *from_name, const char *text, int msgcount) override;
+  void pingRecv(uint32_t tag, float snr_tx, float snr_rx);
   void notify(UIEventType t = UIEventType::none) override;
   void loop() override;
 
   void shutdown(bool restart = false);
+  void ping(ContactInfo &contact);
 };

@@ -1,8 +1,6 @@
+#include "../../CardputerMesh.h"
 #include "../CardputerUITask.h"
 #include "../icons.h"
-
-#include <MyMesh.h>
-
 
 #define BOOT_SCREEN_MILLIS 3000 // 3 seconds
 

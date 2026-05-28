@@ -1,5 +1,6 @@
 #include "CardputerUITask.h"
 
+#include "../CardputerMesh.h"
 #include "screen/MainScreen.h"
 #include "screen/MsgPreviewScreen.h"
 #include "screen/SettingsScreen.h"
@@ -7,9 +8,7 @@
 #include "target.h"
 
 #include <M5Cardputer.h>
-#include <MyMesh.h>
 #include <helpers/TxtDataHelpers.h>
-
 
 void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs) {
   _display = display;
@@ -80,8 +79,16 @@ void CardputerUITask::newMsg(uint8_t path_len, const char *from_name, const char
   }
 }
 
-void CardputerUITask::userLedHandler() {
-  // todo
+void CardputerUITask::pingRecv(uint32_t tag, float snr_tx, float snr_rx) {
+  if (tag != last_ping_tag) {
+    return;
+  }
+
+  char buf[40];
+
+  sprintf(buf, "SNR there/back: %.2f/%.2f", snr_tx, snr_rx);
+  showAlert(buf, 4000);
+  next_refresh = 0;
 }
 
 void CardputerUITask::setCurrScreen(UIScreen *c) {
@@ -99,6 +106,20 @@ void CardputerUITask::shutdown(bool restart) {
     _display->turnOff();
     radio_driver.powerOff();
     _board->powerOff();
+  }
+}
+
+void CardputerUITask::ping(ContactInfo &contact) {
+  uint32_t auth = 0;
+  uint8_t flags = 0; // todo multibyte
+  the_mesh_cp.getRNG()->random((uint8_t *)&last_ping_tag, sizeof(last_ping_tag));
+
+  mesh::Packet *pkt = the_mesh_cp.createTrace(last_ping_tag, auth, flags);
+
+  if (pkt) {
+    the_mesh_cp.sendDirect(pkt, contact.id.pub_key, 1);
+    showAlert("Waiting for response...", 4000);
+    next_refresh = 0;
   }
 }
 
@@ -161,8 +182,6 @@ void CardputerUITask::loop() {
     next_refresh = 100;                         // trigger refresh
   }
 
-  userLedHandler();
-
   if (current_screen) {
     current_screen->poll();
   }
@@ -218,7 +237,7 @@ char CardputerUITask::checkDisplayOn(char c) {
 
 char CardputerUITask::handleLongPress(char c) {
   if (millis() - ui_started_at < 8000) { // long press in first 8 seconds since startup -> CLI/rescue
-    the_mesh.enterCLIRescue();
+    the_mesh_cp.enterCLIRescue();
     c = 0; // consume event
   }
   return c;
@@ -262,7 +281,7 @@ void CardputerUITask::toggleGPS() {
           _sensors->setSettingValue("gps", "1");
           _node_prefs->gps_enabled = 1;
         }
-        the_mesh.savePrefs();
+        the_mesh_cp.savePrefs();
         next_refresh = 0;
         break;
       }
@@ -272,7 +291,7 @@ void CardputerUITask::toggleGPS() {
 
 void CardputerUITask::toggleBuzzer() {
   _node_prefs->buzzer_quiet = !_node_prefs->buzzer_quiet;
-  the_mesh.savePrefs();
+  the_mesh_cp.savePrefs();
   showAlert(_node_prefs->buzzer_quiet ? "Speaker: OFF" : "Speaker: ON", 800);
   next_refresh = 0; // trigger refresh
 }

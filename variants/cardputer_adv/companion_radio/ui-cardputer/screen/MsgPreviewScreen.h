@@ -1,7 +1,7 @@
+#include "../../CardputerMesh.h"
 #include "../CardputerUITask.h"
 #include "../icons.h"
 
-#include <MyMesh.h>
 
 #define MAX_UNREAD_MSGS 32
 
@@ -17,10 +17,10 @@ class MsgPreviewScreen : public UIScreen {
   int num_unread = 0;
   int head = MAX_UNREAD_MSGS - 1; // index of latest unread message
   MsgEntry unread[MAX_UNREAD_MSGS];
-  
+
 public:
-  MsgPreviewScreen(CardputerUITask *task, mesh::RTCClock *rtc) : _task(task), _rtc(rtc) { }
+  MsgPreviewScreen(CardputerUITask *task, mesh::RTCClock *rtc) : _task(task), _rtc(rtc) {}
   void addPreview(uint8_t path_len, const char *from_name, const char *msg);
-  int render(DisplayDriver &display) override ;
+  int render(DisplayDriver &display) override;
   bool handleInput(char c) override;
 };

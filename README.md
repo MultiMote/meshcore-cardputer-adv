@@ -45,7 +45,10 @@ Currently implemented (companion):
    * State is not persisted
    * Bluetooth connection is not preserved
 - List channels
+   * Press `Enter` on channel to start conversation
 - List contacts
+   * Press `Enter` on repeater/room to ping (one byte prefix currently)
+   * Press `Enter` on contact to start conversation
 - Send messages
 
 Todo:

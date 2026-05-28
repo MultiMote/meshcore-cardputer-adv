@@ -57,10 +57,10 @@ void MainScreen::renderFirstPage() {
     display.setTextSize(1);
     display.drawTextCentered(display.width() / 2, 43, "< Connected >");
 
-  } else if (the_mesh.getBLEPin() != 0) { // BT pin
+  } else if (the_mesh_cp.getBLEPin() != 0) { // BT pin
     display.setColor(DisplayDriver::RED);
     display.setTextSize(2);
-    sprintf(tmp, "Pin:%d", the_mesh.getBLEPin());
+    sprintf(tmp, "Pin:%d", the_mesh_cp.getBLEPin());
     display.drawTextCentered(display.width() / 2, 43, tmp);
   }
 
@@ -82,7 +82,7 @@ void MainScreen::renderChannelsPage() {
     ChannelDetails channel;
     real_idx = list_page * UI_CHANNEL_LIST_SIZE + i;
 
-    if (!the_mesh.getChannel(real_idx, channel) || strlen(channel.name) == 0) {
+    if (!the_mesh_cp.getChannel(real_idx, channel) || strlen(channel.name) == 0) {
       break;
     }
 
@@ -105,7 +105,7 @@ void MainScreen::renderContactsPage() {
     ContactInfo contact;
     real_idx = list_page * UI_CONTACT_LIST_SIZE + i;
 
-    if (!the_mesh.getContactByIdx(real_idx, contact)) {
+    if (!the_mesh_cp.getContactByIdx(real_idx, contact)) {
       break;
     }
 
@@ -128,9 +128,9 @@ void MainScreen::renderChatPage() {
 
   if (contact_open_idx < 0 && channel_open_idx < 0) {
     display.drawTextCentered(display.width() / 2, 20, "Contact/Channel not selected");
-  } else if (the_mesh.getContactByIdx(contact_open_idx, contact)) {
+  } else if (the_mesh_cp.getContactByIdx(contact_open_idx, contact)) {
     display.drawTextCentered(display.width() / 2, 20, contact.name);
-  } else if (the_mesh.getChannel(channel_open_idx, channel)) {
+  } else if (the_mesh_cp.getChannel(channel_open_idx, channel)) {
     display.drawTextCentered(display.width() / 2, 20, channel.name);
   }
 
@@ -143,7 +143,7 @@ void MainScreen::renderChatPage() {
 void MainScreen::renderRecentPage() {
   char tmp[80];
 
-  the_mesh.getRecentlyHeard(recent, UI_RECENT_LIST_SIZE);
+  the_mesh_cp.getRecentlyHeard(recent, UI_RECENT_LIST_SIZE);
   display.setColor(DisplayDriver::GREEN);
   int y = 20;
   for (int i = 0; i < UI_RECENT_LIST_SIZE; i++, y += 11) {
@@ -312,7 +312,7 @@ int MainScreen::getChannelCount() { // not sure if there is no gaps
   int num = 0;
 
   for (int i = 0; i < MAX_GROUP_CHANNELS; i++) {
-    if (!the_mesh.getChannel(i, channel) || strlen(channel.name) == 0) {
+    if (!the_mesh_cp.getChannel(i, channel) || strlen(channel.name) == 0) {
       break;
     }
     num++;
@@ -328,14 +328,14 @@ void MainScreen::sendChatMessage() {
 
   ContactInfo contact;
   ChannelDetails channel;
-  uint32_t ts = the_mesh.getRTCClock()->getCurrentTime();
+  uint32_t ts = the_mesh_cp.getRTCClock()->getCurrentTime();
 
-  if (contact_open_idx > -1 && the_mesh.getContactByIdx(contact_open_idx, contact) &&
+  if (contact_open_idx > -1 && the_mesh_cp.getContactByIdx(contact_open_idx, contact) &&
       contact.type == ADV_TYPE_CHAT) { // direct msg
     uint32_t est_timeout;
     uint32_t expected_ack;
 
-    int result = the_mesh.sendMessage(contact, ts, 0, chat_text_box.c_str(), expected_ack, est_timeout);
+    int result = the_mesh_cp.sendMessage(contact, ts, 0, chat_text_box.c_str(), expected_ack, est_timeout);
 
     if (result != MSG_SEND_FAILED) {
       chat_text_box.clear();
@@ -343,11 +343,11 @@ void MainScreen::sendChatMessage() {
     return;
   }
 
-  if (channel_open_idx > -1 && the_mesh.getChannel(channel_open_idx, channel) &&
+  if (channel_open_idx > -1 && the_mesh_cp.getChannel(channel_open_idx, channel) &&
       strlen(channel.name) > 0) { // channel msg
 
-    bool ok = the_mesh.sendGroupMessage(ts, channel.channel, _node_prefs->node_name, chat_text_box.c_str(),
-                                        chat_text_box.length());
+    bool ok = the_mesh_cp.sendGroupMessage(ts, channel.channel, _node_prefs->node_name, chat_text_box.c_str(),
+                                           chat_text_box.length());
     if (ok) {
       chat_text_box.clear();
     }
@@ -361,14 +361,14 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
   if (current_page == MainScreenPage::CONTACTS) {
     if (c == KEY_UP) {
       if (contact_list_idx == 0) {
-        contact_list_idx = the_mesh.getNumContacts() - 1;
+        contact_list_idx = the_mesh_cp.getNumContacts() - 1;
       } else {
         contact_list_idx--;
       }
       return true;
     }
     if (c == KEY_DOWN) {
-      if (contact_list_idx < the_mesh.getNumContacts() - 1) {
+      if (contact_list_idx < the_mesh_cp.getNumContacts() - 1) {
         contact_list_idx++;
       } else {
         contact_list_idx = 0;
@@ -377,12 +377,16 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
     }
     if (c == ASCII_CTRL_LF) {
       ContactInfo contact;
-      if (the_mesh.getContactByIdx(contact_list_idx, contact) && contact.type == ADV_TYPE_CHAT) {
-        contact_open_idx = contact_list_idx;
-        channel_open_idx = -1;
-        current_page = MainScreenPage::CHAT;
-        return true;
+      if (the_mesh_cp.getContactByIdx(contact_list_idx, contact)) {
+        if (contact.type == ADV_TYPE_CHAT) {
+          contact_open_idx = contact_list_idx;
+          channel_open_idx = -1;
+          current_page = MainScreenPage::CHAT;
+        } else if (contact.type == ADV_TYPE_REPEATER || contact.type == ADV_TYPE_ROOM) {
+          _task->ping(contact);
+        }
       }
+      return true;
     }
   }
 
@@ -405,12 +409,12 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
     }
     if (c == ASCII_CTRL_LF) {
       ChannelDetails channel;
-      if (the_mesh.getChannel(channel_list_idx, channel) && strlen(channel.name) > 0) {
+      if (the_mesh_cp.getChannel(channel_list_idx, channel) && strlen(channel.name) > 0) {
         channel_open_idx = channel_list_idx;
         contact_open_idx = -1;
         current_page = MainScreenPage::CHAT;
-        return true;
       }
+      return true;
     }
   }
 
@@ -446,7 +450,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
   }
   if (c == ASCII_CTRL_LF && current_page == MainScreenPage::ADVERT) {
     _task->notify(UIEventType::ack);
-    if (the_mesh.advert()) {
+    if (the_mesh_cp.advert()) {
       _task->showAlert("Advert sent!", 1000);
     } else {
       _task->showAlert("Advert failed..", 1000);

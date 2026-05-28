@@ -1,14 +1,18 @@
 #if CUSTOM_CARDPUTER_UI
+  #define TASK_CLASS   CardputerUITask
+  #define THE_MESH_OBJ the_mesh_cp
+  #include "CardputerMesh.h"
   #include "CardputerUITask.h"
-  #define TASK_CLASS CardputerUITask
 #else
+  #define TASK_CLASS   UITask
+  #define THE_MESH_OBJ the_mesh
   #include "UITask.h"
-  #define TASK_CLASS UITask
+
+  #include <MyMesh.h>
 #endif
 
 #include <Arduino.h>
 #include <Mesh.h>
-#include <MyMesh.h>
 #include <helpers/esp32/SerialBLEInterface.h>
 
 static uint32_t _atoi(const char *sp) {
@@ -34,7 +38,12 @@ TASK_CLASS ui_task(&board, &serial_interface);
 
 StdRNG fast_rng;
 SimpleMeshTables tables;
+
+#if CUSTOM_CARDPUTER_UI
+CardputerMesh the_mesh_cp(radio_driver, fast_rng, rtc_clock, tables, store, &ui_task);
+#else
 MyMesh the_mesh(radio_driver, fast_rng, rtc_clock, tables, store, &ui_task);
+#endif
 
 void halt() {
   while (1) {
@@ -76,21 +85,21 @@ void setup() {
 #endif
 
   store.begin();
-  the_mesh.begin(true);
+  THE_MESH_OBJ.begin(true);
 
-  serial_interface.begin(BLE_NAME_PREFIX, the_mesh.getNodePrefs()->node_name, the_mesh.getBLEPin());
-  the_mesh.startInterface(serial_interface);
+  serial_interface.begin(BLE_NAME_PREFIX, THE_MESH_OBJ.getNodePrefs()->node_name, THE_MESH_OBJ.getBLEPin());
+  THE_MESH_OBJ.startInterface(serial_interface);
   sensors.begin();
 
 #if ENV_INCLUDE_GPS == 1
-  the_mesh.applyGpsPrefs();
+  THE_MESH_OBJ.applyGpsPrefs();
 #endif
 
-  ui_task.begin(disp, &sensors, the_mesh.getNodePrefs());
+  ui_task.begin(disp, &sensors, THE_MESH_OBJ.getNodePrefs());
 }
 
 void loop() {
-  the_mesh.loop();
+  THE_MESH_OBJ.loop();
   sensors.loop();
   ui_task.loop();
   rtc_clock.tick();

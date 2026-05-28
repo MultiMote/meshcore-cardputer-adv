@@ -64,12 +64,12 @@ bool SettingsScreen::enterItemEdit(SettingsItem item) {
 
     case SettingsItem::DeviceBeep:
       _node_prefs->buzzer_quiet = !_node_prefs->buzzer_quiet;
-      the_mesh.savePrefs();
+      the_mesh_cp.savePrefs();
       return true;
 
     case SettingsItem::DeviceGps:
       _task->toggleGPS();
-      the_mesh.savePrefs();
+      the_mesh_cp.savePrefs();
       return true;
 
     case SettingsItem::DeviceBluetooth:
@@ -78,7 +78,7 @@ bool SettingsScreen::enterItemEdit(SettingsItem item) {
       } else {
         _task->enableSerial();
       }
-      the_mesh.savePrefs();
+      the_mesh_cp.savePrefs();
       return true;
 
     default:

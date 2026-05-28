@@ -1,9 +1,9 @@
 #pragma once
 
+#include "../../CardputerMesh.h"
 #include "../CardputerUITask.h"
 #include "../icons.h"
 
-#include <MyMesh.h>
 
 #ifndef UI_RECENT_LIST_SIZE
   #define UI_RECENT_LIST_SIZE 4
