@@ -68,7 +68,6 @@ void MainScreen::renderFirstPage() {
   display.setTextSize(1);
 
   display.drawTextCentered(display.width() / 2, display.height() - 11, "Press OPT to open settings");
-
 }
 
 void MainScreen::renderChannelsPage() {
@@ -193,14 +192,6 @@ void MainScreen::renderRadioPage() { // todo: move to settings/statistics
   display.print(tmp);
 }
 
-void MainScreen::renderBluetoothPage() {
-  display.setColor(DisplayDriver::GREEN);
-  display.drawXbm((display.width() - 32) / 2, 18, _task->isSerialEnabled() ? bluetooth_on : bluetooth_off, 32,
-                  32);
-  display.setTextSize(1);
-  display.drawTextCentered(display.width() / 2, 64 - 11, "toggle: " PRESS_LABEL);
-}
-
 void MainScreen::renderAdvertPage() {
   display.setColor(DisplayDriver::GREEN);
   display.drawXbm((display.width() - 32) / 2, 18, advert_icon, 32, 32);
@@ -275,40 +266,37 @@ int MainScreen::render(DisplayDriver &display) {
   }
 
   switch (current_page) {
-  case MainScreenPage::FIRST:
-    renderFirstPage();
-    break;
-  case MainScreenPage::CHANNELS:
-    renderChannelsPage();
-    break;
-  case MainScreenPage::CONTACTS:
-    renderContactsPage();
-    break;
-  case MainScreenPage::CHAT:
-    renderChatPage();
-    break;
-  case MainScreenPage::RECENT:
-    renderRecentPage();
-    break;
-  case MainScreenPage::RADIO:
-    renderRadioPage();
-    break;
-  case MainScreenPage::BLUETOOTH:
-    renderBluetoothPage();
-    break;
-  case MainScreenPage::ADVERT:
-    renderAdvertPage();
-    break;
+    case MainScreenPage::FIRST:
+      renderFirstPage();
+      break;
+    case MainScreenPage::CHANNELS:
+      renderChannelsPage();
+      break;
+    case MainScreenPage::CONTACTS:
+      renderContactsPage();
+      break;
+    case MainScreenPage::CHAT:
+      renderChatPage();
+      break;
+    case MainScreenPage::RECENT:
+      renderRecentPage();
+      break;
+    case MainScreenPage::RADIO:
+      renderRadioPage();
+      break;
+    case MainScreenPage::ADVERT:
+      renderAdvertPage();
+      break;
 #if ENV_INCLUDE_GPS
-  case MainScreenPage::GPS:
-    renderGpsPage();
-    break;
+    case MainScreenPage::GPS:
+      renderGpsPage();
+      break;
 #endif
-  case MainScreenPage::SHUTDOWN:
-    renderShutdownPage();
-    break;
-  default:
-    break;
+    case MainScreenPage::SHUTDOWN:
+      renderShutdownPage();
+      break;
+    default:
+      break;
   }
   return 5000; // next render after 5000 ms
 }
@@ -453,14 +441,6 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
     current_page = (current_page + 1) % MainScreenPage::Count;
     if (current_page == MainScreenPage::RECENT) {
       _task->showAlert("Recent adverts", 800);
-    }
-    return true;
-  }
-  if (c == ASCII_CTRL_LF && current_page == MainScreenPage::BLUETOOTH) {
-    if (_task->isSerialEnabled()) { // toggle Bluetooth on/off
-      _task->disableSerial();
-    } else {
-      _task->enableSerial();
     }
     return true;
   }

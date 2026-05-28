@@ -2,13 +2,14 @@
 
 #include "screen/MainScreen.h"
 #include "screen/MsgPreviewScreen.h"
-#include "screen/SplashScreen.h"
 #include "screen/SettingsScreen.h"
+#include "screen/SplashScreen.h"
 #include "target.h"
 
 #include <M5Cardputer.h>
 #include <MyMesh.h>
 #include <helpers/TxtDataHelpers.h>
+
 
 void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs) {
   _display = display;
@@ -42,16 +43,16 @@ void CardputerUITask::showAlert(const char *text, int duration_millis) {
 
 void CardputerUITask::notify(UIEventType t) {
   switch (t) {
-  case UIEventType::contactMessage:
-  case UIEventType::channelMessage:
-  case UIEventType::roomMessage:
-    notifyBeep();
-    break;
-  case UIEventType::ack:
-  case UIEventType::newContactMessage:
-  case UIEventType::none:
-  default:
-    break;
+    case UIEventType::contactMessage:
+    case UIEventType::channelMessage:
+    case UIEventType::roomMessage:
+      notifyBeep();
+      break;
+    case UIEventType::ack:
+    case UIEventType::newContactMessage:
+    case UIEventType::none:
+    default:
+      break;
   }
 }
 
@@ -74,7 +75,7 @@ void CardputerUITask::newMsg(uint8_t path_len, const char *from_name, const char
     }
     if (_display->isOn()) {
       auto_off_time = millis() + AUTO_OFF_MILLIS; // extend the auto-off timer
-      next_refresh = 100;                    // trigger refresh
+      next_refresh = 100;                         // trigger refresh
     }
   }
 }
@@ -157,7 +158,7 @@ void CardputerUITask::loop() {
     keyboardBeep();
     current_screen->handleInput(c);
     auto_off_time = millis() + AUTO_OFF_MILLIS; // extend auto-off timer
-    next_refresh = 100;                    // trigger refresh
+    next_refresh = 100;                         // trigger refresh
   }
 
   userLedHandler();
@@ -210,7 +211,7 @@ char CardputerUITask::checkDisplayOn(char c) {
       c = 0;
     }
     auto_off_time = millis() + AUTO_OFF_MILLIS; // extend auto-off timer
-    next_refresh = 0;                      // trigger refresh
+    next_refresh = 0;                           // trigger refresh
   }
   return c;
 }
@@ -251,21 +252,17 @@ bool CardputerUITask::getGPSState() {
 
 void CardputerUITask::toggleGPS() {
   if (_sensors != NULL) {
-    // toggle GPS on/off
     int num = _sensors->getNumSettings();
     for (int i = 0; i < num; i++) {
       if (strcmp(_sensors->getSettingName(i), "gps") == 0) {
         if (strcmp(_sensors->getSettingValue(i), "1") == 0) {
           _sensors->setSettingValue("gps", "0");
           _node_prefs->gps_enabled = 0;
-          notify(UIEventType::ack);
         } else {
           _sensors->setSettingValue("gps", "1");
           _node_prefs->gps_enabled = 1;
-          notify(UIEventType::ack);
         }
         the_mesh.savePrefs();
-        showAlert(_node_prefs->gps_enabled ? "GPS: Enabled" : "GPS: Disabled", 800);
         next_refresh = 0;
         break;
       }

@@ -1,45 +1,88 @@
 #include "SettingsScreen.h"
 
 void SettingsScreen::renderItem(DisplayDriver &display, SettingsItem item, int x, int y) {
-  char tmp[64];
-  display.setColor(DisplayDriver::YELLOW);
+  char tmp[64] = { 0 };
+  DisplayDriver::Color text_color = DisplayDriver::YELLOW;
 
-  if (item == SettingsItem::HdrRadio) {
-    display.setColor(DisplayDriver::GREEN);
-    display.drawTextLeftAlign(x, y, "---- RADIO ----");
-  } else if (item == SettingsItem::RadioFreq) {
-    sprintf(tmp, "FREQ: %06.3f", _node_prefs->freq);
-    display.drawTextLeftAlign(x, y, tmp);
-  } else if (item == SettingsItem::RadioBw) {
-    sprintf(tmp, "BW: %03.2f", _node_prefs->bw);
-    display.drawTextLeftAlign(x, y, tmp);
-  } else if (item == SettingsItem::RadioSf) {
-    sprintf(tmp, "SF: %d", _node_prefs->sf);
-    display.drawTextLeftAlign(x, y, tmp);
-  } else if (item == SettingsItem::RadioCr) {
-    sprintf(tmp, "CR: %d", _node_prefs->cr);
-    display.drawTextLeftAlign(x, y, tmp);
-  } else if (item == SettingsItem::RadioPwr) {
-    sprintf(tmp, "PWR: %ddBm", _node_prefs->tx_power_dbm);
-    display.drawTextLeftAlign(x, y, tmp);
-  } else if (item == SettingsItem::HdrDevice) {
-    display.setColor(DisplayDriver::GREEN);
-    display.drawTextLeftAlign(x, y, "---- DEVICE ----");
-  } else if (item == SettingsItem::DeviceBeep) {
-    sprintf(tmp, "Sound: %s", _node_prefs->buzzer_quiet ? "OFF" : "ON");
-    display.drawTextLeftAlign(x, y, tmp);
-  } else {
-    display.setColor(DisplayDriver::RED);
-    display.drawTextLeftAlign(x, y, "???");
+  switch (item) {
+    case SettingsItem::HdrRadio:
+      text_color = DisplayDriver::GREEN;
+      snprintf(tmp, sizeof(tmp), "---- RADIO ----");
+      break;
+
+    case SettingsItem::HdrDevice:
+      text_color = DisplayDriver::GREEN;
+      snprintf(tmp, sizeof(tmp), "---- DEVICE ----");
+      break;
+
+    case SettingsItem::RadioFreq:
+      snprintf(tmp, sizeof(tmp), "FREQ: %06.3f", _node_prefs->freq);
+      break;
+
+    case SettingsItem::RadioBw:
+      snprintf(tmp, sizeof(tmp), "BW: %03.2f", _node_prefs->bw);
+      break;
+
+    case SettingsItem::RadioSf:
+      snprintf(tmp, sizeof(tmp), "SF: %d", _node_prefs->sf);
+      break;
+
+    case SettingsItem::RadioCr:
+      snprintf(tmp, sizeof(tmp), "CR: %d", _node_prefs->cr);
+      break;
+
+    case SettingsItem::RadioPwr:
+      snprintf(tmp, sizeof(tmp), "PWR: %ddBm", _node_prefs->tx_power_dbm);
+      break;
+
+    case SettingsItem::DeviceBeep:
+      snprintf(tmp, sizeof(tmp), "Sound: %s", _node_prefs->buzzer_quiet ? "OFF" : "ON");
+      break;
+
+    case SettingsItem::DeviceGps:
+      snprintf(tmp, sizeof(tmp), "GPS: %s", _task->getGPSState() ? "ON" : "OFF");
+      break;
+
+    case SettingsItem::DeviceBluetooth:
+      snprintf(tmp, sizeof(tmp), "Bluetooth: %s", _task->isSerialEnabled() ? "ON" : "OFF");
+      break;
+
+    default:
+      text_color = DisplayDriver::RED;
+      snprintf(tmp, sizeof(tmp), "???");
+      break;
   }
+
+  display.setColor(text_color);
+  display.drawTextLeftAlign(x, y, tmp);
 }
-
 bool SettingsScreen::enterItemEdit(SettingsItem item) {
-  if (item == SettingsItem::DeviceBeep) {
-    _node_prefs->buzzer_quiet = !_node_prefs->buzzer_quiet;
-    the_mesh.savePrefs();
+  switch (item) {
+    case SettingsItem::HdrRadio:
+    case SettingsItem::HdrDevice:
+      return true;
 
-    return true;
+    case SettingsItem::DeviceBeep:
+      _node_prefs->buzzer_quiet = !_node_prefs->buzzer_quiet;
+      the_mesh.savePrefs();
+      return true;
+
+    case SettingsItem::DeviceGps:
+      _task->toggleGPS();
+      the_mesh.savePrefs();
+      return true;
+
+    case SettingsItem::DeviceBluetooth:
+      if (_task->isSerialEnabled()) {
+        _task->disableSerial();
+      } else {
+        _task->enableSerial();
+      }
+      the_mesh.savePrefs();
+      return true;
+
+    default:
+      break;
   }
 
   return false;
@@ -87,7 +130,7 @@ int SettingsScreen::render(DisplayDriver &display) {
 bool SettingsScreen::handleInput(char c) {
   if (is_editing) {
     if (c == ASCII_CTRL_LF) {
-      if(!commitItemEdit(static_cast<SettingsItem>(list_sel_idx))) {
+      if (!commitItemEdit(static_cast<SettingsItem>(list_sel_idx))) {
         _task->showAlert("Validation error", 2000);
       }
       return true;

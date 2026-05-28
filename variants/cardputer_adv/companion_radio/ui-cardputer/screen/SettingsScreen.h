@@ -4,7 +4,7 @@
 #include <MyMesh.h>
 
 #ifndef UI_SETTINGS_LIST_SIZE
-  #define UI_SETTINGS_LIST_SIZE 13
+  #define UI_SETTINGS_LIST_SIZE 11
 #endif
 
 class SettingsScreen : public UIScreen {
@@ -17,7 +17,8 @@ class SettingsScreen : public UIScreen {
     RadioPwr,
     HdrDevice,
     DeviceBeep,
-
+    DeviceBluetooth,
+    DeviceGps,
     Count
   };
 

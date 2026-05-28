@@ -36,7 +36,6 @@ class MainScreen : public UIScreen {
     CHAT,
     RECENT,
     RADIO,
-    BLUETOOTH,
     ADVERT,
 #if ENV_INCLUDE_GPS == 1
     GPS,
@@ -49,7 +48,7 @@ class MainScreen : public UIScreen {
   mesh::RTCClock *_rtc;
   SensorManager *_sensors;
   NodePrefs *_node_prefs;
-  
+
   uint8_t current_page = MainScreenPage::FIRST;
   bool shutdown_init = false;
   AdvertPath recent[UI_RECENT_LIST_SIZE];
@@ -71,7 +70,6 @@ class MainScreen : public UIScreen {
   void renderChatPage();
   void renderRecentPage();
   void renderRadioPage();
-  void renderBluetoothPage();
   void renderAdvertPage();
   void renderGpsPage();
   void renderShutdownPage();
