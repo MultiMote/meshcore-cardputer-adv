@@ -47,7 +47,7 @@ Currently implemented (companion):
 - List channels
    * Press `Enter` on channel to start conversation
 - List contacts
-   * Press `Enter` on repeater/room to ping (one byte prefix currently)
+   * Press `Enter` on repeater/room to ping
    * Press `Enter` on contact to start conversation
 - Send messages
 

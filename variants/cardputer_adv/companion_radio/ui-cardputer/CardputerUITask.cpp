@@ -83,8 +83,8 @@ void CardputerUITask::newMsg(uint8_t path_len, const char *from_name, const char
   }
 }
 
-void CardputerUITask::pingRecv(uint32_t tag, float snr_tx, float snr_rx) {
-  if (tag != last_ping_tag) {
+void CardputerUITask::pingRecv(uint32_t tag, uint8_t path_len,float snr_tx, float snr_rx) {
+  if (tag != last_ping_tag || path_len != _node_prefs->path_hash_mode + 1) {
     return;
   }
 
@@ -115,13 +115,13 @@ void CardputerUITask::shutdown(bool restart) {
 
 void CardputerUITask::ping(ContactInfo &contact) {
   uint32_t auth = 0;
-  uint8_t flags = 0; // todo multibyte
+  uint8_t flags = _node_prefs->path_hash_mode & 0x03;
   the_mesh_cp.getRNG()->random((uint8_t *)&last_ping_tag, sizeof(last_ping_tag));
 
   mesh::Packet *pkt = the_mesh_cp.createTrace(last_ping_tag, auth, flags);
 
   if (pkt) {
-    the_mesh_cp.sendDirect(pkt, contact.id.pub_key, 1);
+    the_mesh_cp.sendDirect(pkt, contact.id.pub_key, _node_prefs->path_hash_mode + 1);
     showAlert("Waiting for response...", 4000);
     next_refresh = 0;
   }

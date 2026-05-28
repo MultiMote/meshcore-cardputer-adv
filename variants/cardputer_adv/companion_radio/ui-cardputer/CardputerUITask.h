@@ -78,7 +78,7 @@ public:
 
   void msgRead(int msgcount) override;
   void newMsg(uint8_t path_len, const char *from_name, const char *text, int msgcount) override;
-  void pingRecv(uint32_t tag, float snr_tx, float snr_rx);
+  void pingRecv(uint32_t tag, uint8_t path_len, float snr_tx, float snr_rx);
   void notify(UIEventType t = UIEventType::none) override;
   void loop() override;
 
