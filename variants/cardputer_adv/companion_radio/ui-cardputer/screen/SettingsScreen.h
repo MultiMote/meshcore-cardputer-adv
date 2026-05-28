@@ -29,12 +29,16 @@ class SettingsScreen : public UIScreen {
   NodePrefs *_node_prefs;
   int list_sel_idx = 0;
   bool is_editing = false;
+  bool restart_required = false;
   String edit_buffer;
+  uint8_t edit_u8;
 
   void renderItem(DisplayDriver &display, SettingsItem item, int x, int y);
   bool enterItemEdit(SettingsItem item);
   void cancelItemEdit(SettingsItem item);
   bool commitItemEdit(SettingsItem item);
+  void handleEditInput(SettingsItem item, char key);
+  bool inputParsePositiveFloat(float &val);
 
 public:
   SettingsScreen(CardputerUITask *task, mesh::RTCClock *rtc, NodePrefs *node_prefs)

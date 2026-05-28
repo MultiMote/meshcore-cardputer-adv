@@ -62,6 +62,7 @@ public:
   void gotoHomeScreen() { setCurrScreen(home); }
   void gotoSettingsScreen() { setCurrScreen(settings); }
   void showAlert(const char *text, int duration_millis);
+  bool isAlertActive();
   int getMsgCount() const { return unsynced_msg_count; }
   bool hasDisplay() const { return _display != NULL; }
   bool isButtonPressed() const;

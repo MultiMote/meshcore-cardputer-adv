@@ -39,6 +39,7 @@ Currently implemented (companion):
 - Store data to SD card
 - Basic speaker support (keyboard/message beeps)
 - Keyboard support
+- Settings menu (press `OPT` at main screen)
 - Light sleep (testing)
    * Power consumption drops to ~52mA after display off
    * Can be enabled settings menu (state is not persisted)
@@ -52,7 +53,6 @@ Currently implemented (companion):
 
 Todo:
 
-- More complex UI with ability to change settings, write messages
 - Chat history
 - Find a way to include MeshCore as submodule in this repository and build it from here
 

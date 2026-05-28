@@ -382,7 +382,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
           contact_open_idx = contact_list_idx;
           channel_open_idx = -1;
           current_page = MainScreenPage::CHAT;
-        } else if (contact.type == ADV_TYPE_REPEATER || contact.type == ADV_TYPE_ROOM) {
+        } else if ((contact.type == ADV_TYPE_REPEATER || contact.type == ADV_TYPE_ROOM) && !_task->isAlertActive()) {
           _task->ping(contact);
         }
       }

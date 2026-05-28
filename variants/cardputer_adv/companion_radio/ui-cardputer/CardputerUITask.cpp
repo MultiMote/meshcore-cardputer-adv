@@ -40,6 +40,10 @@ void CardputerUITask::showAlert(const char *text, int duration_millis) {
   alert_expiry = millis() + duration_millis;
 }
 
+bool CardputerUITask::isAlertActive() {
+  return millis() < alert_expiry;
+}
+
 void CardputerUITask::notify(UIEventType t) {
   switch (t) {
     case UIEventType::contactMessage:
