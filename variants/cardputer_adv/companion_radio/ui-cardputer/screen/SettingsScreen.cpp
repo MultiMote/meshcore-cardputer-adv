@@ -47,6 +47,14 @@ void SettingsScreen::renderItem(DisplayDriver &display, SettingsItem item, int x
       snprintf(tmp, sizeof(tmp), "Bluetooth: %s", _task->isSerialEnabled() ? "ON" : "OFF");
       break;
 
+    case SettingsItem::DevicePowersave:
+      snprintf(tmp, sizeof(tmp), "Power save: %s", _task->isSleepEnabled() ? "ON" : "OFF");
+      break;
+
+    case SettingsItem::DevicePrefixSize:
+      snprintf(tmp, sizeof(tmp), "Prefix length: %d", _node_prefs->path_hash_mode + 1);
+      break;
+
     default:
       text_color = DisplayDriver::RED;
       snprintf(tmp, sizeof(tmp), "???");
@@ -79,6 +87,10 @@ bool SettingsScreen::enterItemEdit(SettingsItem item) {
         _task->enableSerial();
       }
       the_mesh_cp.savePrefs();
+      return true;
+
+  case SettingsItem::DevicePowersave:
+      _task->setSleepEnabled(!_task->isSleepEnabled()); // not persisted
       return true;
 
     default:
@@ -116,7 +128,7 @@ int SettingsScreen::render(DisplayDriver &display) {
       break;
     }
 
-    renderItem(display, static_cast<SettingsItem>(i), 15, 20 + i * 10);
+    renderItem(display, static_cast<SettingsItem>(real_idx), 15, 20 + i * 10);
 
     if (i == list_idx) {
       display.setColor(DisplayDriver::GREEN);

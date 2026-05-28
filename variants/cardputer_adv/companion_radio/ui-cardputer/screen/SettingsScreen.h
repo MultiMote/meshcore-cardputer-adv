@@ -19,6 +19,8 @@ class SettingsScreen : public UIScreen {
     DeviceBeep,
     DeviceBluetooth,
     DeviceGps,
+    DevicePowersave,
+    DevicePrefixSize,
     Count
   };
 

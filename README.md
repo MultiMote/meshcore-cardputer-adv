@@ -41,8 +41,7 @@ Currently implemented (companion):
 - Keyboard support
 - Light sleep (testing)
    * Power consumption drops to ~52mA after display off
-   * Can be enabled enabled with `s` key
-   * State is not persisted
+   * Can be enabled settings menu (state is not persisted)
    * Bluetooth connection is not preserved
 - List channels
    * Press `Enter` on channel to start conversation

@@ -475,10 +475,5 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
     return true;
   }
 
-  if (c == 's') {
-    _task->setSleepEnabled(!_task->isSleepEnabled());
-    return true;
-  }
-
   return false;
 }
