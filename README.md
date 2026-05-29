@@ -1,8 +1,12 @@
 ## MeshCore Cardputer-Adv + Cap LoRa-1262 variant
 
-![photo](images/photo1.jpg)
+![photo](images/logo.jpg)
 
-![photo](images/photo2.jpg)
+![settings](images/settings.jpg)
+
+![chat](images/chat.jpg)
+
+![ping](images/ping.jpg)
 
 This variant designed to not change the original codebase. I tried to make the implementation as clean as possible.
 
@@ -56,6 +60,10 @@ Todo:
 - Find a way to include MeshCore as submodule in this repository and build it from here
 - Limited unicode support
 - Keyboard layouts
+- Catch and display message ACK's
+- Change display brightness
+- Custom notification sounds (.wav files from SD card)
+- Discover repeaters
 
 ### Thoughts on Cardputer
 
