@@ -32,7 +32,6 @@ Currently implemented (companion):
 
 - Cap LoRa-1262 initialization (+ port extender)
 - G0 Button
-- Basic display
 - BLE connection
 - GPS support
 - GPS power management with CAS commands (Cap LoRa-1262 does not have a GPS switch pin)

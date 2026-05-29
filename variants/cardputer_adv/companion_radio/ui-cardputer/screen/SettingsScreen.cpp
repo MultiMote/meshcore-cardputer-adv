@@ -105,7 +105,7 @@ bool SettingsScreen::enterItemEdit(SettingsItem item) {
       return true;
 
     case SettingsItem::RadioCr:
-      edit_u8 = _node_prefs->sf;
+      edit_u8 = _node_prefs->cr;
       is_editing = true;
       return true;
 
@@ -143,7 +143,7 @@ bool SettingsScreen::commitItemEdit(SettingsItem item) {
       the_mesh_cp.savePrefs();
       restart_required = true;
       return true;
-      
+
     case SettingsItem::RadioCr:
       _node_prefs->cr = edit_u8;
       the_mesh_cp.savePrefs();
@@ -167,12 +167,16 @@ bool SettingsScreen::commitItemEdit(SettingsItem item) {
         restart_required = true;
         return true;
       }
+      break;
+
     case SettingsItem::RadioBw:
       if (inputParsePositiveFloat(_node_prefs->bw)) {
         the_mesh_cp.savePrefs();
         restart_required = true;
         return true;
       }
+      break;
+      
     default:
       break;
   }
