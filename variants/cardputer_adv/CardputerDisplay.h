@@ -8,7 +8,7 @@ class CardputerDisplay : public DisplayDriver {
 private:
   bool _isOn = false;
   uint16_t _lastColor = 0;
-  LGFX_Sprite canvas = LGFX_Sprite(&M5Cardputer.Display);
+  M5GFX &LCD = M5Cardputer.Display;
 
   inline uint16_t convertColor(Color c) {
     {
