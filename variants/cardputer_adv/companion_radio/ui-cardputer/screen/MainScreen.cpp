@@ -169,27 +169,20 @@ void MainScreen::renderRecentPage() {
   }
 }
 
-void MainScreen::renderRadioPage() { // todo: move to settings/statistics
+void MainScreen::renderStatsPage() { // todo: separate menu maybe
   char tmp[80];
 
+  display.drawTextCentered(display.width() / 2, 20, "Stats");
+
   display.setColor(DisplayDriver::YELLOW);
-  display.setTextSize(1);
-  // freq / sf
-  display.setCursor(0, 20);
-  sprintf(tmp, "FQ: %06.3f   SF: %d", _node_prefs->freq, _node_prefs->sf);
-  display.print(tmp);
 
-  display.setCursor(0, 31);
-  sprintf(tmp, "BW: %03.2f     CR: %d", _node_prefs->bw, _node_prefs->cr);
-  display.print(tmp);
-
-  // tx power,  noise floor
-  display.setCursor(0, 42);
-  sprintf(tmp, "TX: %ddBm", _node_prefs->tx_power_dbm);
-  display.print(tmp);
-  display.setCursor(0, 53);
-  sprintf(tmp, "Noise floor: %d", radio_driver.getNoiseFloor());
-  display.print(tmp);
+  sprintf(tmp, "Radio noise floor: %d", radio_driver.getNoiseFloor());
+  display.drawTextLeftAlign(5, 30, tmp);
+  sprintf(tmp, "Heap usage: %d/%d (%d%%)", ESP.getFreeHeap(), ESP.getHeapSize(),
+          (ESP.getHeapSize() - ESP.getFreeHeap()) * 100 / ESP.getHeapSize());
+  display.drawTextLeftAlign(5, 40, tmp);
+  sprintf(tmp, "Packets received: %u", the_mesh_cp.receivedPacketsCount());
+  display.drawTextLeftAlign(5, 50, tmp);
 }
 
 void MainScreen::renderAdvertPage() {
@@ -281,8 +274,8 @@ int MainScreen::render(DisplayDriver &display) {
     case MainScreenPage::RECENT:
       renderRecentPage();
       break;
-    case MainScreenPage::RADIO:
-      renderRadioPage();
+    case MainScreenPage::STATS:
+      renderStatsPage();
       break;
     case MainScreenPage::ADVERT:
       renderAdvertPage();
@@ -382,7 +375,8 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
           contact_open_idx = contact_list_idx;
           channel_open_idx = -1;
           current_page = MainScreenPage::CHAT;
-        } else if ((contact.type == ADV_TYPE_REPEATER || contact.type == ADV_TYPE_ROOM) && !_task->isAlertActive()) {
+        } else if ((contact.type == ADV_TYPE_REPEATER || contact.type == ADV_TYPE_ROOM) &&
+                   !_task->isAlertActive()) {
           _task->ping(contact);
         }
       }

@@ -35,7 +35,7 @@ class MainScreen : public UIScreen {
     CONTACTS,
     CHAT,
     RECENT,
-    RADIO,
+    STATS,
     ADVERT,
 #if ENV_INCLUDE_GPS == 1
     GPS,
@@ -69,7 +69,7 @@ class MainScreen : public UIScreen {
   void renderContactsPage();
   void renderChatPage();
   void renderRecentPage();
-  void renderRadioPage();
+  void renderStatsPage();
   void renderAdvertPage();
   void renderGpsPage();
   void renderShutdownPage();

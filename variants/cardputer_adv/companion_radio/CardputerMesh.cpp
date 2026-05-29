@@ -9,3 +9,9 @@ void CardputerMesh::onTraceRecv(mesh::Packet *packet, uint32_t tag, uint32_t aut
     _ui->pingRecv(tag, path_len, snr_signed / 4.0f, packet->getSNR());
   }
 }
+
+void CardputerMesh::logRxRaw(float snr, float rssi, const uint8_t raw[], int len) {
+  MyMesh::logRxRaw(snr, rssi, raw, len);
+  packet_counter++;
+}
+
