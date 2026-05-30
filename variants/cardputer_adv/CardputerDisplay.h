@@ -1,5 +1,8 @@
 #pragma once
 
+#if USE_SD_CARD
+  #include <SD.h>
+#endif
 #include <M5Cardputer.h>
 #include <helpers/ui/DisplayDriver.h>
 
@@ -36,6 +39,7 @@ private:
 public:
   CardputerDisplay() : DisplayDriver(240, 135) {}
   bool begin();
+  void tryLoadUserFont();
 
   bool isOn() override { return _isOn; };
   void turnOn() override;
@@ -51,4 +55,5 @@ public:
   void drawXbm(int x, int y, const uint8_t *bits, int w, int h) override;
   uint16_t getTextWidth(const char *str);
   void endFrame();
+  int32_t getFontHeight() const;
 };

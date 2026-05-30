@@ -25,6 +25,10 @@
 #define ASCII_CTRL_ESCAPE    0x1B
 #define ASCII_CTRL_DC1       0x11 // well, we will use it for "OPT" button
 
+#ifndef UI_TEXT_LINE_HEIGHT
+  #define UI_TEXT_LINE_HEIGHT 12 // adjust to the used font
+#endif
+
 class CardputerUITask : public AbstractUITask {
   DisplayDriver *_display;
   SensorManager *_sensors;

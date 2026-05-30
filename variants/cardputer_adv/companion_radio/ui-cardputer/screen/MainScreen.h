@@ -17,11 +17,11 @@
 #endif
 
 #ifndef UI_CONTACT_LIST_SIZE
-  #define UI_CONTACT_LIST_SIZE 13
+  #define UI_CONTACT_LIST_SIZE 8
 #endif
 
 #ifndef UI_CHANNEL_LIST_SIZE
-  #define UI_CHANNEL_LIST_SIZE 13
+  #define UI_CHANNEL_LIST_SIZE 8
 #endif
 
 #ifndef UI_TEXTBOX_MAX

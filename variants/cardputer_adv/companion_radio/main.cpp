@@ -71,7 +71,7 @@ void setup() {
 
 #ifdef USE_SD_CARD
   // SPI setup done in radio.std_init so not calling SPI.begin
-  if (!SD.begin(PIN_SD_CS, SPI)) {
+  if (!SD.begin(PIN_SD_CS, SPI, 25000000)) {
     if (disp) {
       disp->startFrame();
       disp->setTextSize(2);
@@ -79,6 +79,9 @@ void setup() {
       disp->endFrame();
     }
     halt();
+  }
+  if (disp) {
+    display.tryLoadUserFont();
   }
 #else
   SPIFFS.begin(true);

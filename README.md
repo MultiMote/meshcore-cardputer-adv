@@ -53,12 +53,18 @@ Currently implemented (companion):
    * Press `Enter` on repeater/room to ping
    * Press `Enter` on contact to start conversation
 - Send messages
+- Basic display unicode support. Font is `DejaVu Sans 12` converted with `Processing 4`.
+
+  Included unicode blocks:
+   * Basic Latin (U+0000-U+007F)
+   * Latin-1 Supplement (U+0080-U+00FF)
+   * Cyrillic (U+0400-U+04FF)
+
 
 Todo:
 
 - Chat history
 - Find a way to include MeshCore as submodule in this repository and build it from here
-- Limited unicode support
 - Keyboard layouts
 - Catch and display message ACK's
 - Change display brightness

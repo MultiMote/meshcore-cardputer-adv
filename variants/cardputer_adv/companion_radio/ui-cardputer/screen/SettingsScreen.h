@@ -4,7 +4,7 @@
 
 
 #ifndef UI_SETTINGS_LIST_SIZE
-  #define UI_SETTINGS_LIST_SIZE 11
+  #define UI_SETTINGS_LIST_SIZE 9
 #endif
 
 class SettingsScreen : public UIScreen {

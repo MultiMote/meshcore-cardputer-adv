@@ -16,15 +16,17 @@ void MsgPreviewScreen::addPreview(uint8_t path_len, const char *from_name, const
 
 int MsgPreviewScreen::render(DisplayDriver &display) {
   char tmp[16];
-  display.setCursor(0, 0);
+  int y = 0;
+
   display.setTextSize(1);
   display.setColor(DisplayDriver::GREEN);
   sprintf(tmp, "Unread: %d", num_unread);
-  display.print(tmp);
+  display.drawTextLeftAlign(0, 0, tmp);
 
   auto p = &unread[head];
 
   int secs = _rtc->getCurrentTime() - p->timestamp;
+
   if (secs < 60) {
     sprintf(tmp, "%ds", secs);
   } else if (secs < 60 * 60) {
@@ -32,16 +34,21 @@ int MsgPreviewScreen::render(DisplayDriver &display) {
   } else {
     sprintf(tmp, "%dh", secs / (60 * 60));
   }
-  display.setCursor(display.width() - display.getTextWidth(tmp) - 2, 0);
-  display.print(tmp);
 
-  display.drawRect(0, 11, display.width(), 1); // horiz line
+  // time
+  display.drawTextRightAlign(display.width() - 2, y, tmp);
 
-  display.setCursor(0, 14);
+  y+= UI_TEXT_LINE_HEIGHT;
+
+  // sender
+  display.drawRect(0, y, display.width(), 1); // horiz line
   display.setColor(DisplayDriver::YELLOW);
-  display.print(p->origin);
+  display.drawTextLeftAlign(0, y, p->origin);
 
-  display.setCursor(0, 25);
+  y+= UI_TEXT_LINE_HEIGHT;
+
+  // message
+  display.setCursor(0, UI_TEXT_LINE_HEIGHT * 2);
   display.setColor(DisplayDriver::LIGHT);
   display.printWordWrap(p->msg, display.width());
 
@@ -53,7 +60,7 @@ int MsgPreviewScreen::render(DisplayDriver &display) {
 }
 
 bool MsgPreviewScreen::handleInput(char c) {
-  if (c == KEY_NEXT || c == KEY_RIGHT) {
+  if (c == KEY_NEXT || c == KEY_RIGHT || c == ASCII_CTRL_ESCAPE || c == ASCII_CTRL_LF) {
     head = (head + MAX_UNREAD_MSGS - 1) % MAX_UNREAD_MSGS;
     num_unread--;
     if (num_unread == 0) {

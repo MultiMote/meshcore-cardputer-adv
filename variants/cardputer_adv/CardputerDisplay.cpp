@@ -1,6 +1,15 @@
 #include "CardputerDisplay.h"
 
+#include "font.h"
+
 #include <MeshCore.h>
+
+int32_t emoji_draw_callback(lgfx::LGFXBase *gfx, int32_t x, int32_t y, uint32_t code, int32_t font_height) {
+  int w = gfx->textWidth("O");
+  int h = gfx->fontHeight();
+  gfx->drawRect(x, y + (h - w - w / 2), w, w, TFT_DARKGRAY);
+  return w;
+}
 
 bool CardputerDisplay::begin() {
   LCD.setBaseColor(TFT_BLACK);
@@ -12,7 +21,27 @@ bool CardputerDisplay::begin() {
   }
 
   LCD.setTextColor(TFT_WHITE, TFT_BLACK);
+  LCD.loadFont(DejaVuSans_11);
+  LCD.setEmojiCallback(emoji_draw_callback);
   return true;
+}
+
+
+
+
+void CardputerDisplay::tryLoadUserFont() {
+#if USE_SD_CARD
+  #define USER_FONT_NAME "/MeshCoreFont.vlw"
+  // fixme: Do not use, redraw is incredibly slow for some reason
+  if (SD.exists(USER_FONT_NAME)) {
+    MESH_DEBUG_PRINTLN("User font found");
+    if (LCD.loadFont(SD, USER_FONT_NAME)) {
+      MESH_DEBUG_PRINTLN(USER_FONT_NAME " loaded");
+    } else {
+      MESH_DEBUG_PRINTLN(USER_FONT_NAME " load failed");
+    }
+  }
+#endif
 }
 
 void CardputerDisplay::turnOn() {
@@ -38,6 +67,10 @@ void CardputerDisplay::endFrame() {
   LCD.endWrite();
 }
 
+int32_t CardputerDisplay::getFontHeight() const {
+  return LCD.fontHeight();
+}
+
 void CardputerDisplay::setTextSize(int sz) {
   LCD.setTextSize(sz);
 }
@@ -53,26 +86,7 @@ void CardputerDisplay::setCursor(int x, int y) {
 }
 
 void CardputerDisplay::print(const char *str) {
-  const uint8_t *p = reinterpret_cast<const uint8_t*>(str);
-  uint16_t color = _lastColor;
-
-  while (*p) {
-    if (isprint(*p)) {
-      LCD.write(*p); // ASCII printable
-      ++p;
-    } else if (*p >= 0x80) { // todo: add proper unicode handling
-      LCD.setTextColor(TFT_GREY);
-      LCD.write('#');
-      LCD.setTextColor(color);
-      ++p;
-
-      while (*p && (*p & 0xC0) == 0x80) {
-        ++p; // Skip UTF-8 continuation bytes
-      }
-    } else {
-      ++p;
-    }
-  }
+  LCD.print(str);
 }
 
 void CardputerDisplay::fillRect(int x, int y, int w, int h) {
@@ -90,4 +104,3 @@ void CardputerDisplay::drawXbm(int x, int y, const uint8_t *bits, int w, int h) 
 uint16_t CardputerDisplay::getTextWidth(const char *str) {
   return LCD.textWidth(str);
 }
-

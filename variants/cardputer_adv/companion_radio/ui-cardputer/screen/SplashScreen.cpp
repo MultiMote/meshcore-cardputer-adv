@@ -26,9 +26,9 @@ int SplashScreen::render(DisplayDriver &display) {
   display.drawTextCentered(display.width() / 2, 22, version_info);
 
   display.setTextSize(1);
-  display.drawTextCentered(display.width() / 2, 42, FIRMWARE_BUILD_DATE);
+  display.drawTextCentered(display.width() / 2, 52, FIRMWARE_BUILD_DATE);
 
-  display.drawTextCentered(display.width() / 2, 62, "for Cardputer ADV");
+  display.drawTextCentered(display.width() / 2, 72, "for Cardputer ADV");
 
   return 1000;
 }

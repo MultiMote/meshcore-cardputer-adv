@@ -176,7 +176,7 @@ bool SettingsScreen::commitItemEdit(SettingsItem item) {
         return true;
       }
       break;
-      
+
     default:
       break;
   }
@@ -276,11 +276,11 @@ int SettingsScreen::render(DisplayDriver &display) {
       break;
     }
 
-    renderItem(display, static_cast<SettingsItem>(real_idx), 15, 20 + i * 10);
+    renderItem(display, static_cast<SettingsItem>(real_idx), 15, 20 + i * UI_TEXT_LINE_HEIGHT);
 
     if (i == list_idx) {
       display.setColor(DisplayDriver::GREEN);
-      display.drawTextLeftAlign(5, 20 + i * 10, ">");
+      display.drawTextLeftAlign(5, 20 + i * UI_TEXT_LINE_HEIGHT, ">");
     }
   }
 

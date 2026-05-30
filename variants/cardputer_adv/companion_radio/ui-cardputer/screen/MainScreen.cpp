@@ -1,6 +1,7 @@
 #include "MainScreen.h"
 
-#define PRESS_LABEL "long press / Enter"
+#define PRESS_LABEL      "long press / Enter"
+#define MAX_MESSAGE_SIZE 133
 
 void MainScreen::renderBatteryIndicator(DisplayDriver &display, uint16_t batteryMilliVolts) {
   {
@@ -60,14 +61,14 @@ void MainScreen::renderFirstPage() {
   } else if (the_mesh_cp.getBLEPin() != 0) { // BT pin
     display.setColor(DisplayDriver::RED);
     display.setTextSize(2);
-    sprintf(tmp, "Pin:%d", the_mesh_cp.getBLEPin());
+    sprintf(tmp, "Pin: %d", the_mesh_cp.getBLEPin());
     display.drawTextCentered(display.width() / 2, 43, tmp);
   }
 
   display.setColor(DisplayDriver::GREEN);
   display.setTextSize(1);
-
-  display.drawTextCentered(display.width() / 2, display.height() - 11, "Press OPT to open settings");
+  display.drawTextCentered(display.width() / 2, display.height() - UI_TEXT_LINE_HEIGHT - 2,
+                           "Press OPT to open settings");
 }
 
 void MainScreen::renderChannelsPage() {
@@ -87,10 +88,10 @@ void MainScreen::renderChannelsPage() {
     }
 
     if (i == list_idx) {
-      display.drawTextLeftAlign(5, 30 + i * 8, ">");
+      display.drawTextLeftAlign(5, 30 + i * UI_TEXT_LINE_HEIGHT, ">");
     }
 
-    display.drawTextLeftAlign(25, 30 + i * 8, channel.name);
+    display.drawTextLeftAlign(25, 30 + i * UI_TEXT_LINE_HEIGHT, channel.name);
   }
 }
 
@@ -110,14 +111,14 @@ void MainScreen::renderContactsPage() {
     }
 
     if (i == list_idx) {
-      display.drawTextLeftAlign(5, 30 + i * 8, ">");
+      display.drawTextLeftAlign(5, 30 + i * UI_TEXT_LINE_HEIGHT, ">");
     }
 
     if (contact.type == ADV_TYPE_CHAT) {
-      display.drawTextLeftAlign(15, 30 + i * 8, "C");
+      display.drawTextLeftAlign(15, 30 + i * UI_TEXT_LINE_HEIGHT, "C");
     }
 
-    display.drawTextLeftAlign(25, 30 + i * 8, contact.name);
+    display.drawTextLeftAlign(25, 30 + i * UI_TEXT_LINE_HEIGHT, contact.name);
   }
 }
 
@@ -134,9 +135,10 @@ void MainScreen::renderChatPage() {
     display.drawTextCentered(display.width() / 2, 20, channel.name);
   }
 
-  display.drawRect(1, display.height() - 15, display.width() - 1, 15);
+  display.drawRect(1, display.height() - UI_TEXT_LINE_HEIGHT - 2, display.width() - 1, 1);
   display.setColor(DisplayDriver::LIGHT);
-  display.drawTextLeftAlign(5, display.height() - 10, chat_text_box.c_str()); // todo limit
+  display.drawTextEllipsized(5, display.height() - UI_TEXT_LINE_HEIGHT - 2, display.width() - 10,
+                             chat_text_box.c_str());
   display.setColor(DisplayDriver::GREEN);
 }
 
@@ -145,8 +147,13 @@ void MainScreen::renderRecentPage() {
 
   the_mesh_cp.getRecentlyHeard(recent, UI_RECENT_LIST_SIZE);
   display.setColor(DisplayDriver::GREEN);
+
   int y = 20;
-  for (int i = 0; i < UI_RECENT_LIST_SIZE; i++, y += 11) {
+  display.drawTextCentered(display.width() / 2, y, "Recent adverts");
+
+  y += UI_TEXT_LINE_HEIGHT;
+
+  for (int i = 0; i < UI_RECENT_LIST_SIZE; i++, y += UI_TEXT_LINE_HEIGHT) {
     auto a = &recent[i];
     if (a->name[0] == 0) continue; // empty slot
     int secs = _rtc->getCurrentTime() - a->recv_timestamp;
@@ -170,17 +177,23 @@ void MainScreen::renderRecentPage() {
 void MainScreen::renderStatsPage() { // todo: separate menu maybe
   char tmp[80];
 
-  display.drawTextCentered(display.width() / 2, 20, "Stats");
+  int y = 20;
+  display.drawTextCentered(display.width() / 2, y, "Stats");
 
   display.setColor(DisplayDriver::YELLOW);
 
+  y += UI_TEXT_LINE_HEIGHT;
   sprintf(tmp, "Radio noise floor: %d", radio_driver.getNoiseFloor());
-  display.drawTextLeftAlign(5, 30, tmp);
+  display.drawTextLeftAlign(5, y, tmp);
+
+  y += UI_TEXT_LINE_HEIGHT;
   sprintf(tmp, "Heap usage: %d/%d (%d%%)", ESP.getFreeHeap(), ESP.getHeapSize(),
           (ESP.getHeapSize() - ESP.getFreeHeap()) * 100 / ESP.getHeapSize());
-  display.drawTextLeftAlign(5, 40, tmp);
+  display.drawTextLeftAlign(5, y, tmp);
+
+  y += UI_TEXT_LINE_HEIGHT;
   sprintf(tmp, "Packets received: %u", the_mesh_cp.receivedPacketsCount());
-  display.drawTextLeftAlign(5, 50, tmp);
+  display.drawTextLeftAlign(5, y, tmp);
 }
 
 void MainScreen::renderAdvertPage() {
@@ -199,24 +212,24 @@ void MainScreen::renderGpsPage() {
   strcpy(buf, gps_state ? "gps on" : "gps off");
   display.drawTextLeftAlign(0, y, buf);
   if (nmea == NULL) {
-    y = y + 12;
+    y = y + UI_TEXT_LINE_HEIGHT;
     display.drawTextLeftAlign(0, y, "Can't access GPS");
   } else {
     strcpy(buf, nmea->isValid() ? "fix" : "no fix");
     display.drawTextRightAlign(display.width() - 1, y, buf);
-    y = y + 12;
+    y = y + UI_TEXT_LINE_HEIGHT;
     display.drawTextLeftAlign(0, y, "sat");
     sprintf(buf, "%d", nmea->satellitesCount());
     display.drawTextRightAlign(display.width() - 1, y, buf);
-    y = y + 12;
+    y = y + UI_TEXT_LINE_HEIGHT;
     display.drawTextLeftAlign(0, y, "pos");
     sprintf(buf, "%.4f %.4f", nmea->getLatitude() / 1000000., nmea->getLongitude() / 1000000.);
     display.drawTextRightAlign(display.width() - 1, y, buf);
-    y = y + 12;
+    y = y + UI_TEXT_LINE_HEIGHT;
     display.drawTextLeftAlign(0, y, "alt");
     sprintf(buf, "%.2f", nmea->getAltitude() / 1000.);
     display.drawTextRightAlign(display.width() - 1, y, buf);
-    y = y + 12;
+    y = y + UI_TEXT_LINE_HEIGHT;
   }
 }
 #endif
@@ -244,7 +257,7 @@ int MainScreen::render(DisplayDriver &display) {
   renderBatteryIndicator(display, _task->getBattMilliVolts());
 
   // curr page indicator
-  int y = 14;
+  int y = 16;
   int x = display.width() / 2 - 5 * (MainScreenPage::Count - 1);
   for (uint8_t i = 0; i < MainScreenPage::Count; i++, x += 10) {
     if (i == current_page) {
@@ -422,7 +435,9 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
     }
 
     if (isprint(c)) {
-      chat_text_box += c;
+      if (chat_text_box.length() < MAX_MESSAGE_SIZE) {
+        chat_text_box += c;
+      }
       return true;
     }
   }
@@ -431,13 +446,12 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
     current_page = (current_page + MainScreenPage::Count - 1) % MainScreenPage::Count;
     return true;
   }
+
   if (c == KEY_NEXT || c == KEY_RIGHT) {
     current_page = (current_page + 1) % MainScreenPage::Count;
-    if (current_page == MainScreenPage::RECENT) {
-      _task->showAlert("Recent adverts", 800);
-    }
     return true;
   }
+
   if (c == ASCII_CTRL_LF && current_page == MainScreenPage::ADVERT) {
     _task->notify(UIEventType::ack);
     if (the_mesh_cp.advert()) {
