@@ -161,9 +161,7 @@ void MainScreen::renderRecentPage() {
     int timestamp_width = display.getTextWidth(tmp);
     int max_name_width = display.width() - timestamp_width - 1;
 
-    char filtered_recent_name[sizeof(a->name)];
-    display.translateUTF8ToBlocks(filtered_recent_name, a->name, sizeof(filtered_recent_name));
-    display.drawTextEllipsized(0, y, max_name_width, filtered_recent_name);
+    display.drawTextEllipsized(0, y, max_name_width, a->name);
     display.setCursor(display.width() - timestamp_width - 1, y);
     display.print(tmp);
   }
@@ -236,13 +234,11 @@ void MainScreen::renderShutdownPage() {
 
 int MainScreen::render(DisplayDriver &display) {
   char tmp[80];
-  char filtered_name[sizeof(_node_prefs->node_name)];
   // node name
   display.setTextSize(1);
   display.setColor(DisplayDriver::GREEN);
-  display.translateUTF8ToBlocks(filtered_name, _node_prefs->node_name, sizeof(filtered_name));
   display.setCursor(0, 0);
-  display.print(filtered_name);
+  display.print(_node_prefs->node_name);
 
   // battery voltage
   renderBatteryIndicator(display, _task->getBattMilliVolts());

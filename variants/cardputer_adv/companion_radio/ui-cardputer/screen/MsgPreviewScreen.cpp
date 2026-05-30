@@ -39,15 +39,11 @@ int MsgPreviewScreen::render(DisplayDriver &display) {
 
   display.setCursor(0, 14);
   display.setColor(DisplayDriver::YELLOW);
-  char filtered_origin[sizeof(p->origin)];
-  display.translateUTF8ToBlocks(filtered_origin, p->origin, sizeof(filtered_origin));
-  display.print(filtered_origin);
+  display.print(p->origin);
 
   display.setCursor(0, 25);
   display.setColor(DisplayDriver::LIGHT);
-  char filtered_msg[sizeof(p->msg)];
-  display.translateUTF8ToBlocks(filtered_msg, p->msg, sizeof(filtered_msg));
-  display.printWordWrap(filtered_msg, display.width());
+  display.printWordWrap(p->msg, display.width());
 
 #if AUTO_OFF_MILLIS == 0 // probably e-ink
   return 10000;          // 10 s

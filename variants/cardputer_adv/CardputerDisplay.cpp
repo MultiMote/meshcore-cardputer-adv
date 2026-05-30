@@ -1,5 +1,7 @@
 #include "CardputerDisplay.h"
 
+#include <MeshCore.h>
+
 bool CardputerDisplay::begin() {
   LCD.setBaseColor(TFT_BLACK);
 
@@ -51,7 +53,26 @@ void CardputerDisplay::setCursor(int x, int y) {
 }
 
 void CardputerDisplay::print(const char *str) {
-  LCD.print(str);
+  const uint8_t *p = reinterpret_cast<const uint8_t*>(str);
+  uint16_t color = _lastColor;
+
+  while (*p) {
+    if (isprint(*p)) {
+      LCD.write(*p); // ASCII printable
+      ++p;
+    } else if (*p >= 0x80) { // todo: add proper unicode handling
+      LCD.setTextColor(TFT_GREY);
+      LCD.write('#');
+      LCD.setTextColor(color);
+      ++p;
+
+      while (*p && (*p & 0xC0) == 0x80) {
+        ++p; // Skip UTF-8 continuation bytes
+      }
+    } else {
+      ++p;
+    }
+  }
 }
 
 void CardputerDisplay::fillRect(int x, int y, int w, int h) {
@@ -69,3 +90,4 @@ void CardputerDisplay::drawXbm(int x, int y, const uint8_t *bits, int w, int h) 
 uint16_t CardputerDisplay::getTextWidth(const char *str) {
   return LCD.textWidth(str);
 }
+

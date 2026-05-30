@@ -64,6 +64,7 @@ Todo:
 - Change display brightness
 - Custom notification sounds (.wav files from SD card)
 - Discover repeaters
+- Reduce power consumption
 
 ### Thoughts on Cardputer
 
