@@ -69,7 +69,7 @@ Currently implemented (companion):
      layout_label (2 characters)
      key_char=replacement
      key_char=replacement
-     ...
+     ...rest of keys...
      ```
 
      Example:
@@ -79,7 +79,6 @@ Currently implemented (companion):
      q=й
      w=ц
      e=у
-     ...
      ```
 
    * Limits: up to 100 keys, up to 3 byte character replacement (UTF-8).
@@ -95,7 +94,6 @@ Todo:
 - Custom notification sounds (.wav files from SD card)
 - Discover repeaters
 - Reduce power consumption
-- Show battery level as percentage
 
 ### Thoughts on Cardputer
 

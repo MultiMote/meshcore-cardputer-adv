@@ -5,6 +5,8 @@
 
 void MainScreen::renderBatteryIndicator(DisplayDriver &display, uint16_t batteryMilliVolts) {
   {
+    char tmp[8];
+
     // Convert millivolts to percentage
 
     const int minMilliVolts = BATT_MIN_MILLIVOLTS;
@@ -14,8 +16,8 @@ void MainScreen::renderBatteryIndicator(DisplayDriver &display, uint16_t battery
     if (batteryPercentage > 100) batteryPercentage = 100; // Clamp to 100%
 
     // battery icon
-    int iconWidth = 24;
-    int iconHeight = 10;
+    int iconWidth = 26;
+    int iconHeight = 14;
     int iconX = display.width() - iconWidth - 5; // Position the icon near the top-right corner
     int iconY = 0;
     display.setColor(DisplayDriver::GREEN);
@@ -29,6 +31,12 @@ void MainScreen::renderBatteryIndicator(DisplayDriver &display, uint16_t battery
     // fill the battery based on the percentage
     int fillWidth = (batteryPercentage * (iconWidth - 4)) / 100;
     display.fillRect(iconX + 2, iconY + 2, fillWidth, iconHeight - 4);
+
+    sprintf(tmp, "%d", batteryPercentage);
+    display.drawTextCentered(iconX + 2 + iconWidth / 2, 0, tmp);
+    display.setColor(DisplayDriver::DARK);
+    display.drawTextCentered(iconX + 2 + iconWidth / 2 - 1, 0, tmp);
+
 
     // show muted icon if buzzer is muted
     if (_task->isBuzzerQuiet()) {
@@ -266,6 +274,8 @@ int MainScreen::render(DisplayDriver &display) {
 
   // battery voltage
   renderBatteryIndicator(display, _task->getBattMilliVolts());
+
+  display.setColor(DisplayDriver::GREEN);
 
   // curr page indicator
   int y = 16;
