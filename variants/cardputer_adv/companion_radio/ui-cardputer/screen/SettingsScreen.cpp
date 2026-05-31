@@ -339,7 +339,7 @@ bool SettingsScreen::handleInput(char c) {
 
   } else {
     if (c == ASCII_CTRL_ESCAPE || c == ASCII_CTRL_DC1) {
-      _task->gotoHomeScreen();
+      _task->gotoMainScreen();
       return true;
     }
 

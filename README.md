@@ -59,18 +59,44 @@ Currently implemented (companion):
    * Basic Latin (U+0000-U+007F)
    * Latin-1 Supplement (U+0080-U+00FF)
    * Cyrillic (U+0400-U+04FF)
+- Keyboard layouts
+
+   * Enabled if MeshCoreLayout.txt file is present on SD card
+   * Switch with Ctrl+Space
+   * File format (encoding is UTF-8, LF or CRLF line endings):
+
+     ```
+     layout_label (2 characters)
+     key_char=replacement
+     key_char=replacement
+     ...
+     ```
+
+     Example:
+
+     ```
+     ru
+     q=й
+     w=ц
+     e=у
+     ...
+     ```
+
+   * Limits: up to 100 keys, up to 3 byte character replacement (UTF-8).
+   * Available to download: [Russian](keyboard_layouts/ru/MeshCoreKeyboard.txt)
+   * ⚠ File format and keyboard handling will be changed in a next commit(s)!
 
 
 Todo:
 
 - Chat history
 - Find a way to include MeshCore as submodule in this repository and build it from here
-- Keyboard layouts
 - Catch and display message ACK's
 - Change display brightness
 - Custom notification sounds (.wav files from SD card)
 - Discover repeaters
 - Reduce power consumption
+- Show battery level as percentage
 
 ### Thoughts on Cardputer
 

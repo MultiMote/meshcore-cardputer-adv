@@ -134,10 +134,21 @@ void MainScreen::renderChatPage() {
   } else if (the_mesh_cp.getChannel(channel_open_idx, channel)) {
     display.drawTextCentered(display.width() / 2, 20, channel.name);
   }
-
+  int start_x = 5;
   display.drawRect(1, display.height() - UI_TEXT_LINE_HEIGHT - 2, display.width() - 1, 1);
+
+  if (_keyboard_layout->hasSecondary()) {
+    const char *layout_label = _keyboard_layout->getCurrentCode();
+    int label_width = std::max(display.getTextWidth(_keyboard_layout->getPrimaryCode()),
+                               display.getTextWidth(_keyboard_layout->getSecondaryCode()));
+    start_x += label_width;
+    display.drawRect(start_x, display.height() - UI_TEXT_LINE_HEIGHT - 2, 1, UI_TEXT_LINE_HEIGHT + 2);
+    display.drawTextLeftAlign(2, display.height() - UI_TEXT_LINE_HEIGHT - 2, layout_label);
+    start_x += 5;
+  }
+
   display.setColor(DisplayDriver::LIGHT);
-  display.drawTextEllipsized(5, display.height() - UI_TEXT_LINE_HEIGHT - 2, display.width() - 10,
+  display.drawTextEllipsized(start_x, display.height() - UI_TEXT_LINE_HEIGHT - 2, display.width() - start_x,
                              chat_text_box.c_str());
   display.setColor(DisplayDriver::GREEN);
 }
@@ -357,6 +368,22 @@ void MainScreen::sendChatMessage() {
   }
 }
 
+// In case if input has utf-8 multibyte characters
+void MainScreen::chatInputRemoveLastChar() {
+  unsigned int len = chat_text_box.length();
+  if (len == 0) {
+    return;
+  }
+
+  unsigned int bytesToRemove = 1;
+
+  while (len - bytesToRemove > 0 && ((unsigned char)chat_text_box[len - bytesToRemove] & 0xC0) == 0x80) {
+    bytesToRemove++;
+  }
+
+  chat_text_box.remove(len - bytesToRemove, bytesToRemove);
+}
+
 bool MainScreen::handleInput(char c) { // todo: refactor this mess
   MESH_DEBUG_PRINTLN("kb %d 0x%x '%c' isprint %d", c, c, c, isprint(c));
 
@@ -423,9 +450,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
 
   if (current_page == MainScreenPage::CHAT) {
     if (c == ASCII_CTRL_BACKSPACE) {
-      if (!chat_text_box.isEmpty()) {
-        chat_text_box.remove(chat_text_box.length() - 1);
-      }
+      chatInputRemoveLastChar();
       return true;
     }
 
@@ -434,8 +459,17 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
       return true;
     }
 
+    if (c == ASCII_CTRL_SUBST) {
+      _keyboard_layout->switchLayout();
+      return true;
+    }
+
     if (isprint(c)) {
-      if (chat_text_box.length() < MAX_MESSAGE_SIZE) {
+      const char *repl = _keyboard_layout->findReplacement(c);
+
+      if (repl != nullptr && chat_text_box.length() + strlen(repl) <= MAX_MESSAGE_SIZE) {
+        chat_text_box += repl;
+      } else if (chat_text_box.length() < MAX_MESSAGE_SIZE) {
         chat_text_box += c;
       }
       return true;
@@ -469,9 +503,16 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
   }
 #endif
 
-  if (c == ASCII_CTRL_LF && current_page == MainScreenPage::SHUTDOWN) {
-    shutdown_init = true; // need to wait for button to be released
-    return true;
+  if (current_page == MainScreenPage::SHUTDOWN) {
+    if (c == ASCII_CTRL_LF) {
+      shutdown_init = true; // need to wait for button to be released
+      return true;
+    }
+
+    if (c == 'r') {
+      ESP.restart();
+      return true;
+    }
   }
 
   if (c == ASCII_CTRL_DC1 && current_page == MainScreenPage::FIRST) {

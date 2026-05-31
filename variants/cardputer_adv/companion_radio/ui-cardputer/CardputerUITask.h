@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CardputerAdvBoard.h"
+#include "KeyboardLayout.h"
 
 #include <AbstractUITask.h>
 #include <Arduino.h>
@@ -23,7 +24,8 @@
 #define ASCII_CTRL_LF        0x0A // newline (Enter)
 #define ASCII_CTRL_BACKSPACE 0x08
 #define ASCII_CTRL_ESCAPE    0x1B
-#define ASCII_CTRL_DC1       0x11 // well, we will use it for "OPT" button
+#define ASCII_CTRL_DC1       0x11 // We will use it for "OPT" button
+#define ASCII_CTRL_SUBST     0x1A // We will use it to switch layout
 
 #ifndef UI_TEXT_LINE_HEIGHT
   #define UI_TEXT_LINE_HEIGHT 12 // adjust to the used font
@@ -34,6 +36,7 @@ class CardputerUITask : public AbstractUITask {
   SensorManager *_sensors;
   CardputerAdvBoard *_board;
   NodePrefs *_node_prefs;
+  KeyboardLayout *_keyboard_layout;
   unsigned long next_refresh = 0;
   unsigned long auto_off_time;
   bool sleep_enabled = false;
@@ -45,7 +48,7 @@ class CardputerUITask : public AbstractUITask {
   uint32_t last_ping_tag = 0;
 
   UIScreen *splash;
-  UIScreen *home;
+  UIScreen *main_scr;
   UIScreen *msg_preview;
   UIScreen *settings;
   UIScreen *current_screen = nullptr;
@@ -61,9 +64,10 @@ class CardputerUITask : public AbstractUITask {
 public:
   CardputerUITask(CardputerAdvBoard *board, BaseSerialInterface *serial)
       : AbstractUITask(board, serial), _display(NULL), _sensors(NULL), _board(board) {}
-  void begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs);
 
-  void gotoHomeScreen() { setCurrScreen(home); }
+  void begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs, KeyboardLayout *keyboard_layout);
+
+  void gotoMainScreen() { setCurrScreen(main_scr); }
   void gotoSettingsScreen() { setCurrScreen(settings); }
   void showAlert(const char *text, int duration_millis);
   bool isAlertActive();

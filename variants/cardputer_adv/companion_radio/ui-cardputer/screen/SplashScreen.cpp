@@ -35,6 +35,6 @@ int SplashScreen::render(DisplayDriver &display) {
 
 void SplashScreen::poll() {
   if (millis() >= dismiss_after) {
-    _task->gotoHomeScreen();
+    _task->gotoMainScreen();
   }
 }

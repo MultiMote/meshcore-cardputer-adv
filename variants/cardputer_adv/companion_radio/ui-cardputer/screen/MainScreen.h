@@ -48,6 +48,7 @@ class MainScreen : public UIScreen {
   mesh::RTCClock *_rtc;
   SensorManager *_sensors;
   NodePrefs *_node_prefs;
+  KeyboardLayout *_keyboard_layout;
 
   uint8_t current_page = MainScreenPage::FIRST;
   bool shutdown_init = false;
@@ -61,6 +62,7 @@ class MainScreen : public UIScreen {
 
   int getChannelCount();
   void sendChatMessage();
+  void chatInputRemoveLastChar();
 
   void renderBatteryIndicator(DisplayDriver &display, uint16_t batteryMilliVolts);
 
@@ -75,8 +77,8 @@ class MainScreen : public UIScreen {
   void renderShutdownPage();
 
 public:
-  MainScreen(CardputerUITask *task, mesh::RTCClock *rtc, SensorManager *sensors, NodePrefs *node_prefs)
-      : _task(task), _rtc(rtc), _sensors(sensors), _node_prefs(node_prefs) {
+  MainScreen(CardputerUITask *task, mesh::RTCClock *rtc, SensorManager *sensors, NodePrefs *node_prefs, KeyboardLayout *keyboard_layout)
+      : _task(task), _rtc(rtc), _sensors(sensors), _node_prefs(node_prefs), _keyboard_layout(keyboard_layout) {
     chat_text_box.reserve(UI_TEXTBOX_MAX);
   }
 

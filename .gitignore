@@ -4,6 +4,7 @@
 !/.github/workflows/
 /.github/workflows/*
 !/.github/workflows/build-firmware.yml
+!/keyboard_layouts/
 !/LICENSE
 !/images/
 !/.gitignore

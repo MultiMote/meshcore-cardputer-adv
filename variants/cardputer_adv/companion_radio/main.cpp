@@ -3,6 +3,8 @@
   #define THE_MESH_OBJ the_mesh_cp
   #include "CardputerMesh.h"
   #include "CardputerUITask.h"
+  #include "KeyboardLayout.h"
+
 #else
   #define TASK_CLASS   UITask
   #define THE_MESH_OBJ the_mesh
@@ -27,6 +29,7 @@ static uint32_t _atoi(const char *sp) {
 #ifdef USE_SD_CARD
   #include <SD.h>
 DataStore store(SD, rtc_clock);
+KeyboardLayout layout;
 #else
   #include <SPIFFS.h>
 DataStore store(SPIFFS, rtc_clock);
@@ -83,6 +86,7 @@ void setup() {
   if (disp) {
     display.tryLoadUserFont();
   }
+  layout.begin(SD);
 #else
   SPIFFS.begin(true);
 #endif
@@ -98,7 +102,12 @@ void setup() {
   THE_MESH_OBJ.applyGpsPrefs();
 #endif
 
+#if CUSTOM_CARDPUTER_UI
+  ui_task.begin(disp, &sensors, THE_MESH_OBJ.getNodePrefs(), &layout);
+#else
   ui_task.begin(disp, &sensors, THE_MESH_OBJ.getNodePrefs());
+#endif
+
 }
 
 void loop() {

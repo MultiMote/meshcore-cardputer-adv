@@ -9,10 +9,12 @@
 
 #include <M5Cardputer.h>
 #include <helpers/TxtDataHelpers.h>
+#include "KeyboardLayout.h"
 
-void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs) {
+void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs, KeyboardLayout *keyboard_layout) {
   _display = display;
   _sensors = sensors;
+  _keyboard_layout = keyboard_layout;
   auto_off_time = millis() + AUTO_OFF_MILLIS;
 
 #if defined(PIN_USER_BTN)
@@ -29,7 +31,7 @@ void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, Node
   alert_expiry = 0;
 
   splash = new SplashScreen(this);
-  home = new MainScreen(this, &rtc_clock, sensors, node_prefs);
+  main_scr = new MainScreen(this, &rtc_clock, sensors, node_prefs, keyboard_layout);
   settings = new SettingsScreen(this, &rtc_clock, node_prefs);
   msg_preview = new MsgPreviewScreen(this, &rtc_clock);
   setCurrScreen(splash);
@@ -62,7 +64,7 @@ void CardputerUITask::notify(UIEventType t) {
 void CardputerUITask::msgRead(int msgcount) {
   unsynced_msg_count = msgcount;
   if (msgcount == 0) {
-    gotoHomeScreen();
+    gotoMainScreen();
   }
 }
 
@@ -154,6 +156,8 @@ void CardputerUITask::loop() {
         c = checkDisplayOn(KEY_DOWN);
       } else if (M5Cardputer.Keyboard.isKeyPressed('`') && !status.alt) { // esc
         c = checkDisplayOn(ASCII_CTRL_ESCAPE);
+      } else if (M5Cardputer.Keyboard.isKeyPressed(' ') && status.ctrl) { // ctrl+space keyboard layout switch
+        c = checkDisplayOn(ASCII_CTRL_SUBST);
       } else if (status.enter) { // enter
         c = checkDisplayOn(ASCII_CTRL_LF);
       } else if (status.del) { // backspace

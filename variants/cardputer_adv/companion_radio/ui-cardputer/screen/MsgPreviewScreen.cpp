@@ -64,13 +64,13 @@ bool MsgPreviewScreen::handleInput(char c) {
     head = (head + MAX_UNREAD_MSGS - 1) % MAX_UNREAD_MSGS;
     num_unread--;
     if (num_unread == 0) {
-      _task->gotoHomeScreen();
+      _task->gotoMainScreen();
     }
     return true;
   }
   if (c == ASCII_CTRL_LF) {
     num_unread = 0; // clear unread queue
-    _task->gotoHomeScreen();
+    _task->gotoMainScreen();
     return true;
   }
   return false;
