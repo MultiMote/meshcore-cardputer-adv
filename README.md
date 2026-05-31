@@ -84,7 +84,6 @@ Currently implemented (companion):
 
    * Limits: up to 100 keys, up to 3 byte character replacement (UTF-8).
    * Available to download: [Russian](keyboard_layouts/ru/MeshCoreKeyboard.txt)
-   * ⚠ File format and keyboard handling will be changed in a next commit(s)!
 
 
 Todo:
