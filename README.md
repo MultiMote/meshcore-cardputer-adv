@@ -47,12 +47,12 @@ Currently implemented (companion):
    * Power consumption drops to ~52mA after display off
    * Can be enabled settings menu (state is not persisted)
    * Bluetooth connection is not preserved
-- List channels
+- Channels list
    * Press `Enter` on channel to start conversation
-- List contacts
+- Contacts list
    * Press `Enter` on repeater/room to ping
    * Press `Enter` on contact to start conversation
-- Send messages
+- Compose and send messages
 - Basic display unicode support. Font is `DejaVu Sans 12` converted with `Processing 4`.
 
   Included unicode blocks:

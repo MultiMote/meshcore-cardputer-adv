@@ -59,19 +59,25 @@ public:
 
   void enterLightSleep() {
     esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
-    
+
     // prevent speaker clicking after wakeup
     // begin() will automatically called after first sound played
-    M5Cardputer.Speaker.end(); 
+    M5Cardputer.Speaker.end();
 
-    // LoRa have active-high interrupt output, keyboard and user button have active-low, 
+    // LoRa have active-high interrupt output, keyboard and user button have active-low,
     // so we have to use both ext0 and ext1
     esp_sleep_enable_ext0_wakeup((gpio_num_t)P_LORA_DIO_1, 1); // LoRa
     esp_sleep_enable_ext1_wakeup((1L << PIN_KEYBOARD_INT) | (1L << PIN_USER_BTN),
                                  ESP_EXT1_WAKEUP_ANY_LOW); // keyboard + G0
+
+    Serial.flush();
+    delay(10);
+    Serial.end(); // USB CDC does not exits light sleep normally so turning it off
+
     esp_light_sleep_start();
 
-    // also uart seems to be broken after sleep
+    delay(10);
+    Serial.begin(115200);
   }
 
   void powerOff() override { enterDeepSleep(0); }
