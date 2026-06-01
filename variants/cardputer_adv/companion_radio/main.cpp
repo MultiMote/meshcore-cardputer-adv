@@ -16,6 +16,7 @@
 #include <Arduino.h>
 #include <Mesh.h>
 #include <helpers/esp32/SerialBLEInterface.h>
+#include "CardputerDataStore.h"
 
 static uint32_t _atoi(const char *sp) {
   uint32_t n = 0;
@@ -28,11 +29,11 @@ static uint32_t _atoi(const char *sp) {
 
 #ifdef USE_SD_CARD
   #include <SD.h>
-DataStore store(SD, rtc_clock);
+CardputerDataStore store(SD, rtc_clock);
 KeyboardLayout layout;
 #else
   #include <SPIFFS.h>
-DataStore store(SPIFFS, rtc_clock);
+CardputerDataStore store(SPIFFS, rtc_clock);
 #endif
 
 SerialBLEInterface serial_interface;
@@ -103,7 +104,7 @@ void setup() {
 #endif
 
 #if CUSTOM_CARDPUTER_UI
-  ui_task.begin(disp, &sensors, THE_MESH_OBJ.getNodePrefs(), &layout);
+  ui_task.begin(disp, &sensors, THE_MESH_OBJ.getNodePrefs(), THE_MESH_OBJ.getCustomNodePrefs(), &layout);
 #else
   ui_task.begin(disp, &sensors, THE_MESH_OBJ.getNodePrefs());
 #endif
@@ -117,7 +118,7 @@ void loop() {
   rtc_clock.tick();
 
 #if CUSTOM_CARDPUTER_UI
-  if (ui_task.isSleepEnabled() && millis() > ui_task.getAutoOffTime()) {
+  if (ui_task.powerSaveEnabled() && millis() > ui_task.getAutoOffTime()) {
     board.enterLightSleep();
   }
 #endif

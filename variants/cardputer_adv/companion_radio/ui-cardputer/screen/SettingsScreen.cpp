@@ -15,6 +15,11 @@ void SettingsScreen::renderItem(DisplayDriver &display, SettingsItem item, int x
       snprintf(tmp, sizeof(tmp), "---- DEVICE ----");
       break;
 
+    case SettingsItem::HdrMesh:
+      text_color = DisplayDriver::GREEN;
+      snprintf(tmp, sizeof(tmp), "---- MESH ----");
+      break;
+
     case SettingsItem::RadioFreq:
       snprintf(tmp, sizeof(tmp), "FREQ: %06.3f", _node_prefs->freq);
       break;
@@ -48,11 +53,16 @@ void SettingsScreen::renderItem(DisplayDriver &display, SettingsItem item, int x
       break;
 
     case SettingsItem::DevicePowersave:
-      snprintf(tmp, sizeof(tmp), "Power save: %s", _task->isSleepEnabled() ? "ON" : "OFF");
+      snprintf(tmp, sizeof(tmp), "Power save: %s", _task->powerSaveEnabled() ? "ON" : "OFF");
       break;
 
-    case SettingsItem::DevicePrefixSize:
-      snprintf(tmp, sizeof(tmp), "Prefix length: %d", _node_prefs->path_hash_mode + 1);
+    case SettingsItem::DeviceBatteryCorrection:
+      snprintf(tmp, sizeof(tmp), "Battery correction: %.3f",
+               _custom_prefs->battery_correction);
+      break;
+
+    case SettingsItem::MeshPathSize:
+      snprintf(tmp, sizeof(tmp), "Path hash size: %d", _node_prefs->path_hash_mode + 1);
       break;
 
     default:
@@ -69,16 +79,15 @@ bool SettingsScreen::enterItemEdit(SettingsItem item) {
   switch (item) {
     case SettingsItem::HdrRadio:
     case SettingsItem::HdrDevice:
+    case SettingsItem::HdrMesh:
       return true;
 
     case SettingsItem::DeviceBeep:
-      _node_prefs->buzzer_quiet = !_node_prefs->buzzer_quiet;
-      the_mesh_cp.savePrefs();
+      _task->toggleBuzzer();
       return true;
 
     case SettingsItem::DeviceGps:
       _task->toggleGPS();
-      the_mesh_cp.savePrefs();
       return true;
 
     case SettingsItem::DeviceBluetooth:
@@ -91,10 +100,10 @@ bool SettingsScreen::enterItemEdit(SettingsItem item) {
       return true;
 
     case SettingsItem::DevicePowersave:
-      _task->setSleepEnabled(!_task->isSleepEnabled()); // not persisted
+      _task->togglePowerSave();
       return true;
 
-    case SettingsItem::DevicePrefixSize:
+    case SettingsItem::MeshPathSize:
       edit_u8 = _node_prefs->path_hash_mode + 1;
       is_editing = true;
       return true;
@@ -121,6 +130,11 @@ bool SettingsScreen::enterItemEdit(SettingsItem item) {
 
     case SettingsItem::RadioBw:
       edit_buffer = String(_node_prefs->bw, 2);
+      is_editing = true;
+      return true;
+
+    case SettingsItem::DeviceBatteryCorrection:
+      edit_buffer = String(_board->getBattMilliVolts());
       is_editing = true;
       return true;
 
@@ -156,7 +170,7 @@ bool SettingsScreen::commitItemEdit(SettingsItem item) {
       restart_required = true;
       return true;
 
-    case SettingsItem::DevicePrefixSize:
+    case SettingsItem::MeshPathSize:
       _node_prefs->path_hash_mode = edit_u8 - 1;
       the_mesh_cp.savePrefs();
       return true;
@@ -175,6 +189,19 @@ bool SettingsScreen::commitItemEdit(SettingsItem item) {
         restart_required = true;
         return true;
       }
+      break;
+
+    case SettingsItem::DeviceBatteryCorrection:
+
+      if (edit_buffer.length() > 0) {
+        uint16_t real = edit_buffer.toInt();
+        uint16_t adc = _board->getBattMilliVolts();
+        if (adc != 0) {
+          _custom_prefs->battery_correction = (float)real / adc;
+          return true;
+        }
+      }
+
       break;
 
     default:
@@ -208,7 +235,7 @@ void SettingsScreen::handleEditInput(SettingsItem item, char k) {
         edit_u8++;
       }
       break;
-    case SettingsItem::DevicePrefixSize:
+    case SettingsItem::MeshPathSize:
       if (k == KEY_LEFT && edit_u8 > 1) {
         edit_u8--;
       } else if (k == KEY_RIGHT && edit_u8 < 3) {
@@ -223,6 +250,13 @@ void SettingsScreen::handleEditInput(SettingsItem item, char k) {
       } else if ((k == '.' || k == KEY_DOWN) && edit_buffer.indexOf('.') == -1) {
         edit_buffer.concat('.');
       } else if (isdigit(k)) {
+        edit_buffer.concat(k);
+      }
+      break;
+    case SettingsItem::DeviceBatteryCorrection:
+      if (k == ASCII_CTRL_BACKSPACE && edit_buffer.length() > 0) {
+        edit_buffer.remove(edit_buffer.length() - 1);
+      } else if (isdigit(k) && edit_buffer.length() < 4) {
         edit_buffer.concat(k);
       }
       break;
@@ -253,6 +287,8 @@ bool SettingsScreen::inputParsePositiveFloat(float &val) {
 }
 
 int SettingsScreen::render(DisplayDriver &display) {
+  char buf[64];
+
   display.setTextSize(1);
   if (restart_required) {
     display.setColor(DisplayDriver::RED);
@@ -291,16 +327,13 @@ int SettingsScreen::render(DisplayDriver &display) {
     display.fillRect(x_margin, y_margin, display.width() - x_margin * 2, display.height() - y_margin * 2);
     display.setColor(DisplayDriver::LIGHT);
     display.drawRect(x_margin, y_margin, display.width() - x_margin * 2, display.height() - y_margin * 2);
-
     display.setTextSize(2);
-
-    char buf[16];
 
     switch (list_sel_idx) {
       case SettingsItem::RadioSf:
       case SettingsItem::RadioCr:
       case SettingsItem::RadioPwr:
-      case SettingsItem::DevicePrefixSize:
+      case SettingsItem::MeshPathSize:
         sprintf(buf, "- %d +", edit_u8);
         display.drawTextCentered(display.width() / 2, display.height() / 2 - 8, buf);
         break;
@@ -309,6 +342,14 @@ int SettingsScreen::render(DisplayDriver &display) {
       case SettingsItem::RadioBw:
         sprintf(buf, "%s_", edit_buffer.c_str());
         display.drawTextCentered(display.width() / 2, display.height() / 2 - 8, buf);
+        break;
+      case SettingsItem::DeviceBatteryCorrection:
+        sprintf(buf, "%s_", edit_buffer.c_str());
+        display.drawTextCentered(display.width() / 2, display.height() / 2 - 8, buf);
+
+        display.setTextSize(1);
+        sprintf(buf, "Read value = %umV, real =", _board->getBattMilliVolts());
+        display.drawTextCentered(display.width() / 2, display.height() / 2 - 16, buf);
         break;
 
       default:

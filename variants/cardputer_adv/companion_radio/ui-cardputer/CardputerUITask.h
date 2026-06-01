@@ -1,19 +1,18 @@
 #pragma once
 
 #include "CardputerAdvBoard.h"
+#include "CardputerDataStore.h"
 #include "KeyboardLayout.h"
 
 #include <AbstractUITask.h>
 #include <Arduino.h>
 #include <MeshCore.h>
-#include <NodePrefs.h>
 #include <helpers/BaseSerialInterface.h>
 #include <helpers/ContactInfo.h>
 #include <helpers/SensorManager.h>
 #include <helpers/sensors/LPPDataHelpers.h>
 #include <helpers/ui/DisplayDriver.h>
 #include <helpers/ui/UIScreen.h>
-
 
 #ifndef AUTO_OFF_MILLIS
   #define AUTO_OFF_MILLIS 15000 // 15 seconds
@@ -36,6 +35,7 @@ class CardputerUITask : public AbstractUITask {
   SensorManager *_sensors;
   CardputerAdvBoard *_board;
   NodePrefs *_node_prefs;
+  CustomNodePrefs *_custom_prefs;
   KeyboardLayout *_keyboard_layout;
   unsigned long next_refresh = 0;
   unsigned long auto_off_time;
@@ -65,24 +65,27 @@ public:
   CardputerUITask(CardputerAdvBoard *board, BaseSerialInterface *serial)
       : AbstractUITask(board, serial), _display(NULL), _sensors(NULL), _board(board) {}
 
-  void begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs, KeyboardLayout *keyboard_layout);
+  void begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs,
+             CustomNodePrefs *custom_prefs, KeyboardLayout *keyboard_layout);
 
   void gotoMainScreen() { setCurrScreen(main_scr); }
   void gotoSettingsScreen() { setCurrScreen(settings); }
   void showAlert(const char *text, int duration_millis);
   bool isAlertActive();
-  int getMsgCount() const { return unsynced_msg_count; }
-  bool hasDisplay() const { return _display != NULL; }
+  inline int getMsgCount() const { return unsynced_msg_count; }
+  inline bool hasDisplay() const { return _display != NULL; }
   bool isButtonPressed() const;
-  bool isBuzzerQuiet() { return _node_prefs->buzzer_quiet; }
+  inline bool isBuzzerQuiet() { return _node_prefs->buzzer_quiet; }
   void toggleBuzzer();
+  void togglePowerSave();
   bool getGPSState();
   void toggleGPS();
   void keyboardBeep();
   void notifyBeep();
-  unsigned long getAutoOffTime() const { return auto_off_time; }
-  bool isSleepEnabled() const { return sleep_enabled; }
-  void setSleepEnabled(bool enabled) { sleep_enabled = enabled; }
+  inline unsigned long getAutoOffTime() const { return auto_off_time; }
+  inline bool powerSaveEnabled() const { return _custom_prefs->power_save; }
+
+
 
   void msgRead(int msgcount) override;
   void newMsg(uint8_t path_len, const char *from_name, const char *text, int msgcount) override;

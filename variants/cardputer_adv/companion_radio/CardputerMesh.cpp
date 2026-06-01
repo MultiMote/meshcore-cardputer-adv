@@ -15,3 +15,12 @@ void CardputerMesh::logRxRaw(float snr, float rssi, const uint8_t raw[], int len
   rx_packet_count++;
 }
 
+void CardputerMesh::begin(bool has_display) {
+  MyMesh::begin(has_display);
+  _store->loadCustomPrefs(_custom_prefs);
+}
+
+void CardputerMesh::savePrefs() {
+  MyMesh::savePrefs();
+  _store->saveCustomPrefs(_custom_prefs);
+}

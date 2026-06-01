@@ -1,6 +1,7 @@
 #include "CardputerUITask.h"
 
 #include "../CardputerMesh.h"
+#include "KeyboardLayout.h"
 #include "screen/MainScreen.h"
 #include "screen/MsgPreviewScreen.h"
 #include "screen/SettingsScreen.h"
@@ -9,9 +10,10 @@
 
 #include <M5Cardputer.h>
 #include <helpers/TxtDataHelpers.h>
-#include "KeyboardLayout.h"
 
-void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs, KeyboardLayout *keyboard_layout) {
+
+void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs,
+                            CustomNodePrefs *custom_prefs, KeyboardLayout *keyboard_layout) {
   _display = display;
   _sensors = sensors;
   _keyboard_layout = keyboard_layout;
@@ -22,6 +24,7 @@ void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, Node
 #endif
 
   _node_prefs = node_prefs;
+  _custom_prefs = custom_prefs;
 
   if (_display != NULL) {
     _display->turnOn();
@@ -31,8 +34,8 @@ void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, Node
   alert_expiry = 0;
 
   splash = new SplashScreen(this);
-  main_scr = new MainScreen(this, &rtc_clock, sensors, node_prefs, keyboard_layout);
-  settings = new SettingsScreen(this, &rtc_clock, node_prefs);
+  main_scr = new MainScreen(this, &rtc_clock, sensors, node_prefs, custom_prefs, keyboard_layout);
+  settings = new SettingsScreen(this, &rtc_clock, node_prefs, custom_prefs, _board);
   msg_preview = new MsgPreviewScreen(this, &rtc_clock);
   setCurrScreen(splash);
 }
@@ -85,7 +88,7 @@ void CardputerUITask::newMsg(uint8_t path_len, const char *from_name, const char
   }
 }
 
-void CardputerUITask::pingRecv(uint32_t tag, uint8_t path_len,float snr_tx, float snr_rx) {
+void CardputerUITask::pingRecv(uint32_t tag, uint8_t path_len, float snr_tx, float snr_rx) {
   if (tag != last_ping_tag || path_len != _node_prefs->path_hash_mode + 1) {
     return;
   }
@@ -302,6 +305,11 @@ void CardputerUITask::toggleBuzzer() {
   the_mesh_cp.savePrefs();
   showAlert(_node_prefs->buzzer_quiet ? "Speaker: OFF" : "Speaker: ON", 800);
   next_refresh = 0; // trigger refresh
+}
+
+void CardputerUITask::togglePowerSave() {
+  _custom_prefs->power_save = !_custom_prefs->power_save;
+  the_mesh_cp.savePrefs();
 }
 
 void CardputerUITask::keyboardBeep() {

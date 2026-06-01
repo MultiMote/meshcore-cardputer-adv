@@ -45,8 +45,9 @@ Currently implemented (companion):
 - Settings menu (press `OPT` at main screen)
 - Light sleep (testing)
    * Power consumption drops to ~52mA after display off
-   * Can be enabled settings menu (state is not persisted)
+   * Can be enabled in settings menu
    * Bluetooth connection is not preserved
+- Battery ADC correction
 - Channels list
    * Press `Enter` on channel to start conversation
 - Contacts list

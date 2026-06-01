@@ -4,52 +4,51 @@
 #define MAX_MESSAGE_SIZE 133
 
 void MainScreen::renderBatteryIndicator(DisplayDriver &display, uint16_t batteryMilliVolts) {
-  {
-    char tmp[8];
+  char tmp[8];
 
-    // Convert millivolts to percentage
+  // Convert millivolts to percentage
 
-    const int minMilliVolts = BATT_MIN_MILLIVOLTS;
-    const int maxMilliVolts = BATT_MAX_MILLIVOLTS;
-    int batteryPercentage = ((batteryMilliVolts - minMilliVolts) * 100) / (maxMilliVolts - minMilliVolts);
-    if (batteryPercentage < 0) batteryPercentage = 0;     // Clamp to 0%
-    if (batteryPercentage > 100) batteryPercentage = 100; // Clamp to 100%
+  const int minMilliVolts = BATT_MIN_MILLIVOLTS;
+  const int maxMilliVolts = BATT_MAX_MILLIVOLTS;
+  int batteryPercentageRaw = ((batteryMilliVolts - minMilliVolts) * 100) / (maxMilliVolts - minMilliVolts);
+  int batteryPercentage =
+      ((float)batteryPercentageRaw * _custom_prefs->battery_correction);
+  if (batteryPercentage < 0) batteryPercentage = 0;     // Clamp to 0%
+  if (batteryPercentage > 100) batteryPercentage = 100; // Clamp to 100%
 
-    // battery icon
-    int iconWidth = 26;
-    int iconHeight = 14;
-    int iconX = display.width() - iconWidth - 5; // Position the icon near the top-right corner
-    int iconY = 0;
+  // battery icon
+  int iconWidth = 26;
+  int iconHeight = 14;
+  int iconX = display.width() - iconWidth - 5; // Position the icon near the top-right corner
+  int iconY = 0;
+  display.setColor(DisplayDriver::GREEN);
+
+  // battery outline
+  display.drawRect(iconX, iconY, iconWidth, iconHeight);
+
+  // battery "cap"
+  display.fillRect(iconX + iconWidth, iconY + (iconHeight / 4), 3, iconHeight / 2);
+
+  // fill the battery based on the percentage
+  int fillWidth = (batteryPercentage * (iconWidth - 4)) / 100;
+  display.fillRect(iconX + 2, iconY + 2, fillWidth, iconHeight - 4);
+
+  sprintf(tmp, "%d", batteryPercentage);
+  display.drawTextCentered(iconX + 2 + iconWidth / 2, 0, tmp);
+  display.setColor(DisplayDriver::DARK);
+  display.drawTextCentered(iconX + 2 + iconWidth / 2 - 1, 0, tmp);
+
+  // show muted icon if buzzer is muted
+  if (_task->isBuzzerQuiet()) {
+    display.setColor(DisplayDriver::RED);
+    display.drawXbm(iconX - 9, iconY + 1, muted_icon, 8, 8);
     display.setColor(DisplayDriver::GREEN);
+  }
 
-    // battery outline
-    display.drawRect(iconX, iconY, iconWidth, iconHeight);
-
-    // battery "cap"
-    display.fillRect(iconX + iconWidth, iconY + (iconHeight / 4), 3, iconHeight / 2);
-
-    // fill the battery based on the percentage
-    int fillWidth = (batteryPercentage * (iconWidth - 4)) / 100;
-    display.fillRect(iconX + 2, iconY + 2, fillWidth, iconHeight - 4);
-
-    sprintf(tmp, "%d", batteryPercentage);
-    display.drawTextCentered(iconX + 2 + iconWidth / 2, 0, tmp);
-    display.setColor(DisplayDriver::DARK);
-    display.drawTextCentered(iconX + 2 + iconWidth / 2 - 1, 0, tmp);
-
-
-    // show muted icon if buzzer is muted
-    if (_task->isBuzzerQuiet()) {
-      display.setColor(DisplayDriver::RED);
-      display.drawXbm(iconX - 9, iconY + 1, muted_icon, 8, 8);
-      display.setColor(DisplayDriver::GREEN);
-    }
-
-    if (_task->isSleepEnabled()) {
-      display.setColor(DisplayDriver::BLUE);
-      display.drawXbm(iconX - 18, iconY + 1, sleep_icon, 8, 8);
-      display.setColor(DisplayDriver::GREEN);
-    }
+  if (_task->powerSaveEnabled()) {
+    display.setColor(DisplayDriver::BLUE);
+    display.drawXbm(iconX - 18, iconY + 1, sleep_icon, 8, 8);
+    display.setColor(DisplayDriver::GREEN);
   }
 }
 
@@ -215,7 +214,8 @@ void MainScreen::renderStatsPage() { // todo: separate menu maybe
   display.drawTextLeftAlign(5, y, tmp);
 
   y += UI_TEXT_LINE_HEIGHT;
-  sprintf(tmp, "Battery: %umV", _task->getBattMilliVolts());
+  sprintf(tmp, "Battery: %.0fmV",
+          (float)_task->getBattMilliVolts() * _custom_prefs->battery_correction);
   display.drawTextLeftAlign(5, y, tmp);
 }
 
