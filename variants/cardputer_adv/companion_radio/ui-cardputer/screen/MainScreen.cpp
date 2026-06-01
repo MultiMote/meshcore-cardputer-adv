@@ -213,6 +213,10 @@ void MainScreen::renderStatsPage() { // todo: separate menu maybe
   y += UI_TEXT_LINE_HEIGHT;
   sprintf(tmp, "Packets received: %u", the_mesh_cp.receivedPacketsCount());
   display.drawTextLeftAlign(5, y, tmp);
+
+  y += UI_TEXT_LINE_HEIGHT;
+  sprintf(tmp, "Battery: %umV", _task->getBattMilliVolts());
+  display.drawTextLeftAlign(5, y, tmp);
 }
 
 void MainScreen::renderAdvertPage() {

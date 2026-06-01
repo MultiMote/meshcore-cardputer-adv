@@ -10,10 +10,10 @@
 #endif
 
 #ifndef BATT_MIN_MILLIVOLTS
-  #define BATT_MIN_MILLIVOLTS 3000
+  #define BATT_MIN_MILLIVOLTS 3350 // From M5Unified
 #endif
 #ifndef BATT_MAX_MILLIVOLTS
-  #define BATT_MAX_MILLIVOLTS 4200
+  #define BATT_MAX_MILLIVOLTS 4150 // From M5Unified
 #endif
 
 #ifndef UI_CONTACT_LIST_SIZE

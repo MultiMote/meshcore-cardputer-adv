@@ -93,7 +93,7 @@ Todo:
 - Change display brightness
 - Custom notification sounds (.wav files from SD card)
 - Discover repeaters
-- Reduce power consumption
+- Reduce power consumption (maybe replace M5Unified with more specialized libraries)
 
 ### Thoughts on Cardputer
 
