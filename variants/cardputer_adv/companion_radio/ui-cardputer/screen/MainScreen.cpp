@@ -7,12 +7,10 @@ void MainScreen::renderBatteryIndicator(DisplayDriver &display, uint16_t battery
   char tmp[8];
 
   // Convert millivolts to percentage
-
   const int minMilliVolts = BATT_MIN_MILLIVOLTS;
   const int maxMilliVolts = BATT_MAX_MILLIVOLTS;
-  int batteryPercentageRaw = ((batteryMilliVolts - minMilliVolts) * 100) / (maxMilliVolts - minMilliVolts);
-  int batteryPercentage =
-      ((float)batteryPercentageRaw * _custom_prefs->battery_correction);
+  int batteryMilliVoltsCorrected = _custom_prefs->battery_correction * batteryMilliVolts;
+  int batteryPercentage = ((batteryMilliVoltsCorrected - minMilliVolts) * 100) / (maxMilliVolts - minMilliVolts);
   if (batteryPercentage < 0) batteryPercentage = 0;     // Clamp to 0%
   if (batteryPercentage > 100) batteryPercentage = 100; // Clamp to 100%
 
