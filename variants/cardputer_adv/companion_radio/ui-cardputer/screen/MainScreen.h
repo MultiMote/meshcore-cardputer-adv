@@ -35,7 +35,6 @@ class MainScreen : public UIScreen {
     CHAT,
     RECENT,
     STATS,
-    ADVERT,
 #if ENV_INCLUDE_GPS == 1
     GPS,
 #endif
@@ -64,7 +63,7 @@ class MainScreen : public UIScreen {
   void sendChatMessage();
   void chatInputRemoveLastChar();
 
-  void renderBatteryIndicator(DisplayDriver &display, uint16_t batteryMilliVolts);
+  void renderStatusIcons();
 
   void renderFirstPage();
   void renderChannelsPage();
@@ -72,7 +71,6 @@ class MainScreen : public UIScreen {
   void renderChatPage();
   void renderRecentPage();
   void renderStatsPage();
-  void renderAdvertPage();
   void renderGpsPage();
   void renderShutdownPage();
 

@@ -6,6 +6,7 @@
 #include "screen/MsgPreviewScreen.h"
 #include "screen/SettingsScreen.h"
 #include "screen/SplashScreen.h"
+#include "screen/ToolsScreen.h"
 #include "target.h"
 
 #include <M5Cardputer.h>
@@ -33,16 +34,18 @@ void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, Node
   ui_started_at = millis();
   alert_expiry = 0;
 
-  splash = new SplashScreen(this);
-  main_scr = new MainScreen(this, &rtc_clock, sensors, node_prefs, custom_prefs, keyboard_layout);
-  settings = new SettingsScreen(this, &rtc_clock, node_prefs, custom_prefs, _board);
-  msg_preview = new MsgPreviewScreen(this, &rtc_clock);
-  setCurrScreen(splash);
+  splash_screen = new SplashScreen(this);
+  main_screen = new MainScreen(this, &rtc_clock, sensors, node_prefs, custom_prefs, keyboard_layout);
+  settings_screen = new SettingsScreen(this, &rtc_clock, node_prefs, custom_prefs, _board);
+  msg_preview_screen = new MsgPreviewScreen(this, &rtc_clock);
+  tools_screen = new ToolsScreen(this, &rtc_clock);
+  setCurrScreen(splash_screen);
 }
 
 void CardputerUITask::showAlert(const char *text, int duration_millis) {
   strcpy(alert_text, text);
   alert_expiry = millis() + duration_millis;
+  next_refresh = 0;
 }
 
 bool CardputerUITask::isAlertActive() {
@@ -74,8 +77,8 @@ void CardputerUITask::msgRead(int msgcount) {
 void CardputerUITask::newMsg(uint8_t path_len, const char *from_name, const char *text, int msgcount) {
   unsynced_msg_count = msgcount;
 
-  ((MsgPreviewScreen *)msg_preview)->addPreview(path_len, from_name, text);
-  setCurrScreen(msg_preview);
+  ((MsgPreviewScreen *)msg_preview_screen)->addPreview(path_len, from_name, text);
+  setCurrScreen(msg_preview_screen);
 
   if (_display != NULL) {
     if (!_display->isOn() && !hasConnection()) {
@@ -88,16 +91,10 @@ void CardputerUITask::newMsg(uint8_t path_len, const char *from_name, const char
   }
 }
 
-void CardputerUITask::pingRecv(uint32_t tag, uint8_t path_len, float snr_tx, float snr_rx) {
-  if (tag != last_ping_tag || path_len != _node_prefs->path_hash_mode + 1) {
-    return;
-  }
-
+void CardputerUITask::pingRecv(float snr_tx, float snr_rx) {
   char buf[40];
-
   sprintf(buf, "SNR there/back: %.2f/%.2f", snr_tx, snr_rx);
   showAlert(buf, 4000);
-  next_refresh = 0;
 }
 
 void CardputerUITask::setCurrScreen(UIScreen *c) {
@@ -115,20 +112,6 @@ void CardputerUITask::shutdown(bool restart) {
     _display->turnOff();
     radio_driver.powerOff();
     _board->powerOff();
-  }
-}
-
-void CardputerUITask::ping(ContactInfo &contact) {
-  uint32_t auth = 0;
-  uint8_t flags = _node_prefs->path_hash_mode & 0x03;
-  the_mesh_cp.getRNG()->random((uint8_t *)&last_ping_tag, sizeof(last_ping_tag));
-
-  mesh::Packet *pkt = the_mesh_cp.createTrace(last_ping_tag, auth, flags);
-
-  if (pkt) {
-    the_mesh_cp.sendDirect(pkt, contact.id.pub_key, _node_prefs->path_hash_mode + 1);
-    showAlert("Waiting for response...", 4000);
-    next_refresh = 0;
   }
 }
 
@@ -304,7 +287,6 @@ void CardputerUITask::toggleBuzzer() {
   _node_prefs->buzzer_quiet = !_node_prefs->buzzer_quiet;
   the_mesh_cp.savePrefs();
   showAlert(_node_prefs->buzzer_quiet ? "Speaker: OFF" : "Speaker: ON", 800);
-  next_refresh = 0; // trigger refresh
 }
 
 void CardputerUITask::togglePowerSave() {

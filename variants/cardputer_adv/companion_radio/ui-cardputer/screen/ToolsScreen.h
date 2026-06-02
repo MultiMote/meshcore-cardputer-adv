@@ -1,0 +1,31 @@
+#pragma once
+
+#include "../../CardputerMesh.h"
+#include "../CardputerUITask.h"
+
+#ifndef UI_TOOLS_LIST_SIZE
+  #define UI_TOOLS_LIST_SIZE 9
+#endif
+
+class ToolsScreen : public UIScreen {
+  enum ToolsPage { MenuPage };
+  enum ToolsMenuItem { AdvertZeroHop, AdvertFlood, Count };
+
+  const char *menu_item_labels[ToolsMenuItem::Count] = {
+    "Advert (Zero Hop)",
+    "Advert (Flood)",
+  };
+
+  CardputerUITask *_task;
+  mesh::RTCClock *_rtc;
+
+  ToolsPage page = ToolsPage::MenuPage;
+
+  int menu_index = 0;
+
+public:
+  ToolsScreen(CardputerUITask *task, mesh::RTCClock *rtc) : _task(task), _rtc(rtc) {}
+  int render(DisplayDriver &display) override;
+  void menuItemEnter(ToolsMenuItem item);
+  bool handleInput(char c) override;
+};

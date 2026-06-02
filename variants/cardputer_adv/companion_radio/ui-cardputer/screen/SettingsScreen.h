@@ -32,7 +32,7 @@ class SettingsScreen : public UIScreen {
   CustomNodePrefs *_custom_prefs;
   CardputerAdvBoard *_board;
 
-  int list_sel_idx = 0;
+  int menu_index = 0;
   bool is_editing = false;
   bool restart_required = false;
   String edit_buffer;

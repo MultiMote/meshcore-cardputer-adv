@@ -3,14 +3,15 @@
 #define PRESS_LABEL      "long press / Enter"
 #define MAX_MESSAGE_SIZE 133
 
-void MainScreen::renderBatteryIndicator(DisplayDriver &display, uint16_t batteryMilliVolts) {
+void MainScreen::renderStatusIcons() {
   char tmp[8];
-
+  uint16_t batteryMilliVolts = _task->getBattMilliVolts();
   // Convert millivolts to percentage
   const int minMilliVolts = BATT_MIN_MILLIVOLTS;
   const int maxMilliVolts = BATT_MAX_MILLIVOLTS;
   int batteryMilliVoltsCorrected = _custom_prefs->battery_correction * batteryMilliVolts;
-  int batteryPercentage = ((batteryMilliVoltsCorrected - minMilliVolts) * 100) / (maxMilliVolts - minMilliVolts);
+  int batteryPercentage =
+      ((batteryMilliVoltsCorrected - minMilliVolts) * 100) / (maxMilliVolts - minMilliVolts);
   if (batteryPercentage < 0) batteryPercentage = 0;     // Clamp to 0%
   if (batteryPercentage > 100) batteryPercentage = 100; // Clamp to 100%
 
@@ -36,44 +37,49 @@ void MainScreen::renderBatteryIndicator(DisplayDriver &display, uint16_t battery
   display.setColor(DisplayDriver::DARK);
   display.drawTextCentered(iconX + 2 + iconWidth / 2 - 1, 0, tmp);
 
-  // show muted icon if buzzer is muted
+  iconX -= 3;
+  iconY += 3;
+
   if (_task->isBuzzerQuiet()) {
+    iconX -= 9;
     display.setColor(DisplayDriver::RED);
-    display.drawXbm(iconX - 9, iconY + 1, muted_icon, 8, 8);
-    display.setColor(DisplayDriver::GREEN);
+    display.drawXbm(iconX, iconY + 1, muted_icon, 8, 8);
   }
 
   if (_task->powerSaveEnabled()) {
+    iconX -= 9;
     display.setColor(DisplayDriver::BLUE);
-    display.drawXbm(iconX - 18, iconY + 1, sleep_icon, 8, 8);
-    display.setColor(DisplayDriver::GREEN);
+    display.drawXbm(iconX, iconY + 1, sleep_icon, 8, 8);
   }
 }
 
 void MainScreen::renderFirstPage() {
   char tmp[80];
 
-  display.setColor(DisplayDriver::YELLOW);
+  display.setColor(DisplayDriver::ORANGE);
   display.setTextSize(2);
   sprintf(tmp, "MSG: %d", _task->getMsgCount());
-  display.drawTextCentered(display.width() / 2, 20, tmp);
+  display.drawTextCentered(display.width() / 2, 40, tmp);
 
   if (_task->hasConnection()) {
     display.setColor(DisplayDriver::GREEN);
     display.setTextSize(1);
-    display.drawTextCentered(display.width() / 2, 43, "< Connected >");
+    display.drawTextCentered(display.width() / 2, 63, "< Connected >");
 
   } else if (the_mesh_cp.getBLEPin() != 0) { // BT pin
     display.setColor(DisplayDriver::RED);
     display.setTextSize(2);
     sprintf(tmp, "Pin: %d", the_mesh_cp.getBLEPin());
-    display.drawTextCentered(display.width() / 2, 43, tmp);
+    display.drawTextCentered(display.width() / 2, 63, tmp);
   }
 
-  display.setColor(DisplayDriver::GREEN);
   display.setTextSize(1);
+  display.setColor(DisplayDriver::GREEN);
+  display.drawTextCentered(display.width() / 2, display.height() - UI_TEXT_LINE_HEIGHT * 2 - 2,
+                           "Press OPT to open Settings");
+  display.setColor(DisplayDriver::ORANGE);
   display.drawTextCentered(display.width() / 2, display.height() - UI_TEXT_LINE_HEIGHT - 2,
-                           "Press OPT to open settings");
+                           "Press T to open Tools");
 }
 
 void MainScreen::renderChannelsPage() {
@@ -212,15 +218,8 @@ void MainScreen::renderStatsPage() { // todo: separate menu maybe
   display.drawTextLeftAlign(5, y, tmp);
 
   y += UI_TEXT_LINE_HEIGHT;
-  sprintf(tmp, "Battery: %.0fmV",
-          (float)_task->getBattMilliVolts() * _custom_prefs->battery_correction);
+  sprintf(tmp, "Battery: %.0fmV", (float)_task->getBattMilliVolts() * _custom_prefs->battery_correction);
   display.drawTextLeftAlign(5, y, tmp);
-}
-
-void MainScreen::renderAdvertPage() {
-  display.setColor(DisplayDriver::GREEN);
-  display.drawXbm((display.width() - 32) / 2, 18, advert_icon, 32, 32);
-  display.drawTextCentered(display.width() / 2, 64 - 11, "advert: " PRESS_LABEL);
 }
 
 #if ENV_INCLUDE_GPS == 1
@@ -274,8 +273,7 @@ int MainScreen::render(DisplayDriver &display) {
   display.setCursor(0, 0);
   display.print(_node_prefs->node_name);
 
-  // battery voltage
-  renderBatteryIndicator(display, _task->getBattMilliVolts());
+  renderStatusIcons();
 
   display.setColor(DisplayDriver::GREEN);
 
@@ -308,9 +306,6 @@ int MainScreen::render(DisplayDriver &display) {
       break;
     case MainScreenPage::STATS:
       renderStatsPage();
-      break;
-    case MainScreenPage::ADVERT:
-      renderAdvertPage();
       break;
 #if ENV_INCLUDE_GPS
     case MainScreenPage::GPS:
@@ -425,7 +420,8 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
           current_page = MainScreenPage::CHAT;
         } else if ((contact.type == ADV_TYPE_REPEATER || contact.type == ADV_TYPE_ROOM) &&
                    !_task->isAlertActive()) {
-          _task->ping(contact);
+          the_mesh_cp.sendPing(contact);
+          _task->showAlert("Waiting for response...", 4000);
         }
       }
       return true;
@@ -498,16 +494,6 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
     return true;
   }
 
-  if (c == ASCII_CTRL_LF && current_page == MainScreenPage::ADVERT) {
-    _task->notify(UIEventType::ack);
-    if (the_mesh_cp.advert()) {
-      _task->showAlert("Advert sent!", 1000);
-    } else {
-      _task->showAlert("Advert failed..", 1000);
-    }
-    return true;
-  }
-
 #if ENV_INCLUDE_GPS == 1
   if (c == ASCII_CTRL_LF && current_page == MainScreenPage::GPS) {
     _task->toggleGPS();
@@ -527,9 +513,16 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
     }
   }
 
-  if (c == ASCII_CTRL_DC1 && current_page == MainScreenPage::FIRST) {
-    _task->gotoSettingsScreen();
-    return true;
+  if (current_page == MainScreenPage::FIRST) {
+    if (c == ASCII_CTRL_DC1) {
+      _task->gotoSettingsScreen();
+      return true;
+    }
+
+    if (c == 't') {
+      _task->gotoToolsScreen();
+      return true;
+    }
   }
 
   return false;

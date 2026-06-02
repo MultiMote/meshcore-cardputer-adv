@@ -302,8 +302,8 @@ int SettingsScreen::render(DisplayDriver &display) {
   display.setTextSize(1);
 
   int real_idx = 0;
-  int list_page = list_sel_idx / UI_SETTINGS_LIST_SIZE;
-  int list_idx = list_sel_idx % UI_SETTINGS_LIST_SIZE;
+  int list_page = menu_index / UI_SETTINGS_LIST_SIZE;
+  int list_idx = menu_index % UI_SETTINGS_LIST_SIZE;
 
   for (int i = 0; i < UI_SETTINGS_LIST_SIZE; i++) {
     real_idx = list_page * UI_SETTINGS_LIST_SIZE + i;
@@ -329,7 +329,7 @@ int SettingsScreen::render(DisplayDriver &display) {
     display.drawRect(x_margin, y_margin, display.width() - x_margin * 2, display.height() - y_margin * 2);
     display.setTextSize(2);
 
-    switch (list_sel_idx) {
+    switch (menu_index) {
       case SettingsItem::RadioSf:
       case SettingsItem::RadioCr:
       case SettingsItem::RadioPwr:
@@ -357,13 +357,13 @@ int SettingsScreen::render(DisplayDriver &display) {
     }
   }
 
-  return 1000;
+  return 5000;
 }
 
 bool SettingsScreen::handleInput(char c) {
   if (is_editing) {
     if (c == ASCII_CTRL_LF) {
-      if (!commitItemEdit(static_cast<SettingsItem>(list_sel_idx))) {
+      if (!commitItemEdit(static_cast<SettingsItem>(menu_index))) {
         _task->showAlert("Invalid value", 1000);
       } else {
         is_editing = false;
@@ -372,11 +372,11 @@ bool SettingsScreen::handleInput(char c) {
     }
 
     if (c == ASCII_CTRL_ESCAPE) {
-      cancelItemEdit(static_cast<SettingsItem>(list_sel_idx));
+      cancelItemEdit(static_cast<SettingsItem>(menu_index));
       return true;
     }
 
-    handleEditInput(static_cast<SettingsItem>(list_sel_idx), c);
+    handleEditInput(static_cast<SettingsItem>(menu_index), c);
 
   } else {
     if (c == ASCII_CTRL_ESCAPE || c == ASCII_CTRL_DC1) {
@@ -385,25 +385,25 @@ bool SettingsScreen::handleInput(char c) {
     }
 
     if (c == KEY_UP) {
-      if (list_sel_idx == 0) {
-        list_sel_idx = SettingsItem::Count - 1;
+      if (menu_index == 0) {
+        menu_index = SettingsItem::Count - 1;
       } else {
-        list_sel_idx--;
+        menu_index--;
       }
 
       return true;
     }
     if (c == KEY_DOWN) {
-      if (list_sel_idx < SettingsItem::Count - 1) {
-        list_sel_idx++;
+      if (menu_index < SettingsItem::Count - 1) {
+        menu_index++;
       } else {
-        list_sel_idx = 0;
+        menu_index = 0;
       }
 
       return true;
     }
     if (c == ASCII_CTRL_LF) {
-      if (!enterItemEdit(static_cast<SettingsItem>(list_sel_idx))) {
+      if (!enterItemEdit(static_cast<SettingsItem>(menu_index))) {
         _task->showAlert("Not implemented yet", 2000);
       }
       return true;

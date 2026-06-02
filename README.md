@@ -43,6 +43,8 @@ Currently implemented (companion):
 - Basic speaker support (keyboard/message beeps)
 - Keyboard support
 - Settings menu (press `OPT` at main screen)
+- Tools menu (press `OPT` at main screen)
+   * Advert (flood / zero hop)
 - Light sleep (testing)
    * Power consumption drops to ~52mA after display off
    * Can be enabled in settings menu
@@ -95,6 +97,9 @@ Todo:
 - Custom notification sounds (.wav files from SD card)
 - Discover repeaters
 - Reduce power consumption (maybe replace M5Unified with more specialized libraries)
+- Import contacts from SD card
+- Delete contacts
+- Reset path
 
 ### Thoughts on Cardputer
 

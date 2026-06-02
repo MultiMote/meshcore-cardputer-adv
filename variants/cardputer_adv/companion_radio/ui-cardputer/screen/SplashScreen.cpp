@@ -30,7 +30,7 @@ int SplashScreen::render(DisplayDriver &display) {
 
   display.drawTextCentered(display.width() / 2, 72, "for Cardputer ADV");
 
-  return 1000;
+  return 5000;
 }
 
 void SplashScreen::poll() {

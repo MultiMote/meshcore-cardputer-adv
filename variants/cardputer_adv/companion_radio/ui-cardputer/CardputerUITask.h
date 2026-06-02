@@ -45,12 +45,12 @@ class CardputerUITask : public AbstractUITask {
   int unsynced_msg_count;
   unsigned long ui_started_at = 0;
   unsigned long next_batt_chck = 0;
-  uint32_t last_ping_tag = 0;
 
-  UIScreen *splash;
-  UIScreen *main_scr;
-  UIScreen *msg_preview;
-  UIScreen *settings;
+  UIScreen *splash_screen;
+  UIScreen *main_screen;
+  UIScreen *msg_preview_screen;
+  UIScreen *settings_screen;
+  UIScreen *tools_screen;
   UIScreen *current_screen = nullptr;
 
   // Button action handlers
@@ -68,8 +68,9 @@ public:
   void begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs,
              CustomNodePrefs *custom_prefs, KeyboardLayout *keyboard_layout);
 
-  void gotoMainScreen() { setCurrScreen(main_scr); }
-  void gotoSettingsScreen() { setCurrScreen(settings); }
+  void gotoMainScreen() { setCurrScreen(main_screen); }
+  void gotoSettingsScreen() { setCurrScreen(settings_screen); }
+  void gotoToolsScreen() { setCurrScreen(tools_screen); }
   void showAlert(const char *text, int duration_millis);
   bool isAlertActive();
   inline int getMsgCount() const { return unsynced_msg_count; }
@@ -84,15 +85,10 @@ public:
   void notifyBeep();
   inline unsigned long getAutoOffTime() const { return auto_off_time; }
   inline bool powerSaveEnabled() const { return _custom_prefs->power_save; }
-
-
-
   void msgRead(int msgcount) override;
   void newMsg(uint8_t path_len, const char *from_name, const char *text, int msgcount) override;
-  void pingRecv(uint32_t tag, uint8_t path_len, float snr_tx, float snr_rx);
+  void pingRecv(float snr_tx, float snr_rx);
   void notify(UIEventType t = UIEventType::none) override;
   void loop() override;
-
   void shutdown(bool restart = false);
-  void ping(ContactInfo &contact);
 };

@@ -10,6 +10,7 @@ class CardputerMesh : public MyMesh {
   CardputerUITask *_ui;
   CardputerDataStore *_store;
   uint64_t rx_packet_count = 0;
+  uint32_t last_ping_tag = 0;
 
   CustomNodePrefs _custom_prefs {
     .power_save = 0,
@@ -29,6 +30,9 @@ public:
 
   void begin(bool has_display);
   void savePrefs();
+  bool sendPing(ContactInfo &contact);
+  bool sendAdvert(bool flood);
+  uint32_t getLastPingTag() const { return last_ping_tag; }
   inline CustomNodePrefs *getCustomNodePrefs() { return &_custom_prefs; }
 };
 
