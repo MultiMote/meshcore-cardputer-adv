@@ -1,9 +1,9 @@
 #include "ToolsScreen.h"
 
 int ToolsScreen::render(DisplayDriver &display) {
+  display.setTextSize(1);
+  display.setColor(DisplayDriver::GREEN);
   if (page == ToolsPage::MenuPage) {
-    display.setTextSize(1);
-    display.setColor(DisplayDriver::GREEN);
     display.drawTextCentered(display.width() / 2, 5, "Tools");
 
     int real_idx = 0;
@@ -25,6 +25,11 @@ int ToolsScreen::render(DisplayDriver &display) {
         display.drawTextLeftAlign(5, 20 + i * UI_TEXT_LINE_HEIGHT, ">");
       }
     }
+  } else if (page == ToolsPage::DiscoverPage) {
+    display.drawTextCentered(display.width() / 2, 5, "Discover");
+    display.setColor(DisplayDriver::YELLOW);
+    display.drawTextLeftAlign(0, 25, discover_tmp.c_str());
+    return 1000;
   }
 
   return 5000;
@@ -44,14 +49,25 @@ void ToolsScreen::menuItemEnter(ToolsMenuItem item) {
       }
       break;
 
+    case ToolsMenuItem::DiscoverRepeaters:
+      discover_tmp.clear();
+      if (the_mesh_cp.sendRepeatersDiscover()) {
+        page = ToolsPage::DiscoverPage;
+        _task->showAlert("Waiting for response...", 10000);
+      }
+      break;
+
     default:
       break;
   }
 }
 
 bool ToolsScreen::handleInput(char c) {
-  if (page == ToolsPage::MenuPage) {
+  if (_task->isAlertActive()) {
+    return false;
+  }
 
+  if (page == ToolsPage::MenuPage) {
     if (c == ASCII_CTRL_ESCAPE) {
       _task->gotoMainScreen();
       return true;
@@ -75,11 +91,25 @@ bool ToolsScreen::handleInput(char c) {
       return true;
     }
 
-    if (c == ASCII_CTRL_LF && !_task->isAlertActive()) {
+    if (c == ASCII_CTRL_LF) {
       menuItemEnter(static_cast<ToolsMenuItem>(menu_index));
+      return true;
+    }
+  } else if (page == ToolsPage::DiscoverPage) {
+    if (c == ASCII_CTRL_ESCAPE) {
+      page = ToolsPage::MenuPage;
       return true;
     }
   }
 
   return false;
+}
+
+void ToolsScreen::discoverRecv(const mesh::Identity &id, float snr) {
+  if (page == ToolsPage::DiscoverPage) {
+    char buf[32];
+    sprintf(buf, "[%02x %02x %02x ...] SNR: %.2fdb\n", id.pub_key[0], id.pub_key[1], id.pub_key[2], snr);
+    discover_tmp.concat(buf);
+    _task->dismissAlert();
+  }
 }

@@ -12,7 +12,6 @@
 #include <M5Cardputer.h>
 #include <helpers/TxtDataHelpers.h>
 
-
 void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs,
                             CustomNodePrefs *custom_prefs, KeyboardLayout *keyboard_layout) {
   _display = display;
@@ -32,7 +31,6 @@ void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, Node
   }
 
   ui_started_at = millis();
-  alert_expiry = 0;
 
   splash_screen = new SplashScreen(this);
   main_screen = new MainScreen(this, &rtc_clock, sensors, node_prefs, custom_prefs, keyboard_layout);
@@ -45,6 +43,11 @@ void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, Node
 void CardputerUITask::showAlert(const char *text, int duration_millis) {
   strcpy(alert_text, text);
   alert_expiry = millis() + duration_millis;
+  next_refresh = 0;
+}
+
+void CardputerUITask::dismissAlert() {
+  alert_expiry = 0;
   next_refresh = 0;
 }
 
@@ -95,6 +98,12 @@ void CardputerUITask::pingRecv(float snr_tx, float snr_rx) {
   char buf[40];
   sprintf(buf, "SNR there/back: %.2f/%.2f", snr_tx, snr_rx);
   showAlert(buf, 4000);
+}
+
+void CardputerUITask::discoverRecv(const mesh::Identity &id, float snr) {
+  if (current_screen == tools_screen) {
+    static_cast<ToolsScreen *>(tools_screen)->discoverRecv(id, snr);
+  }
 }
 
 void CardputerUITask::setCurrScreen(UIScreen *c) {

@@ -10,6 +10,38 @@ void CardputerMesh::onTraceRecv(mesh::Packet *packet, uint32_t tag, uint32_t aut
   }
 }
 
+void CardputerMesh::onControlDataRecv(mesh::Packet *packet) {
+  MyMesh::onControlDataRecv(packet);
+  uint8_t type = packet->payload[0] & 0xF0;
+  uint8_t node_type = packet->payload[0] & 0x0F;
+
+  if (!(type == CTL_TYPE_NODE_DISCOVER_RESP && packet->payload_len >= 6)) {
+    return;
+  }
+
+  if (node_type != ADV_TYPE_REPEATER) {
+    return;
+  }
+
+  if (packet->payload_len < 6 + PUB_KEY_SIZE) {
+    return;
+  }
+
+  uint32_t *tag = (uint32_t *)&packet->payload[2];
+  
+  if (*tag != last_discover_tag) {
+    return;
+  }
+
+  mesh::Identity id(&packet->payload[6]);
+
+  if (id.matches(self_id)) {
+    return;
+  }
+
+  _ui->discoverRecv(id, packet->getSNR());
+}
+
 void CardputerMesh::logRxRaw(float snr, float rssi, const uint8_t raw[], int len) {
   MyMesh::logRxRaw(snr, rssi, raw, len);
   rx_packet_count++;
@@ -63,6 +95,31 @@ bool CardputerMesh::sendAdvert(bool flood) {
   } else {
     sendZeroHop(pkt);
   }
+
+  return true;
+}
+
+struct __attribute__((packed)) discover_data_t {
+  uint8_t ctl_type;
+  uint8_t discover_type;
+  uint32_t tag;
+  uint32_t since;
+};
+
+bool CardputerMesh::sendRepeatersDiscover() {
+  discover_data_t data;
+  data.ctl_type = CTL_TYPE_NODE_DISCOVER_REQ;
+  data.discover_type = (1 << ADV_TYPE_REPEATER);
+  data.since = 0;
+  getRNG()->random((uint8_t *)&data.tag, sizeof(data.tag));
+
+  auto pkt = createControlData((uint8_t *)&data, sizeof(data));
+  if (!pkt) {
+    return false;
+  }
+
+  last_discover_tag = data.tag;
+  sendZeroHop(pkt);
 
   return true;
 }

@@ -41,7 +41,7 @@ class CardputerUITask : public AbstractUITask {
   unsigned long auto_off_time;
   bool sleep_enabled = false;
   char alert_text[80];
-  unsigned long alert_expiry;
+  unsigned long alert_expiry = 0;
   int unsynced_msg_count;
   unsigned long ui_started_at = 0;
   unsigned long next_batt_chck = 0;
@@ -72,6 +72,7 @@ public:
   void gotoSettingsScreen() { setCurrScreen(settings_screen); }
   void gotoToolsScreen() { setCurrScreen(tools_screen); }
   void showAlert(const char *text, int duration_millis);
+  void dismissAlert();
   bool isAlertActive();
   inline int getMsgCount() const { return unsynced_msg_count; }
   inline bool hasDisplay() const { return _display != NULL; }
@@ -88,6 +89,7 @@ public:
   void msgRead(int msgcount) override;
   void newMsg(uint8_t path_len, const char *from_name, const char *text, int msgcount) override;
   void pingRecv(float snr_tx, float snr_rx);
+  void discoverRecv(const mesh::Identity &id, float snr);
   void notify(UIEventType t = UIEventType::none) override;
   void loop() override;
   void shutdown(bool restart = false);

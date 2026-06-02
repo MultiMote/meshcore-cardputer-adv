@@ -45,6 +45,7 @@ Currently implemented (companion):
 - Settings menu (press `OPT` at main screen)
 - Tools menu (press `OPT` at main screen)
    * Advert (flood / zero hop)
+   * Discover repeaters (testing)
 - Light sleep (testing)
    * Power consumption drops to ~52mA after display off
    * Can be enabled in settings menu
@@ -95,7 +96,6 @@ Todo:
 - Catch and display message ACK's
 - Change display brightness
 - Custom notification sounds (.wav files from SD card)
-- Discover repeaters
 - Reduce power consumption (maybe replace M5Unified with more specialized libraries)
 - Import contacts from SD card
 - Delete contacts

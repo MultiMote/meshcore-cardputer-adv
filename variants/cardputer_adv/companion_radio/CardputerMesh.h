@@ -5,12 +5,15 @@
 
 #include <MyMesh.h>
 
+#define CTL_TYPE_NODE_DISCOVER_REQ   0x80
+#define CTL_TYPE_NODE_DISCOVER_RESP  0x90
 
 class CardputerMesh : public MyMesh {
   CardputerUITask *_ui;
   CardputerDataStore *_store;
   uint64_t rx_packet_count = 0;
   uint32_t last_ping_tag = 0;
+  uint32_t last_discover_tag = 0;
 
   CustomNodePrefs _custom_prefs {
     .power_save = 0,
@@ -24,6 +27,8 @@ public:
 
   void onTraceRecv(mesh::Packet *packet, uint32_t tag, uint32_t auth_code, uint8_t flags,
                    const uint8_t *path_snrs, const uint8_t *path_hashes, uint8_t path_len) override;
+  void onControlDataRecv(mesh::Packet* packet) override;
+
   void logRxRaw(float snr, float rssi, const uint8_t raw[], int len) override;
 
   inline uint64_t receivedPacketsCount() const { return rx_packet_count; }
@@ -32,6 +37,7 @@ public:
   void savePrefs();
   bool sendPing(ContactInfo &contact);
   bool sendAdvert(bool flood);
+  bool sendRepeatersDiscover();
   uint32_t getLastPingTag() const { return last_ping_tag; }
   inline CustomNodePrefs *getCustomNodePrefs() { return &_custom_prefs; }
 };
