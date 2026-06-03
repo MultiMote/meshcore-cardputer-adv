@@ -43,7 +43,7 @@ Currently implemented (companion):
 - Basic speaker support (keyboard/message beeps)
 - Keyboard support
 - Settings menu (press `OPT` at main screen)
-- Tools menu (press `OPT` at main screen)
+- Tools menu (press `T` at main screen)
    * Advert (flood / zero hop)
    * Discover repeaters (testing)
 - Light sleep (testing)
