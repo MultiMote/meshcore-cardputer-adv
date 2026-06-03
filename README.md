@@ -30,7 +30,15 @@ Build and flash:
 platformio run --target upload --environment cardputer_adv_companion_radio_ble
 ```
 
+### Flashing pre-build binaries
+
+1. Grab .bin file from [Releases](https://github.com/MultiMote/meshcore-cardputer-adv/releases) page. The "merged" firmware will not erase your settings because they are stored on the SD card.
+2. Flash with https://meshcore.io/flasher or with any other ESP32S3 flaser.
+
 ### State
+
+> [!WARNING]
+> Firmware is under development. Some settings may reset after flashing a new version. Back up your data if you don't want to lose anything. 
 
 Currently implemented (companion):
 
