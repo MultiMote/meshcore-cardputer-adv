@@ -31,14 +31,13 @@ bool CardputerDisplay::begin() {
 
 void CardputerDisplay::tryLoadUserFont() {
 #if USE_SD_CARD
-  #define USER_FONT_NAME "/MeshCoreFont.vlw"
   // fixme: Do not use, redraw is incredibly slow for some reason
   if (SD.exists(USER_FONT_NAME)) {
     MESH_DEBUG_PRINTLN("User font found");
     if (LCD.loadFont(SD, USER_FONT_NAME)) {
-      MESH_DEBUG_PRINTLN(USER_FONT_NAME " loaded");
+      MESH_DEBUG_PRINTLN("%s loaded", USER_FONT_NAME);
     } else {
-      MESH_DEBUG_PRINTLN(USER_FONT_NAME " load failed");
+      MESH_DEBUG_PRINTLN("%s load failed", USER_FONT_NAME);
     }
   }
 #endif

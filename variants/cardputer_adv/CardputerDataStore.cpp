@@ -1,11 +1,15 @@
 #include "CardputerDataStore.h"
 
+void CardputerDataStore::begin() {
+  _fs->mkdir(CUSTOM_DATA_DIR);
+}
+
 void CardputerDataStore::loadCustomPrefs(CustomNodePrefs &prefs) {
-  if (!_fs->exists(CUSTOM_PREFS_FILENAME)) {
+  if (!_fs->exists(CUSTOM_PREFS_FILE)) {
     return;
   }
 
-  File file = _fs->open(CUSTOM_PREFS_FILENAME, FILE_READ);
+  File file = _fs->open(CUSTOM_PREFS_FILE, FILE_READ);
 
   // Read file if it match struct size, otherwise use default values
   if (file.size() <= sizeof(prefs)) {
@@ -16,7 +20,7 @@ void CardputerDataStore::loadCustomPrefs(CustomNodePrefs &prefs) {
 }
 
 void CardputerDataStore::saveCustomPrefs(const CustomNodePrefs &prefs) {
-  File file = _fs->open(CUSTOM_PREFS_FILENAME, FILE_WRITE);
+  File file = _fs->open(CUSTOM_PREFS_FILE, FILE_WRITE);
 
   if (!file) {
     return;

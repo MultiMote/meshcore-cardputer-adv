@@ -1,10 +1,10 @@
 #pragma once
 
-#include <FS.h>
+#include "CardputerDataStore.h"
 
 #define MAX_KB_LAYOUT_ITEMS             100
 #define MAX_KB_LAYOUT_REPLACEMENT_BYTES 3
-#define KB_LAYOUT_FILENAME              "/MeshCoreKeyboard.txt"
+#define KB_LAYOUT_FILE                  (CUSTOM_DATA_DIR "/keyboard.txt")
 
 class KeyboardLayout {
   struct Replacement {

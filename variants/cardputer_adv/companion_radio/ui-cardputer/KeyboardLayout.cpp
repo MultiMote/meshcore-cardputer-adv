@@ -5,12 +5,12 @@
 #include <cstring>
 
 void KeyboardLayout::begin(FS &fs) {
-  File layout_file = fs.open(KB_LAYOUT_FILENAME, FILE_READ, false);
+  File layout_file = fs.open(KB_LAYOUT_FILE, FILE_READ, false);
   if (!layout_file) {
-    MESH_DEBUG_PRINTLN(KB_LAYOUT_FILENAME " not found");
+    MESH_DEBUG_PRINTLN("%s not found", KB_LAYOUT_FILE);
     return;
   } else {
-    MESH_DEBUG_PRINTLN(KB_LAYOUT_FILENAME " found");
+    MESH_DEBUG_PRINTLN("%s found", KB_LAYOUT_FILE);
   }
 
   int count = 0;

@@ -2,6 +2,8 @@
 
 #if USE_SD_CARD
   #include <SD.h>
+  #include "CardputerDataStore.h"
+  #define USER_FONT_NAME (CUSTOM_DATA_DIR "/font.vlw")
 #endif
 #include <M5Cardputer.h>
 #include <helpers/ui/DisplayDriver.h>

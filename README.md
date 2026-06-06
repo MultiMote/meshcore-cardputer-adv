@@ -38,7 +38,7 @@ platformio run --target upload --environment cardputer_adv_companion_radio_ble
 ### State
 
 > [!WARNING]
-> Firmware is under development. Some settings may reset after flashing a new version. Back up your data if you don't want to lose anything. 
+> Firmware is under development. Some settings may reset after flashing a new version. Back up your data if you don't want to lose anything.
 
 Currently implemented (companion):
 
@@ -73,7 +73,7 @@ Currently implemented (companion):
    * Cyrillic (U+0400-U+04FF)
 - Keyboard layouts
 
-   * Enabled if MeshCoreLayout.txt file is present on SD card
+   * Enabled if `/meshcore_custom/keyboard.txt` file is present on SD card
    * Switch with Ctrl+Space
    * File format (encoding is UTF-8, LF or CRLF line endings):
 
@@ -94,7 +94,7 @@ Currently implemented (companion):
      ```
 
    * Limits: up to 100 keys, up to 3 byte character replacement (UTF-8).
-   * Available to download: [Russian](keyboard_layouts/ru/MeshCoreKeyboard.txt)
+   * Available to download: [Russian](keyboard_layouts/ru/keyboard.txt)
 
 
 Todo:
