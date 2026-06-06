@@ -23,8 +23,8 @@
   #define UI_CHANNEL_LIST_SIZE 8
 #endif
 
-#ifndef UI_TEXTBOX_MAX
-  #define UI_TEXTBOX_MAX 150
+#ifndef UI_MESSAGE_MAX
+  #define UI_MESSAGE_MAX 150
 #endif
 
 class MainScreen : public UIScreen {
@@ -79,7 +79,7 @@ public:
              CustomNodePrefs *custom_prefs, KeyboardLayout *keyboard_layout)
       : _task(task), _rtc(rtc), _sensors(sensors), _node_prefs(node_prefs), _custom_prefs(custom_prefs),
         _keyboard_layout(keyboard_layout) {
-    chat_text_box.reserve(UI_TEXTBOX_MAX);
+    chat_text_box.reserve(UI_MESSAGE_MAX);
   }
   void messageRepeatsRecv(uint16_t count);
   void poll() override;

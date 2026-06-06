@@ -484,10 +484,11 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
 
     if (isprint(c)) {
       const char *repl = _keyboard_layout->findReplacement(c);
+      int maxlen = MAX_MESSAGE_SIZE - strlen(_node_prefs->node_name);
 
-      if (repl != nullptr && chat_text_box.length() + strlen(repl) <= MAX_MESSAGE_SIZE) {
+      if (repl != nullptr && chat_text_box.length() + strlen(repl) <= maxlen) {
         chat_text_box += repl;
-      } else if (chat_text_box.length() < MAX_MESSAGE_SIZE) {
+      } else if (chat_text_box.length() < maxlen) {
         chat_text_box += c;
       }
       return true;

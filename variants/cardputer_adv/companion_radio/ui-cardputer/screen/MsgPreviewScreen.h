@@ -9,7 +9,7 @@ class MsgPreviewScreen : public UIScreen {
   struct MsgEntry {
     uint32_t timestamp;
     char origin[62];
-    char msg[78];
+    char msg[150];
   };
 
   CardputerUITask *_task;
