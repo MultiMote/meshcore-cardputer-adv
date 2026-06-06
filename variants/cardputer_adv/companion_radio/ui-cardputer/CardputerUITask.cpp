@@ -56,16 +56,25 @@ bool CardputerUITask::isAlertActive() {
 }
 
 void CardputerUITask::notify(UIEventType t) {
+  if (t == UIEventType::channelMessage || t == UIEventType::contactMessage) {
+    playSound(SoundType::NewMessage);
+  }
+}
+
+void CardputerUITask::playSound(SoundType t) {
+  if (_node_prefs->buzzer_quiet) {
+    return;
+  }
+
   switch (t) {
-    case UIEventType::contactMessage:
-    case UIEventType::channelMessage:
-    case UIEventType::roomMessage:
-      notifyBeep();
+    case SoundType::Keyboard:
+      M5Cardputer.Speaker.tone(4000, 50);
       break;
-    case UIEventType::ack:
-    case UIEventType::newContactMessage:
-    case UIEventType::none:
-    default:
+    case SoundType::NewMessage:
+      M5Cardputer.Speaker.tone(3000, 100);
+      break;
+    case SoundType::DiscoveryResult:
+      M5Cardputer.Speaker.tone(800, 70);
       break;
   }
 }
@@ -179,7 +188,7 @@ void CardputerUITask::loop() {
   }
 
   if (c != 0 && current_screen) {
-    keyboardBeep();
+    playSound(SoundType::Keyboard);
     current_screen->handleInput(c);
     auto_off_time = millis() + AUTO_OFF_MILLIS; // extend auto-off timer
     next_refresh = 100;                         // trigger refresh
@@ -295,21 +304,9 @@ void CardputerUITask::toggleGPS() {
 void CardputerUITask::toggleBuzzer() {
   _node_prefs->buzzer_quiet = !_node_prefs->buzzer_quiet;
   the_mesh_cp.savePrefs();
-  showAlert(_node_prefs->buzzer_quiet ? "Speaker: OFF" : "Speaker: ON", 800);
 }
 
 void CardputerUITask::togglePowerSave() {
   _custom_prefs->power_save = !_custom_prefs->power_save;
   the_mesh_cp.savePrefs();
-}
-
-void CardputerUITask::keyboardBeep() {
-  if (!_node_prefs->buzzer_quiet) {
-    M5Cardputer.Speaker.tone(4000, 50);
-  }
-}
-void CardputerUITask::notifyBeep() {
-  if (!_node_prefs->buzzer_quiet) {
-    M5Cardputer.Speaker.tone(3000, 100);
-  }
 }

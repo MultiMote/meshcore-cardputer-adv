@@ -30,6 +30,12 @@
   #define UI_TEXT_LINE_HEIGHT 12 // adjust to the used font
 #endif
 
+enum class SoundType {
+  NewMessage,
+  Keyboard,
+  DiscoveryResult,
+};
+
 class CardputerUITask : public AbstractUITask {
   DisplayDriver *_display;
   SensorManager *_sensors;
@@ -82,8 +88,7 @@ public:
   void togglePowerSave();
   bool getGPSState();
   void toggleGPS();
-  void keyboardBeep();
-  void notifyBeep();
+  // void notifyBeep();
   inline unsigned long getAutoOffTime() const { return auto_off_time; }
   inline bool powerSaveEnabled() const { return _custom_prefs->power_save; }
   void msgRead(int msgcount) override;
@@ -91,6 +96,7 @@ public:
   void pingRecv(float snr_tx, float snr_rx);
   void discoverRecv(const mesh::Identity &id, float snr);
   void notify(UIEventType t = UIEventType::none) override;
+  void playSound(SoundType t);
   void loop() override;
   void shutdown(bool restart = false);
 };

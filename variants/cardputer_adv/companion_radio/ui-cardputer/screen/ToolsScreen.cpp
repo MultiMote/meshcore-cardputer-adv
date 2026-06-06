@@ -111,5 +111,6 @@ void ToolsScreen::discoverRecv(const mesh::Identity &id, float snr) {
     sprintf(buf, "[%02x %02x %02x ...] SNR: %.2fdb\n", id.pub_key[0], id.pub_key[1], id.pub_key[2], snr);
     discover_tmp.concat(buf);
     _task->dismissAlert();
+    _task->playSound(SoundType::DiscoveryResult);
   }
 }
