@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <M5Cardputer.h>
 #include <helpers/ESP32Board.h>
+#include <driver/rtc_io.h>
+
 
 class CardputerAdvBoard : public ESP32Board {
 private:

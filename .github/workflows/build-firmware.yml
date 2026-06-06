@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 env:
-  MESHCORE_VERSION: v1.15.0
+  MESHCORE_VERSION: v1.16.0
 
 jobs:
   build:
@@ -17,7 +17,7 @@ jobs:
           repository: 'meshcore-dev/meshcore'
           ref: companion-${{ env.MESHCORE_VERSION }}
           path: MeshCore
-      
+
       - uses: actions/checkout@v6
         with:
           path: meshcore-cardputer-adv
