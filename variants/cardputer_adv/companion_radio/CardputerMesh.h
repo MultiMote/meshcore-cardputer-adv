@@ -14,6 +14,8 @@ class CardputerMesh : public MyMesh {
   uint64_t rx_packet_count = 0;
   uint32_t last_ping_tag = 0;
   uint32_t last_discover_tag = 0;
+  uint8_t last_message_hash[MAX_HASH_SIZE] = {0};
+  uint16_t last_message_heard_repeats = 0;
 
   CustomNodePrefs _custom_prefs {
     .power_save = 0,
@@ -28,6 +30,9 @@ public:
   void onTraceRecv(mesh::Packet *packet, uint32_t tag, uint32_t auth_code, uint8_t flags,
                    const uint8_t *path_snrs, const uint8_t *path_hashes, uint8_t path_len) override;
   void onControlDataRecv(mesh::Packet* packet) override;
+  mesh::DispatcherAction onRecvPacket(mesh::Packet* pkt) override;
+
+  void sendFloodScoped(const mesh::GroupChannel& channel, mesh::Packet* pkt, uint32_t delay_millis) override;
 
   void logRxRaw(float snr, float rssi, const uint8_t raw[], int len) override;
 

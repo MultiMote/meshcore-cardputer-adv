@@ -34,6 +34,7 @@ enum class SoundType {
   NewMessage,
   Keyboard,
   DiscoveryResult,
+  MessageAck,
 };
 
 class CardputerUITask : public AbstractUITask {
@@ -95,6 +96,7 @@ public:
   void newMsg(uint8_t path_len, const char *from_name, const char *text, int msgcount) override;
   void pingRecv(float snr_tx, float snr_rx);
   void discoverRecv(const mesh::Identity &id, float snr);
+  void messageRepeatsRecv(uint16_t count);
   void notify(UIEventType t = UIEventType::none) override;
   void playSound(SoundType t);
   void loop() override;

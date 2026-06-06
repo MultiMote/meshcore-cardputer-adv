@@ -74,6 +74,7 @@ void CardputerUITask::playSound(SoundType t) {
       M5Cardputer.Speaker.tone(3000, 100);
       break;
     case SoundType::DiscoveryResult:
+    case SoundType::MessageAck:
       M5Cardputer.Speaker.tone(800, 70);
       break;
   }
@@ -112,6 +113,12 @@ void CardputerUITask::pingRecv(float snr_tx, float snr_rx) {
 void CardputerUITask::discoverRecv(const mesh::Identity &id, float snr) {
   if (current_screen == tools_screen) {
     static_cast<ToolsScreen *>(tools_screen)->discoverRecv(id, snr);
+  }
+}
+
+void CardputerUITask::messageRepeatsRecv(uint16_t count) {
+  if (current_screen == main_screen) {
+    static_cast<MainScreen *>(main_screen)->messageRepeatsRecv(count);
   }
 }
 

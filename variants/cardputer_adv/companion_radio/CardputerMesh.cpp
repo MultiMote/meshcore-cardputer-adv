@@ -28,7 +28,7 @@ void CardputerMesh::onControlDataRecv(mesh::Packet *packet) {
   }
 
   uint32_t *tag = (uint32_t *)&packet->payload[2];
-  
+
   if (*tag != last_discover_tag) {
     return;
   }
@@ -40,6 +40,32 @@ void CardputerMesh::onControlDataRecv(mesh::Packet *packet) {
   }
 
   _ui->discoverRecv(id, packet->getSNR());
+}
+
+mesh::DispatcherAction CardputerMesh::onRecvPacket(mesh::Packet *pkt) {
+  mesh::DispatcherAction action = MyMesh::onRecvPacket(pkt);
+
+  if (pkt->getPayloadType() == PAYLOAD_TYPE_GRP_TXT) {
+    uint8_t hash[MAX_HASH_SIZE];
+    pkt->calculatePacketHash(hash);
+
+    if(memcmp(hash, last_message_hash, MAX_HASH_SIZE) == 0) {
+      last_message_heard_repeats++;
+      _ui->messageRepeatsRecv(last_message_heard_repeats);
+    }
+  }
+  
+  return action;
+}
+
+void CardputerMesh::sendFloodScoped(const mesh::GroupChannel &channel, mesh::Packet *pkt,
+                                    uint32_t delay_millis) {
+  MyMesh::sendFloodScoped(channel, pkt, delay_millis);
+
+  if (pkt->getPayloadType() == PAYLOAD_TYPE_GRP_TXT) {
+    pkt->calculatePacketHash(last_message_hash);
+    last_message_heard_repeats = 0;
+  }
 }
 
 void CardputerMesh::logRxRaw(float snr, float rssi, const uint8_t raw[], int len) {
@@ -59,12 +85,11 @@ void CardputerMesh::savePrefs() {
 
 bool CardputerMesh::sendPing(ContactInfo &contact) {
   NodePrefs *prefs = getNodePrefs();
-  uint32_t auth = 0;
   uint8_t flags = prefs->path_hash_mode & 0x03;
 
   getRNG()->random((uint8_t *)&last_ping_tag, sizeof(last_ping_tag));
 
-  mesh::Packet *pkt = the_mesh_cp.createTrace(last_ping_tag, auth, flags);
+  mesh::Packet *pkt = the_mesh_cp.createTrace(last_ping_tag, 0, flags);
 
   if (!pkt) {
     return false;
@@ -88,10 +113,9 @@ bool CardputerMesh::sendAdvert(bool flood) {
   }
 
   if (flood) {
-    unsigned long delay_millis = 0;
     TransportKey default_scope;
     memcpy(&default_scope.key, prefs->default_scope_key, sizeof(default_scope.key));
-    sendFloodScoped(default_scope, pkt, delay_millis);
+    MyMesh::sendFloodScoped(default_scope, pkt, 0);
   } else {
     sendZeroHop(pkt);
   }

@@ -321,6 +321,15 @@ int MainScreen::render(DisplayDriver &display) {
   return 5000; // next render after 5000 ms
 }
 
+void MainScreen::messageRepeatsRecv(uint16_t count) {
+  if(current_page == MainScreenPage::CHAT) {
+    char buf[32];
+    sprintf(buf, "Heard repeats: %d", count);
+    _task->showAlert(buf, 2000);
+    _task->playSound(SoundType::MessageAck);
+  }
+}
+
 void MainScreen::poll() {
   if (shutdown_init && !_task->isButtonPressed()) { // must wait for USR button to be released
     _task->shutdown();
@@ -370,6 +379,7 @@ void MainScreen::sendChatMessage() {
                                            chat_text_box.length());
     if (ok) {
       chat_text_box.clear();
+      _task->showAlert("Waiting for repeats...", 2000);
     }
     return;
   }

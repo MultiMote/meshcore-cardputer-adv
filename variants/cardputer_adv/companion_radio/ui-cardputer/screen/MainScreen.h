@@ -81,7 +81,7 @@ public:
         _keyboard_layout(keyboard_layout) {
     chat_text_box.reserve(UI_TEXTBOX_MAX);
   }
-
+  void messageRepeatsRecv(uint16_t count);
   void poll() override;
   int render(DisplayDriver &display) override;
   bool handleInput(char c) override;
