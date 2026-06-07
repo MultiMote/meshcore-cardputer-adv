@@ -7,6 +7,11 @@ class ToolsScreen : public UIScreen {
   enum ToolsPage { MenuPage, DiscoverPage };
   enum ToolsMenuItem { AdvertZeroHop, AdvertFlood, DiscoverRepeaters, Count };
 
+  struct DiscoveredRepeater {
+    char name[25];
+    float snr;
+  };
+
   const char *menu_item_labels[ToolsMenuItem::Count] = {
     "Advert (Zero Hop)",
     "Advert (Flood)",
@@ -20,7 +25,8 @@ class ToolsScreen : public UIScreen {
 
   int menu_index = 0;
 
-  String discover_tmp; // todo: replace to data array
+  DiscoveredRepeater discovered_repeaters[MAX_DISCOVERED_REPEATERS];
+  uint16_t discovered_repeaters_count = 0;
 
 public:
   ToolsScreen(CardputerUITask *task, mesh::RTCClock *rtc) : _task(task), _rtc(rtc) {}
