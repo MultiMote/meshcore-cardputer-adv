@@ -3,10 +3,6 @@
 #include "../icons.h"
 #include "CardputerAdvBoard.h"
 
-#ifndef UI_SETTINGS_LIST_SIZE
-  #define UI_SETTINGS_LIST_SIZE 9
-#endif
-
 class SettingsScreen : public UIScreen {
   enum SettingsItem {
     HdrRadio,

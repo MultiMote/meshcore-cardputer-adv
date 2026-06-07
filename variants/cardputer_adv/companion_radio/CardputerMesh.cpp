@@ -49,13 +49,19 @@ mesh::DispatcherAction CardputerMesh::onRecvPacket(mesh::Packet *pkt) {
     uint8_t hash[MAX_HASH_SIZE];
     pkt->calculatePacketHash(hash);
 
-    if(memcmp(hash, last_message_hash, MAX_HASH_SIZE) == 0) {
+    if (memcmp(hash, last_message_hash, MAX_HASH_SIZE) == 0) {
       last_message_heard_repeats++;
       _ui->messageRepeatsRecv(last_message_heard_repeats);
     }
   }
-  
+
   return action;
+}
+
+void CardputerMesh::onChannelMessageRecv(const mesh::GroupChannel &channel, mesh::Packet *pkt,
+                                         uint32_t timestamp, const char *text) {
+  MyMesh::onChannelMessageRecv(channel, pkt, timestamp, text);
+  _store->storeMessage(channel.secret, text, false, true);
 }
 
 void CardputerMesh::sendFloodScoped(const mesh::GroupChannel &channel, mesh::Packet *pkt,
@@ -66,6 +72,20 @@ void CardputerMesh::sendFloodScoped(const mesh::GroupChannel &channel, mesh::Pac
     pkt->calculatePacketHash(last_message_hash);
     last_message_heard_repeats = 0;
   }
+}
+
+bool CardputerMesh::sendGroupMessage(uint32_t timestamp, mesh::GroupChannel &channel, const char *sender_name,
+                                     const char *text, int text_len) {
+  bool ok = MyMesh::sendGroupMessage(timestamp, channel, sender_name, text, text_len);
+  _store->storeMessage(channel.secret, text, true, true);
+  return ok;
+}
+
+int CardputerMesh::sendMessage(const ContactInfo &recipient, uint32_t timestamp, uint8_t attempt,
+                               const char *text, uint32_t &expected_ack, uint32_t &est_timeout) {
+  int rc = MyMesh::sendMessage(recipient, timestamp, attempt, text, expected_ack, est_timeout);
+  _store->storeMessage(recipient.id.pub_key, text, true, false);
+  return rc;
 }
 
 void CardputerMesh::logRxRaw(float snr, float rssi, const uint8_t raw[], int len) {

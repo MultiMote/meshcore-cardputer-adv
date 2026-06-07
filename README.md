@@ -48,6 +48,8 @@ Currently implemented (companion):
 - GPS support
 - GPS power management with CAS commands (Cap LoRa-1262 does not have a GPS switch pin)
 - Store data to SD card
+  * All default MeshCore settings (data is not grouped into single directory because the default paths are hardcoded)
+  * Custom settings, chat history (`meshcore_custom` directory)
 - Basic speaker support (keyboard/message beeps)
 - Keyboard support
 - Settings menu (press `OPT` at main screen)

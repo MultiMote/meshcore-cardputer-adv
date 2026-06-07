@@ -3,10 +3,6 @@
 #include "../../CardputerMesh.h"
 #include "../CardputerUITask.h"
 
-#ifndef UI_TOOLS_LIST_SIZE
-  #define UI_TOOLS_LIST_SIZE 9
-#endif
-
 class ToolsScreen : public UIScreen {
   enum ToolsPage { MenuPage, DiscoverPage };
   enum ToolsMenuItem { AdvertZeroHop, AdvertFlood, DiscoverRepeaters, Count };

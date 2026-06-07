@@ -1,9 +1,7 @@
 #include "../../CardputerMesh.h"
 #include "../CardputerUITask.h"
 #include "../icons.h"
-
-
-#define MAX_UNREAD_MSGS 32
+#include "globals.h"
 
 class MsgPreviewScreen : public UIScreen {
   struct MsgEntry {

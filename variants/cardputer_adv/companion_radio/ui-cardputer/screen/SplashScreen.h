@@ -1,8 +1,7 @@
 #include "../../CardputerMesh.h"
 #include "../CardputerUITask.h"
 #include "../icons.h"
-
-#define BOOT_SCREEN_MILLIS 3000 // 3 seconds
+#include "globals.h"
 
 class SplashScreen : public UIScreen {
   CardputerUITask *_task;

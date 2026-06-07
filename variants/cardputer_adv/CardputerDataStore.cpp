@@ -1,7 +1,21 @@
 #include "CardputerDataStore.h"
+#include "globals.h"
+
+void buf_to_hex_fast(const unsigned char *src, size_t src_len, char *dst) {
+  static const char hex_digits[] = "0123456789abcdef";
+
+  for (size_t i = 0; i < src_len; i++) {
+    dst[i * 2] = hex_digits[(src[i] >> 4) & 0x0F]; // High nibble
+    dst[i * 2 + 1] = hex_digits[src[i] & 0x0F];    // Low nibble
+  }
+  dst[src_len * 2] = '\0';
+}
 
 void CardputerDataStore::begin() {
   _fs->mkdir(CUSTOM_DATA_DIR);
+  _fs->mkdir(HISTORY_DIR);
+  _fs->mkdir(HISTORY_DIR_CHANNEL);
+  _fs->mkdir(HISTORY_DIR_DIRECT);
 }
 
 void CardputerDataStore::loadCustomPrefs(CustomNodePrefs &prefs) {
@@ -28,4 +42,44 @@ void CardputerDataStore::saveCustomPrefs(const CustomNodePrefs &prefs) {
 
   file.write((uint8_t *)&prefs, sizeof(prefs));
   file.close();
+}
+
+void CardputerDataStore::storeMessage(const uint8_t pkey[PUB_KEY_SIZE], const char *text, bool is_sent,
+                                      bool is_channel) {
+#if USE_SD_CARD
+  char path[128];
+  char msg_copy[MAX_MESSAGE_LENGTH + 1] = { 0 };
+  char pkey_hex[PUB_KEY_SIZE * 2 + 1];
+  uint8_t key_len = is_channel ? (PUB_KEY_SIZE / 2) : PUB_KEY_SIZE;
+
+  buf_to_hex_fast(pkey, key_len, pkey_hex);
+
+  int msg_len;
+  for (msg_len = 0; text[msg_len] != '\0' && msg_len < MAX_MESSAGE_LENGTH; msg_len++) {
+    if (text[msg_len] == '\n' || text[msg_len] == '\r') {
+      msg_copy[msg_len] = ' '; // Swap newline with space
+    } else {
+      msg_copy[msg_len] = text[msg_len];
+    }
+  }
+
+  msg_copy[msg_len] = '\0';
+
+  int written =
+      snprintf(path, sizeof(path), "%s/%s", is_channel ? HISTORY_DIR_CHANNEL : HISTORY_DIR_DIRECT, pkey_hex);
+
+  if (written < 0 || written >= sizeof(path)) {
+    return;
+  }
+
+  File file = _fs->open(path, FILE_APPEND, true);
+
+  if (!file) {
+    return;
+  }
+
+  file.print(is_sent ? ">> " : "<< ");
+  file.println(msg_copy);
+  file.close();
+#endif
 }

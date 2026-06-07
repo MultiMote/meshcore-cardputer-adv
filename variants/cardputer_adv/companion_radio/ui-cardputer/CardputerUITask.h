@@ -14,10 +14,6 @@
 #include <helpers/ui/DisplayDriver.h>
 #include <helpers/ui/UIScreen.h>
 
-#ifndef AUTO_OFF_MILLIS
-  #define AUTO_OFF_MILLIS 15000 // 15 seconds
-#endif
-
 #define LONG_PRESS_MILLIS    1200
 
 #define ASCII_CTRL_LF        0x0A // newline (Enter)
@@ -25,10 +21,6 @@
 #define ASCII_CTRL_ESCAPE    0x1B
 #define ASCII_CTRL_DC1       0x11 // We will use it for "OPT" button
 #define ASCII_CTRL_SUBST     0x1A // We will use it to switch layout
-
-#ifndef UI_TEXT_LINE_HEIGHT
-  #define UI_TEXT_LINE_HEIGHT 12 // adjust to the used font
-#endif
 
 enum class SoundType {
   NewMessage,

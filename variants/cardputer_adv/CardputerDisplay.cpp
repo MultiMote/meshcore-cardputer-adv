@@ -1,6 +1,7 @@
 #include "CardputerDisplay.h"
 
 #include "font.h"
+#include "globals.h"
 
 #include <MeshCore.h>
 

@@ -3,29 +3,7 @@
 #include "../../CardputerMesh.h"
 #include "../CardputerUITask.h"
 #include "../icons.h"
-
-#ifndef UI_RECENT_LIST_SIZE
-  #define UI_RECENT_LIST_SIZE 4
-#endif
-
-#ifndef BATT_MIN_MILLIVOLTS
-  #define BATT_MIN_MILLIVOLTS 3350 // From M5Unified
-#endif
-#ifndef BATT_MAX_MILLIVOLTS
-  #define BATT_MAX_MILLIVOLTS 4150 // From M5Unified
-#endif
-
-#ifndef UI_CONTACT_LIST_SIZE
-  #define UI_CONTACT_LIST_SIZE 8
-#endif
-
-#ifndef UI_CHANNEL_LIST_SIZE
-  #define UI_CHANNEL_LIST_SIZE 8
-#endif
-
-#ifndef UI_MESSAGE_MAX
-  #define UI_MESSAGE_MAX 150
-#endif
+#include "globals.h"
 
 class MainScreen : public UIScreen {
   enum MainScreenPage {
@@ -79,7 +57,7 @@ public:
              CustomNodePrefs *custom_prefs, KeyboardLayout *keyboard_layout)
       : _task(task), _rtc(rtc), _sensors(sensors), _node_prefs(node_prefs), _custom_prefs(custom_prefs),
         _keyboard_layout(keyboard_layout) {
-    chat_text_box.reserve(UI_MESSAGE_MAX);
+    chat_text_box.reserve(MAX_MESSAGE_LENGTH);
   }
   void messageRepeatsRecv(uint16_t count);
   void poll() override;

@@ -31,8 +31,16 @@ public:
                    const uint8_t *path_snrs, const uint8_t *path_hashes, uint8_t path_len) override;
   void onControlDataRecv(mesh::Packet* packet) override;
   mesh::DispatcherAction onRecvPacket(mesh::Packet* pkt) override;
+  void onChannelMessageRecv(const mesh::GroupChannel &channel, mesh::Packet *pkt, uint32_t timestamp,
+                            const char *text) override;
 
   void sendFloodScoped(const mesh::GroupChannel& channel, mesh::Packet* pkt, uint32_t delay_millis) override;
+
+  // not virtual; using function hiding
+  bool sendGroupMessage(uint32_t timestamp, mesh::GroupChannel& channel, const char* sender_name, const char* text, int text_len);
+  // not virtual; using function hiding
+  int sendMessage(const ContactInfo& recipient, uint32_t timestamp, uint8_t attempt, const char* text, uint32_t& expected_ack, uint32_t& est_timeout);
+
 
   void logRxRaw(float snr, float rssi, const uint8_t raw[], int len) override;
 
