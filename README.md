@@ -12,7 +12,7 @@ This variant designed to not change the original codebase. I tried to make the i
 
 ### Building
 
-1. Get a copy of [MeshCore](https://github.com/meshcore-dev/MeshCore). Current development is based on v1.15.0.
+1. Get a copy of [MeshCore](https://github.com/meshcore-dev/MeshCore). Current development is based on v1.16.0.
 
 2. Copy the `variants/cardputer_adv` directory from this repository into the `variants` directory of the MeshCore source tree.
 
@@ -65,6 +65,7 @@ Currently implemented (companion):
    * Press `Enter` on repeater/room to ping
    * Press `Enter` on contact to start conversation
 - Compose and send messages
+   * After sending group message, "Heard repeats" appears
 - Basic display unicode support. Font is `DejaVu Sans 12` converted with `Processing 4`.
 
   Included unicode blocks:
@@ -113,7 +114,7 @@ Todo:
 
 Due to the high power consumption of this device, I don't think it's a good choice for always-on MeshCore companion.
 
-It draws about 150-180 mA in idle state.
+It draws about 130-180 mA in idle state.
 
 I also don't quite understand the decisions made by M5Stack:
 
