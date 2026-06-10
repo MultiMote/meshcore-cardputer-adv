@@ -104,6 +104,15 @@ void CardputerUITask::newMsg(uint8_t path_len, const char *from_name, const char
   }
 }
 
+void CardputerUITask::onChannelMessageRecv(const mesh::GroupChannel &channel, const char *text) {
+  ((MainScreen *)main_screen)->onChannelMessageRecv(channel, text);
+}
+
+void CardputerUITask::onContactMessageRecv(const ContactInfo &contact, const char *text) {
+  ((MainScreen *)main_screen)->onContactMessageRecv(contact, text);
+
+}
+
 void CardputerUITask::pingRecv(float snr_tx, float snr_rx) {
   char buf[40];
   sprintf(buf, "SNR there/back: %.2f/%.2f", snr_tx, snr_rx);

@@ -131,8 +131,8 @@ void ToolsScreen::discoverRecv(const mesh::Identity &id, float snr) {
     rep.name[0] = '\0';
 
     ContactInfo *contact =
-        the_mesh_cp.lookupContactByPubKey(id.pub_key, DISCOVERED_REPEATERS_PREFIX_LOOKUP_BYTES);
-        
+        the_mesh_cp.lookupContactByPubKey(id.pub_key, CONTACT_LOOKUP_BYTES);
+
     if (contact) {
       snprintf(rep.name, sizeof(rep.name), "%s", contact->name);
     } else {

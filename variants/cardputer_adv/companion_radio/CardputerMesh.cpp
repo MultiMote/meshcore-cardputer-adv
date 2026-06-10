@@ -62,6 +62,15 @@ void CardputerMesh::onChannelMessageRecv(const mesh::GroupChannel &channel, mesh
                                          uint32_t timestamp, const char *text) {
   MyMesh::onChannelMessageRecv(channel, pkt, timestamp, text);
   _store->storeMessage(channel.secret, text, false, true);
+  _ui->onChannelMessageRecv(channel, text);
+}
+
+void CardputerMesh::onMessageRecv(const ContactInfo &from, mesh::Packet *pkt, uint32_t sender_timestamp,
+                                  const char *text) {
+  MyMesh::onMessageRecv(from, pkt, sender_timestamp, text);
+
+  _store->storeMessage(from.id.pub_key, text, false, false);
+  _ui->onContactMessageRecv(from, text);
 }
 
 void CardputerMesh::sendFloodScoped(const mesh::GroupChannel &channel, mesh::Packet *pkt,

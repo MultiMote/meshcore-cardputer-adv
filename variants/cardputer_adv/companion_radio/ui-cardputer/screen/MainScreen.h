@@ -4,6 +4,7 @@
 #include "../CardputerUITask.h"
 #include "../icons.h"
 #include "globals.h"
+#include "RingBuffer.h"
 
 class MainScreen : public UIScreen {
   enum MainScreenPage {
@@ -32,10 +33,20 @@ class MainScreen : public UIScreen {
   AdvertPath recent[UI_RECENT_LIST_SIZE];
   String chat_text_box;
 
+  struct HistoryMessage {
+    char text[MAX_MESSAGE_LENGTH];
+    bool out;
+  };
+  RingBuffer<HistoryMessage, UI_CHAT_HISTORY_SIZE> chat_history;
+
   int contact_list_idx = 0;
   int channel_list_idx = 0;
-  int contact_open_idx = -1;
-  int channel_open_idx = -1;
+
+  ChannelDetails current_channel;
+  int current_channel_idx = -1;
+
+  ContactInfo current_contact;
+  int current_contact_idx = -1;
 
   int getChannelCount();
   void sendChatMessage();
@@ -43,14 +54,14 @@ class MainScreen : public UIScreen {
 
   void renderStatusIcons();
 
-  void renderFirstPage();
-  void renderChannelsPage();
-  void renderContactsPage();
-  void renderChatPage();
-  void renderRecentPage();
-  void renderStatsPage();
-  void renderGpsPage();
-  void renderShutdownPage();
+  int renderFirstPage();
+  int renderChannelsPage();
+  int renderContactsPage();
+  int renderChatPage();
+  int renderRecentPage();
+  int renderStatsPage();
+  int renderGpsPage();
+  int renderShutdownPage();
 
 public:
   MainScreen(CardputerUITask *task, mesh::RTCClock *rtc, SensorManager *sensors, NodePrefs *node_prefs,
@@ -60,6 +71,9 @@ public:
     chat_text_box.reserve(MAX_MESSAGE_LENGTH);
   }
   void messageRepeatsRecv(uint16_t count);
+  void onChannelMessageRecv(const mesh::GroupChannel &channel, const char *text);
+  void onContactMessageRecv(const ContactInfo &contact, const char *text);
+
   void poll() override;
   int render(DisplayDriver &display) override;
   bool handleInput(char c) override;

@@ -53,7 +53,7 @@ void MainScreen::renderStatusIcons() {
   }
 }
 
-void MainScreen::renderFirstPage() {
+int MainScreen::renderFirstPage() {
   char tmp[80];
 
   display.setColor(DisplayDriver::ORANGE);
@@ -80,9 +80,11 @@ void MainScreen::renderFirstPage() {
   display.setColor(DisplayDriver::ORANGE);
   display.drawTextCentered(display.width() / 2, display.height() - UI_TEXT_LINE_HEIGHT - 2,
                            "Press T to open Tools");
+
+  return 5000;
 }
 
-void MainScreen::renderChannelsPage() {
+int MainScreen::renderChannelsPage() {
   display.setColor(DisplayDriver::GREEN);
   display.drawTextCentered(display.width() / 2, 20, "Channels");
 
@@ -104,9 +106,11 @@ void MainScreen::renderChannelsPage() {
 
     display.drawTextLeftAlign(25, 30 + i * UI_TEXT_LINE_HEIGHT, channel.name);
   }
+
+  return 5000;
 }
 
-void MainScreen::renderContactsPage() {
+int MainScreen::renderContactsPage() {
   display.setColor(DisplayDriver::GREEN);
   display.drawTextCentered(display.width() / 2, 20, "Contacts");
   int real_idx = 0;
@@ -131,20 +135,40 @@ void MainScreen::renderContactsPage() {
 
     display.drawTextLeftAlign(25, 30 + i * UI_TEXT_LINE_HEIGHT, contact.name);
   }
+  return 5000;
 }
 
-void MainScreen::renderChatPage() {
+int MainScreen::renderChatPage() {
   display.setColor(DisplayDriver::GREEN);
-  ContactInfo contact;
-  ChannelDetails channel;
 
-  if (contact_open_idx < 0 && channel_open_idx < 0) {
+  if (current_contact_idx == -1 && current_channel_idx == -1) {
+    display.setColor(DisplayDriver::ORANGE);
     display.drawTextCentered(display.width() / 2, 20, "Contact/Channel not selected");
-  } else if (the_mesh_cp.getContactByIdx(contact_open_idx, contact)) {
-    display.drawTextCentered(display.width() / 2, 20, contact.name);
-  } else if (the_mesh_cp.getChannel(channel_open_idx, channel)) {
-    display.drawTextCentered(display.width() / 2, 20, channel.name);
+  } else if (current_contact_idx != -1) {
+    display.drawTextCentered(display.width() / 2, 20, current_contact.name);
+  } else if (current_channel_idx != -1) {
+    display.drawTextCentered(display.width() / 2, 20, current_channel.name);
   }
+
+  display.setColor(DisplayDriver::GREEN);
+
+  for (size_t i = 0; i < chat_history.count(); i++) {
+    const HistoryMessage *msg;
+    if (chat_history.get(i, msg)) {
+      if(msg->out) {
+        int text_w = display.getTextWidth(msg->text);
+
+        if(text_w > display.width()) {
+          text_w = display.width() - 10;
+        }
+
+        display.drawTextEllipsized(display.width() - text_w - 5, 30 + i * UI_TEXT_LINE_HEIGHT, text_w, msg->text);
+      } else {
+        display.drawTextEllipsized(5, 30 + i * UI_TEXT_LINE_HEIGHT, display.width() - 5, msg->text);
+      }
+    }
+  }
+
   int start_x = 5;
   display.drawRect(1, display.height() - UI_TEXT_LINE_HEIGHT - 2, display.width() - 1, 1);
 
@@ -161,10 +185,10 @@ void MainScreen::renderChatPage() {
   display.setColor(DisplayDriver::LIGHT);
   display.drawTextEllipsized(start_x, display.height() - UI_TEXT_LINE_HEIGHT - 2, display.width() - start_x,
                              chat_text_box.c_str());
-  display.setColor(DisplayDriver::GREEN);
+  return 15000;
 }
 
-void MainScreen::renderRecentPage() {
+int MainScreen::renderRecentPage() {
   char tmp[80];
 
   the_mesh_cp.getRecentlyHeard(recent, UI_RECENT_LIST_SIZE);
@@ -194,9 +218,11 @@ void MainScreen::renderRecentPage() {
     display.setCursor(display.width() - timestamp_width - 1, y);
     display.print(tmp);
   }
+
+  return 5000;
 }
 
-void MainScreen::renderStatsPage() { // todo: separate menu maybe
+int MainScreen::renderStatsPage() { // todo: separate menu maybe
   char tmp[80];
 
   int y = 20;
@@ -220,10 +246,12 @@ void MainScreen::renderStatsPage() { // todo: separate menu maybe
   y += UI_TEXT_LINE_HEIGHT;
   sprintf(tmp, "Battery: %.0fmV", (float)_task->getBattMilliVolts() * _custom_prefs->battery_correction);
   display.drawTextLeftAlign(5, y, tmp);
+
+  return 5000;
 }
 
 #if ENV_INCLUDE_GPS == 1
-void MainScreen::renderGpsPage() {
+int MainScreen::renderGpsPage() {
 
   LocationProvider *nmea = sensors.getLocationProvider();
   char buf[50];
@@ -251,10 +279,11 @@ void MainScreen::renderGpsPage() {
     display.drawTextRightAlign(display.width() - 1, y, buf);
     y = y + UI_TEXT_LINE_HEIGHT;
   }
+  return 5000;
 }
 #endif
 
-void MainScreen::renderShutdownPage() {
+int MainScreen::renderShutdownPage() {
   display.setColor(DisplayDriver::GREEN);
   display.setTextSize(1);
   if (shutdown_init) {
@@ -263,6 +292,7 @@ void MainScreen::renderShutdownPage() {
     display.drawXbm((display.width() - 32) / 2, 18, power_icon, 32, 32);
     display.drawTextCentered(display.width() / 2, 64 - 11, "hibernate:" PRESS_LABEL);
   }
+  return 5000;
 }
 
 int MainScreen::render(DisplayDriver &display) {
@@ -290,43 +320,53 @@ int MainScreen::render(DisplayDriver &display) {
 
   switch (current_page) {
     case MainScreenPage::FIRST:
-      renderFirstPage();
-      break;
+      return renderFirstPage();
     case MainScreenPage::CHANNELS:
-      renderChannelsPage();
-      break;
+      return renderChannelsPage();
     case MainScreenPage::CONTACTS:
-      renderContactsPage();
-      break;
+      return renderContactsPage();
     case MainScreenPage::CHAT:
-      renderChatPage();
-      break;
+      return renderChatPage();
     case MainScreenPage::RECENT:
-      renderRecentPage();
-      break;
+      return renderRecentPage();
     case MainScreenPage::STATS:
-      renderStatsPage();
-      break;
+      return renderStatsPage();
 #if ENV_INCLUDE_GPS
     case MainScreenPage::GPS:
-      renderGpsPage();
-      break;
+      return renderGpsPage();
 #endif
     case MainScreenPage::SHUTDOWN:
-      renderShutdownPage();
-      break;
+      return renderShutdownPage();
     default:
       break;
   }
-  return 5000; // next render after 5000 ms
+  return 5000;
 }
 
 void MainScreen::messageRepeatsRecv(uint16_t count) {
-  if(current_page == MainScreenPage::CHAT) {
+  if (current_page == MainScreenPage::CHAT) {
     char buf[32];
     sprintf(buf, "Heard repeats: %d", count);
     _task->showAlert(buf, 2000);
     _task->playSound(SoundType::MessageAck);
+  }
+}
+
+void MainScreen::onChannelMessageRecv(const mesh::GroupChannel &channel, const char *text) {
+  if (current_channel_idx != -1 &&
+      memcmp(channel.secret, current_channel.channel.secret, CONTACT_LOOKUP_BYTES) == 0) {
+    HistoryMessage *msg = chat_history.push_ref();
+    msg->out = false;
+    snprintf(msg->text, MAX_MESSAGE_LENGTH, "%s", text);
+  }
+}
+
+void MainScreen::onContactMessageRecv(const ContactInfo &contact, const char *text) {
+  if (current_contact_idx != -1 &&
+      memcmp(contact.id.pub_key, current_contact.id.pub_key, CONTACT_LOOKUP_BYTES) == 0) {
+    HistoryMessage *msg = chat_history.push_ref();
+    msg->out = false;
+    snprintf(msg->text, MAX_MESSAGE_LENGTH, "%s", text);
   }
 }
 
@@ -355,29 +395,35 @@ void MainScreen::sendChatMessage() {
     return;
   }
 
-  ContactInfo contact;
-  ChannelDetails channel;
   uint32_t ts = the_mesh_cp.getRTCClock()->getCurrentTime();
 
-  if (contact_open_idx > -1 && the_mesh_cp.getContactByIdx(contact_open_idx, contact) &&
-      contact.type == ADV_TYPE_CHAT) { // direct msg
+  if (current_contact_idx != -1 && current_contact.type == ADV_TYPE_CHAT) { // direct msg
     uint32_t est_timeout;
     uint32_t expected_ack;
 
-    int result = the_mesh_cp.sendMessage(contact, ts, 0, chat_text_box.c_str(), expected_ack, est_timeout);
+    int result =
+        the_mesh_cp.sendMessage(current_contact, ts, 0, chat_text_box.c_str(), expected_ack, est_timeout);
 
     if (result != MSG_SEND_FAILED) {
+      HistoryMessage *msg = chat_history.push_ref();
+      msg->out = true;
+      snprintf(msg->text, MAX_MESSAGE_LENGTH, "%s", chat_text_box.c_str());
+
       chat_text_box.clear();
     }
     return;
   }
 
-  if (channel_open_idx > -1 && the_mesh_cp.getChannel(channel_open_idx, channel) &&
-      strlen(channel.name) > 0) { // channel msg
+  if (current_channel_idx != -1) { // channel msg
 
-    bool ok = the_mesh_cp.sendGroupMessage(ts, channel.channel, _node_prefs->node_name, chat_text_box.c_str(),
-                                           chat_text_box.length());
+    bool ok = the_mesh_cp.sendGroupMessage(ts, current_channel.channel, _node_prefs->node_name,
+                                           chat_text_box.c_str(), chat_text_box.length());
     if (ok) {
+      HistoryMessage *msg = chat_history.push_ref();
+      msg->out = true;
+
+      snprintf(msg->text, MAX_MESSAGE_LENGTH, "%s", chat_text_box.c_str());
+
       chat_text_box.clear();
       _task->showAlert("Waiting for repeats...", 2000);
     }
@@ -422,15 +468,14 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
       return true;
     }
     if (c == ASCII_CTRL_LF) {
-      ContactInfo contact;
-      if (the_mesh_cp.getContactByIdx(contact_list_idx, contact)) {
-        if (contact.type == ADV_TYPE_CHAT) {
-          contact_open_idx = contact_list_idx;
-          channel_open_idx = -1;
+      if (the_mesh_cp.getContactByIdx(contact_list_idx, current_contact)) {
+        if (current_contact.type == ADV_TYPE_CHAT) {
+          current_contact_idx = contact_list_idx;
+          current_channel_idx = -1;
           current_page = MainScreenPage::CHAT;
-        } else if ((contact.type == ADV_TYPE_REPEATER || contact.type == ADV_TYPE_ROOM) &&
+        } else if ((current_contact.type == ADV_TYPE_REPEATER || current_contact.type == ADV_TYPE_ROOM) &&
                    !_task->isAlertActive()) {
-          the_mesh_cp.sendPing(contact);
+          the_mesh_cp.sendPing(current_contact);
           _task->showAlert("Waiting for response...", 4000);
         }
       }
@@ -456,10 +501,9 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
       return true;
     }
     if (c == ASCII_CTRL_LF) {
-      ChannelDetails channel;
-      if (the_mesh_cp.getChannel(channel_list_idx, channel) && strlen(channel.name) > 0) {
-        channel_open_idx = channel_list_idx;
-        contact_open_idx = -1;
+      if (the_mesh_cp.getChannel(channel_list_idx, current_channel) && strlen(current_channel.name) > 0) {
+        current_channel_idx = channel_list_idx;
+        current_contact_idx = -1;
         current_page = MainScreenPage::CHAT;
       }
       return true;

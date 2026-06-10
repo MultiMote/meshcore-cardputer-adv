@@ -68,6 +68,7 @@ Currently implemented (companion):
    * Press `Enter` on contact to start conversation
 - Compose and send messages
    * After sending group message, "Heard repeats" appears
+- Chat history (only current chat, data not fetched from SD yet)
 - Basic display unicode support. Font is `DejaVu Sans 12` converted with `Processing 4`.
 
   Included unicode blocks:
@@ -102,7 +103,6 @@ Currently implemented (companion):
 
 Todo:
 
-- Chat history
 - Find a way to include MeshCore as submodule in this repository and build it from here
 - Catch and display message ACK's
 - Change display brightness

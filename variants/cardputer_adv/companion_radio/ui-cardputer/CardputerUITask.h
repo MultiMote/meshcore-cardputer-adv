@@ -86,6 +86,10 @@ public:
   inline bool powerSaveEnabled() const { return _custom_prefs->power_save; }
   void msgRead(int msgcount) override;
   void newMsg(uint8_t path_len, const char *from_name, const char *text, int msgcount) override;
+
+  void onChannelMessageRecv(const mesh::GroupChannel &channel, const char *text);
+  void onContactMessageRecv(const ContactInfo &contact, const char *text);
+
   void pingRecv(float snr_tx, float snr_rx);
   void discoverRecv(const mesh::Identity &id, float snr);
   void messageRepeatsRecv(uint16_t count);

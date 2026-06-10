@@ -16,6 +16,7 @@
 #define UI_CONTACT_LIST_SIZE                     8
 #define UI_CHANNEL_LIST_SIZE                     8
 #define UI_SETTINGS_LIST_SIZE                    9
+#define UI_CHAT_HISTORY_SIZE                     7
 #define UI_TOOLS_LIST_SIZE                       9
 
 #define AUTO_OFF_MILLIS                          15000 // 15 seconds
@@ -30,4 +31,4 @@
 #define USER_FONT_NAME                           (CUSTOM_DATA_DIR "/font.vlw")
 
 #define MAX_DISCOVERED_REPEATERS                 8
-#define DISCOVERED_REPEATERS_PREFIX_LOOKUP_BYTES 8 // I hope 8 bytes will be enough
+#define CONTACT_LOOKUP_BYTES 8 // I hope 8 bytes will be enough
