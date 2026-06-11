@@ -473,6 +473,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
           current_contact_idx = contact_list_idx;
           current_channel_idx = -1;
           current_page = MainScreenPage::CHAT;
+          the_mesh_cp.loadMessageHistory(current_contact.id.pub_key, false, chat_history);
         } else if ((current_contact.type == ADV_TYPE_REPEATER || current_contact.type == ADV_TYPE_ROOM) &&
                    !_task->isAlertActive()) {
           the_mesh_cp.sendPing(current_contact);
@@ -505,6 +506,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
         current_channel_idx = channel_list_idx;
         current_contact_idx = -1;
         current_page = MainScreenPage::CHAT;
+        the_mesh_cp.loadMessageHistory(current_channel.channel.secret, true, chat_history);
       }
       return true;
     }

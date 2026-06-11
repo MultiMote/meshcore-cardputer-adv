@@ -33,10 +33,6 @@ class MainScreen : public UIScreen {
   AdvertPath recent[UI_RECENT_LIST_SIZE];
   String chat_text_box;
 
-  struct HistoryMessage {
-    char text[MAX_MESSAGE_LENGTH];
-    bool out;
-  };
   RingBuffer<HistoryMessage, UI_CHAT_HISTORY_SIZE> chat_history;
 
   int contact_list_idx = 0;

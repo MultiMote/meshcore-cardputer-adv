@@ -1,7 +1,8 @@
 #include "CardputerDataStore.h"
+
 #include "globals.h"
 
-void buf_to_hex_fast(const unsigned char *src, size_t src_len, char *dst) {
+static void buf_to_hex_fast(const unsigned char *src, size_t src_len, char *dst) {
   static const char hex_digits[] = "0123456789abcdef";
 
   for (size_t i = 0; i < src_len; i++) {
@@ -65,12 +66,7 @@ void CardputerDataStore::storeMessage(const uint8_t pkey[PUB_KEY_SIZE], const ch
 
   msg_copy[msg_len] = '\0';
 
-  int written =
-      snprintf(path, sizeof(path), "%s/%s", is_channel ? HISTORY_DIR_CHANNEL : HISTORY_DIR_DIRECT, pkey_hex);
-
-  if (written < 0 || written >= sizeof(path)) {
-    return;
-  }
+  snprintf(path, sizeof(path), "%s/%s", is_channel ? HISTORY_DIR_CHANNEL : HISTORY_DIR_DIRECT, pkey_hex);
 
   File file = _fs->open(path, FILE_APPEND, true);
 
@@ -80,6 +76,107 @@ void CardputerDataStore::storeMessage(const uint8_t pkey[PUB_KEY_SIZE], const ch
 
   file.print(is_sent ? ">> " : "<< ");
   file.println(msg_copy);
+  file.close();
+#endif
+}
+
+static void parse_history_line(HistoryMessage *msg, char *buf) {
+  int len = strlen(buf);
+
+  if (len < 4) {
+    return;
+  }
+
+  msg->out = buf[0] == '>';
+  strcpy(msg->text, buf + 3);
+}
+
+void CardputerDataStore::loadMessages(const uint8_t pkey[PUB_KEY_SIZE], bool is_channel,
+                                      RingBuffer<HistoryMessage, UI_CHAT_HISTORY_SIZE> &history) {
+  history.clear();
+
+#if USE_SD_CARD
+  char path[128];
+  char pkey_hex[PUB_KEY_SIZE * 2 + 1];
+  char line_buf[MAX_MESSAGE_LENGTH + 1] = { 0 };
+  uint8_t file_read_buf[1024];
+
+  uint8_t key_len = is_channel ? (PUB_KEY_SIZE / 2) : PUB_KEY_SIZE;
+
+  buf_to_hex_fast(pkey, key_len, pkey_hex);
+
+  snprintf(path, sizeof(path), "%s/%s", is_channel ? HISTORY_DIR_CHANNEL : HISTORY_DIR_DIRECT, pkey_hex);
+
+  if (!_fs->exists(path)) {
+    return;
+  }
+
+  File file = _fs->open(path, FILE_READ, false);
+
+  if (!file) {
+    return;
+  }
+
+  int totalLines = 0;
+
+  while (file.available()) {
+    int bytesRead = file.read(file_read_buf, sizeof(file_read_buf));
+    for (int i = 0; i < bytesRead; i++) {
+      if (file_read_buf[i] == '\n') {
+        totalLines++;
+      }
+    }
+  }
+
+  if (file.size() > 0 && totalLines == 0) {
+    totalLines = 1;
+  }
+
+  int linesToSkip = totalLines - UI_CHAT_HISTORY_SIZE;
+
+  if (linesToSkip < 0) {
+    linesToSkip = 0;
+  }
+
+  file.seek(0);
+
+  int currentLine = 0;
+  size_t line_idx = 0;
+  bool isSkipping = (currentLine < linesToSkip);
+
+  while (file.available()) {
+    int bytesRead = file.read(file_read_buf, sizeof(file_read_buf));
+
+    for (int b = 0; b < bytesRead; b++) {
+      char c = (char)file_read_buf[b];
+
+      if (isSkipping) {
+        if (c == '\n') {
+          currentLine++;
+          if (currentLine >= linesToSkip) {
+            isSkipping = false; // Start parsing into lines on next iteration
+          }
+        }
+      } else {
+        if (c == '\n' || line_idx >= MAX_MESSAGE_LENGTH - 1) {
+          line_buf[line_idx] = '\0';
+          line_idx = 0;
+          HistoryMessage *msg = history.push_ref();
+          parse_history_line(msg, line_buf);
+        } else if (c != '\r') {
+          line_buf[line_idx++] = c;
+        }
+      }
+    }
+  }
+
+  // Handle any remaining text if the file didn't end with a trailing LF
+  if (!isSkipping && line_idx > 0) {
+    line_buf[line_idx] = '\0';
+    HistoryMessage *msg = history.push_ref();
+    parse_history_line(msg, line_buf);
+  }
+
   file.close();
 #endif
 }

@@ -1,16 +1,17 @@
 #include "KeyboardLayout.h"
 
 #include <MeshCore.h>
-#include <SD.h>
 #include <cstring>
 
 void KeyboardLayout::begin(FS &fs) {
-  File layout_file = fs.open(KB_LAYOUT_FILE, FILE_READ, false);
-  if (!layout_file) {
-    MESH_DEBUG_PRINTLN("%s not found", KB_LAYOUT_FILE);
+  if (!fs.exists(KB_LAYOUT_FILE)) {
     return;
-  } else {
-    MESH_DEBUG_PRINTLN("%s found", KB_LAYOUT_FILE);
+  }
+
+  File layout_file = fs.open(KB_LAYOUT_FILE, FILE_READ, false);
+
+  if (!layout_file) {
+    return;
   }
 
   int count = 0;
