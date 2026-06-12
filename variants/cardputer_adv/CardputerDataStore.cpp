@@ -120,32 +120,7 @@ void CardputerDataStore::loadMessages(const uint8_t pkey[PUB_KEY_SIZE], bool is_
     return;
   }
 
-  int totalLines = 0;
-
-  while (file.available()) {
-    int bytesRead = file.read(file_read_buf, sizeof(file_read_buf));
-    for (int i = 0; i < bytesRead; i++) {
-      if (file_read_buf[i] == '\n') {
-        totalLines++;
-      }
-    }
-  }
-
-  if (file.size() > 0 && totalLines == 0) {
-    totalLines = 1;
-  }
-
-  int linesToSkip = totalLines - UI_CHAT_HISTORY_SIZE;
-
-  if (linesToSkip < 0) {
-    linesToSkip = 0;
-  }
-
-  file.seek(0);
-
-  int currentLine = 0;
   size_t line_idx = 0;
-  bool isSkipping = (currentLine < linesToSkip);
 
   while (file.available()) {
     int bytesRead = file.read(file_read_buf, sizeof(file_read_buf));
@@ -153,27 +128,18 @@ void CardputerDataStore::loadMessages(const uint8_t pkey[PUB_KEY_SIZE], bool is_
     for (int b = 0; b < bytesRead; b++) {
       char c = (char)file_read_buf[b];
 
-      if (isSkipping) {
-        if (c == '\n') {
-          currentLine++;
-          if (currentLine >= linesToSkip) {
-            isSkipping = false; // Start parsing into lines on next iteration
-          }
-        }
-      } else {
-        if (c == '\n' || line_idx >= sizeof(line_buf) - 1) {
-          line_buf[line_idx] = '\0';
-          line_idx = 0;
-          push_history_line(history, line_buf);
-        } else if (c != '\r') {
-          line_buf[line_idx++] = c;
-        }
+      if (c == '\n' || line_idx >= sizeof(line_buf) - 1) {
+        line_buf[line_idx] = '\0';
+        line_idx = 0;
+        push_history_line(history, line_buf);
+      } else if (c != '\r') {
+        line_buf[line_idx++] = c;
       }
     }
   }
 
   // Handle any remaining text if the file didn't end with a trailing LF
-  if (!isSkipping && line_idx > 0) {
+  if (line_idx > 0) {
     line_buf[line_idx] = '\0';
     push_history_line(history, line_buf);
   }
