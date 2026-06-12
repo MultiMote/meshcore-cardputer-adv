@@ -54,6 +54,14 @@ void CardputerSensorManager::loop() {
   static long next_gps_update = 0;
   static long next_gps_force_shutdown = 0;
 
+  // periodically send standby command because standby has maximum of 18 hours
+  if (millis() > next_gps_force_shutdown) {
+    if (!gps_active) {
+      gps_standby(true);
+    }
+    next_gps_force_shutdown = millis() + 1000 * 60 * 60; // every hour
+  }
+
   if (!gps_active) {
     return;
   }
@@ -71,14 +79,6 @@ void CardputerSensorManager::loop() {
     }
     MESH_DEBUG_PRINTLN("GPS satellites: %d", _location->satellitesCount());
     next_gps_update = millis() + 1000;
-  }
-
-  // periodically send standby command because standby has maximum of 18 hours
-  if (millis() > next_gps_force_shutdown) {
-    if (!gps_active) {
-      gps_standby(true);
-    }
-    next_gps_force_shutdown = millis() + 1000 * 60 * 60; // every hour
   }
 }
 

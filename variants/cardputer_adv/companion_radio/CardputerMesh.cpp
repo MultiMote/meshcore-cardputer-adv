@@ -27,9 +27,10 @@ void CardputerMesh::onControlDataRecv(mesh::Packet *packet) {
     return;
   }
 
-  uint32_t *tag = (uint32_t *)&packet->payload[2];
+  uint32_t tag;
+  memcpy(&tag, &packet->payload[2], 4);
 
-  if (*tag != last_discover_tag) {
+  if (tag != last_discover_tag) {
     return;
   }
 
@@ -125,6 +126,7 @@ bool CardputerMesh::sendPing(ContactInfo &contact) {
   }
 
   sendDirect(pkt, contact.id.pub_key, prefs->path_hash_mode + 1);
+  return true;
 }
 
 bool CardputerMesh::sendAdvert(bool flood) {

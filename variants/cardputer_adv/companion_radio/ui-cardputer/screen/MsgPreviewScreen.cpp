@@ -38,14 +38,14 @@ int MsgPreviewScreen::render(DisplayDriver &display) {
   // time
   display.drawTextRightAlign(display.width() - 2, y, tmp);
 
-  y+= UI_TEXT_LINE_HEIGHT;
+  y += UI_TEXT_LINE_HEIGHT;
 
   // sender
   display.drawRect(0, y, display.width(), 1); // horiz line
   display.setColor(DisplayDriver::YELLOW);
   display.drawTextLeftAlign(0, y, p->origin);
 
-  y+= UI_TEXT_LINE_HEIGHT;
+  y += UI_TEXT_LINE_HEIGHT;
 
   // message
   display.setCursor(0, UI_TEXT_LINE_HEIGHT * 2);
@@ -62,7 +62,9 @@ int MsgPreviewScreen::render(DisplayDriver &display) {
 bool MsgPreviewScreen::handleInput(char c) {
   if (c == KEY_NEXT || c == KEY_RIGHT || c == ASCII_CTRL_LF) {
     head = (head + MAX_UNREAD_MSGS - 1) % MAX_UNREAD_MSGS;
-    num_unread--;
+    if (num_unread > 0) {
+      num_unread--;
+    }
     if (num_unread == 0) {
       _task->gotoMainScreen();
     }

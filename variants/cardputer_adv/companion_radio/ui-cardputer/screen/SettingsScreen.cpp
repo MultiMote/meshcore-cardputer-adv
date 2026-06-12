@@ -198,6 +198,7 @@ bool SettingsScreen::commitItemEdit(SettingsItem item) {
         uint16_t adc = _board->getBattMilliVolts();
         if (adc != 0) {
           _custom_prefs->battery_correction = (float)real / adc;
+          the_mesh_cp.savePrefs();
           return true;
         }
       }
@@ -269,7 +270,7 @@ void SettingsScreen::handleEditInput(SettingsItem item, char k) {
 bool SettingsScreen::inputParsePositiveFloat(float &val) {
   float tmp = edit_buffer.toFloat();
 
-  if (val == INFINITY) {
+  if (tmp == INFINITY) {
     return false;
   }
 

@@ -1,7 +1,6 @@
 #include "MainScreen.h"
 
 #define PRESS_LABEL      "long press / Enter"
-#define MAX_MESSAGE_SIZE 133
 
 void MainScreen::renderStatusIcons() {
   char tmp[8];
@@ -451,7 +450,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
   if (current_page == MainScreenPage::CONTACTS) {
     if (c == KEY_UP) {
       if (contact_list_idx == 0) {
-        contact_list_idx = the_mesh_cp.getNumContacts() - 1;
+        contact_list_idx = std::max(the_mesh_cp.getNumContacts() - 1, 0);
       } else {
         contact_list_idx--;
       }
@@ -485,7 +484,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
   if (current_page == MainScreenPage::CHANNELS) {
     if (c == KEY_UP) {
       if (channel_list_idx == 0) {
-        channel_list_idx = getChannelCount() - 1;
+        channel_list_idx = std::max(getChannelCount() - 1, 0);
       } else {
         channel_list_idx--;
       }
@@ -528,7 +527,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
 
     if (isprint(c)) {
       const char *repl = _keyboard_layout->findReplacement(c);
-      int maxlen = MAX_MESSAGE_SIZE - strlen(_node_prefs->node_name);
+      int maxlen = MAX_MESSAGE_LENGTH - strlen(_node_prefs->node_name);
 
       if (repl != nullptr && chat_text_box.length() + strlen(repl) <= maxlen) {
         chat_text_box += repl;

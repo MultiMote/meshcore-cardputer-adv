@@ -41,7 +41,7 @@ void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, Node
 }
 
 void CardputerUITask::showAlert(const char *text, int duration_millis) {
-  strcpy(alert_text, text);
+  snprintf(alert_text, sizeof(alert_text), "%s", text);
   alert_expiry = millis() + duration_millis;
   next_refresh = 0;
 }
@@ -272,13 +272,11 @@ char CardputerUITask::handleLongPress(char c) {
 }
 
 char CardputerUITask::handleDoubleClick(char c) {
-  MESH_DEBUG_PRINTLN("UITask: double click triggered");
   checkDisplayOn(c);
   return c;
 }
 
 char CardputerUITask::handleTripleClick(char c) {
-  MESH_DEBUG_PRINTLN("UITask: triple click triggered");
   checkDisplayOn(c);
   toggleBuzzer();
   c = 0;
