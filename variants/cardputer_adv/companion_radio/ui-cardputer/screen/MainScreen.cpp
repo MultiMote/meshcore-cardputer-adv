@@ -580,5 +580,10 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
     }
   }
 
+  if (c == ASCII_CTRL_ESCAPE) {
+    current_page = MainScreenPage::FIRST;
+    return true;
+  }
+
   return false;
 }
