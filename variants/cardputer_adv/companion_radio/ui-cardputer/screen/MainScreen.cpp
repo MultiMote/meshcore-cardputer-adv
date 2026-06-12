@@ -448,8 +448,6 @@ void MainScreen::chatInputRemoveLastChar() {
 }
 
 bool MainScreen::handleInput(char c) { // todo: refactor this mess
-  MESH_DEBUG_PRINTLN("kb %d 0x%x '%c' isprint %d", c, c, c, isprint(c));
-
   if (current_page == MainScreenPage::CONTACTS) {
     if (c == KEY_UP) {
       if (contact_list_idx == 0) {

@@ -83,8 +83,6 @@ void CardputerDataStore::storeMessage(const uint8_t pkey[PUB_KEY_SIZE], const ch
 static void push_history_line(ChatHistory &history, char *buf) {
   int len = strlen(buf);
 
-  MESH_DEBUG_PRINTLN("buf: '%s'", buf);
-
   if (len < 4 || (buf[0] != '>' && buf[0] != '<') || buf[0] != buf[1]) {
     return;
   }
