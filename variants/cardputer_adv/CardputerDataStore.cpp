@@ -80,25 +80,30 @@ void CardputerDataStore::storeMessage(const uint8_t pkey[PUB_KEY_SIZE], const ch
 #endif
 }
 
-static void parse_history_line(HistoryMessage *msg, char *buf) {
+static void push_history_line(ChatHistory &history, char *buf) {
   int len = strlen(buf);
 
-  if (len < 4) {
+  MESH_DEBUG_PRINTLN("buf: '%s'", buf);
+
+  if (len < 4 || (buf[0] != '>' && buf[0] != '<') || buf[0] != buf[1]) {
     return;
   }
 
+  HistoryMessage *msg = history.push_ref();
   msg->out = buf[0] == '>';
-  strcpy(msg->text, buf + 3);
+
+  strncpy(msg->text, buf + 3, sizeof(msg->text));
+  msg->text[sizeof(msg->text) - 1] = '\0';
 }
 
 void CardputerDataStore::loadMessages(const uint8_t pkey[PUB_KEY_SIZE], bool is_channel,
-                                      RingBuffer<HistoryMessage, UI_CHAT_HISTORY_SIZE> &history) {
+                                      ChatHistory &history) {
   history.clear();
 
 #if USE_SD_CARD
   char path[128];
   char pkey_hex[PUB_KEY_SIZE * 2 + 1];
-  char line_buf[MAX_MESSAGE_LENGTH + 1] = { 0 };
+  char line_buf[256] = { 0 };
   uint8_t file_read_buf[1024];
 
   uint8_t key_len = is_channel ? (PUB_KEY_SIZE / 2) : PUB_KEY_SIZE;
@@ -158,11 +163,10 @@ void CardputerDataStore::loadMessages(const uint8_t pkey[PUB_KEY_SIZE], bool is_
           }
         }
       } else {
-        if (c == '\n' || line_idx >= MAX_MESSAGE_LENGTH - 1) {
+        if (c == '\n' || line_idx >= sizeof(line_buf) - 1) {
           line_buf[line_idx] = '\0';
           line_idx = 0;
-          HistoryMessage *msg = history.push_ref();
-          parse_history_line(msg, line_buf);
+          push_history_line(history, line_buf);
         } else if (c != '\r') {
           line_buf[line_idx++] = c;
         }
@@ -173,8 +177,7 @@ void CardputerDataStore::loadMessages(const uint8_t pkey[PUB_KEY_SIZE], bool is_
   // Handle any remaining text if the file didn't end with a trailing LF
   if (!isSkipping && line_idx > 0) {
     line_buf[line_idx] = '\0';
-    HistoryMessage *msg = history.push_ref();
-    parse_history_line(msg, line_buf);
+    push_history_line(history, line_buf);
   }
 
   file.close();

@@ -15,6 +15,8 @@ struct HistoryMessage {
   bool out;
 };
 
+using ChatHistory = RingBuffer<HistoryMessage, UI_CHAT_HISTORY_SIZE>;
+
 class CardputerDataStore : public DataStore {
 private:
   FILESYSTEM *_fs;
@@ -26,5 +28,5 @@ public:
   void loadCustomPrefs(CustomNodePrefs &prefs);
   void saveCustomPrefs(const CustomNodePrefs &prefs);
   void storeMessage(const uint8_t pkey[PUB_KEY_SIZE], const char *text, bool is_sent, bool is_channel);
-  void loadMessages(const uint8_t pkey[PUB_KEY_SIZE], bool is_channel, RingBuffer<HistoryMessage, UI_CHAT_HISTORY_SIZE> &history);
+  void loadMessages(const uint8_t pkey[PUB_KEY_SIZE], bool is_channel, ChatHistory &history);
 };
