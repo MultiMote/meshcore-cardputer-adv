@@ -77,7 +77,7 @@ int32_t CardputerDisplay::getFontHeight() const {
   return LCD.fontHeight();
 }
 
-int16_t CardputerDisplay::getFontYAdvance() const {
+int16_t CardputerDisplay::getFontLineHeight() const {
   return _fontYAdvance;
 }
 

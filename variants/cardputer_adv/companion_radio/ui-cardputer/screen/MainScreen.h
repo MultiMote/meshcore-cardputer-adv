@@ -5,6 +5,7 @@
 #include "../icons.h"
 #include "globals.h"
 #include "RingBuffer.h"
+#include "UnreadCounter.h"
 
 class MainScreen : public UIScreen {
   enum MainScreenPage {
@@ -35,6 +36,8 @@ class MainScreen : public UIScreen {
 
   ChatHistory chat_history;
   int chat_history_offset = 0; // from bottom
+
+  UnreadCounter unread;
 
   int contact_list_idx = 0;
   int channel_list_idx = 0;

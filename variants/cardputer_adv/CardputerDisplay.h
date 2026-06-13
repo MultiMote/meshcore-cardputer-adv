@@ -60,5 +60,5 @@ public:
   void endFrame() override;
   uint16_t getTextWidth(const char *str) override;
   int32_t getFontHeight() const;
-  int16_t getFontYAdvance() const;
+  int16_t getFontLineHeight() const;
 };

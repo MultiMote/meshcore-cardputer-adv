@@ -73,11 +73,19 @@ int MainScreen::renderFirstPage() {
   }
 
   display.setTextSize(1);
+
+  if (unread.countChats() > 0) {
+    display.setColor(DisplayDriver::YELLOW);
+    sprintf(tmp, "Unread: [chats: %u, msgs: %u]", unread.countChats(), unread.countMessages());
+    display.drawTextCentered(display.width() / 2, display.height() - display.getFontLineHeight() * 3, tmp);
+  }
+
   display.setColor(DisplayDriver::GREEN);
-  display.drawTextCentered(display.width() / 2, display.height() - UI_TEXT_LINE_HEIGHT * 2 - 2,
+  display.drawTextCentered(display.width() / 2, display.height() - display.getFontLineHeight() * 2,
                            "Press OPT to open Settings");
+
   display.setColor(DisplayDriver::ORANGE);
-  display.drawTextCentered(display.width() / 2, display.height() - UI_TEXT_LINE_HEIGHT - 2,
+  display.drawTextCentered(display.width() / 2, display.height() - display.getFontLineHeight(),
                            "Press T to open Tools");
 
   return 5000;
@@ -151,7 +159,7 @@ int MainScreen::renderChatPage() {
 
   display.setColor(DisplayDriver::GREEN);
 
-  int current_y = 35 + (UI_CHAT_HISTORY_SIZE - 1) * display.getFontYAdvance();
+  int current_y = 35 + (UI_CHAT_HISTORY_SIZE - 1) * display.getFontLineHeight();
   int total_lines_drawn = 0;
 
   int start_index = (int)chat_history.count() - 1 - chat_history_offset;
@@ -174,7 +182,7 @@ int MainScreen::renderChatPage() {
       message_lines = UI_CHAT_HISTORY_SIZE - total_lines_drawn;
     }
 
-    int message_top_y = current_y - ((message_lines - 1) * display.getFontYAdvance());
+    int message_top_y = current_y - ((message_lines - 1) * display.getFontLineHeight());
 
     if (msg->out) {
       if (text_w <= display.width()) {
@@ -192,7 +200,7 @@ int MainScreen::renderChatPage() {
       display.drawTextEllipsized(5, message_top_y, display.width(), msg->text);
     }
 
-    current_y -= (message_lines * display.getFontYAdvance());
+    current_y -= (message_lines * display.getFontLineHeight());
     total_lines_drawn += message_lines;
   }
 
@@ -380,22 +388,42 @@ void MainScreen::messageRepeatsRecv(uint16_t count) {
 }
 
 void MainScreen::onChannelMessageRecv(const mesh::GroupChannel &channel, const char *text) {
+  bool add_unread = true;
+
   if (current_channel_idx != -1 &&
       memcmp(channel.secret, current_channel.channel.secret, CONTACT_LOOKUP_BYTES) == 0) {
     HistoryMessage *msg = chat_history.push_ref();
     msg->out = false;
     snprintf(msg->text, MAX_MESSAGE_LENGTH, "%s", text);
     chat_history_offset = 0;
+
+    if (current_page == MainScreenPage::CHAT) {
+      add_unread = false;
+    }
+  }
+
+  if (add_unread) {
+    unread.addChannel(channel.secret, 1);
   }
 }
 
 void MainScreen::onContactMessageRecv(const ContactInfo &contact, const char *text) {
+  bool add_unread = true;
+
   if (current_contact_idx != -1 &&
       memcmp(contact.id.pub_key, current_contact.id.pub_key, CONTACT_LOOKUP_BYTES) == 0) {
     HistoryMessage *msg = chat_history.push_ref();
     msg->out = false;
     snprintf(msg->text, MAX_MESSAGE_LENGTH, "%s", text);
     chat_history_offset = 0;
+
+    if (current_page == MainScreenPage::CHAT) {
+      add_unread = false;
+    }
+  }
+
+  if (add_unread) {
+    unread.addContact(contact.id.pub_key, 1);
   }
 }
 
@@ -504,6 +532,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
           current_page = MainScreenPage::CHAT;
           the_mesh_cp.loadMessageHistory(current_contact.id.pub_key, false, chat_history);
           chat_history_offset = 0;
+          unread.resetContact(current_contact.id.pub_key);
         } else if ((current_contact.type == ADV_TYPE_REPEATER || current_contact.type == ADV_TYPE_ROOM) &&
                    !_task->isAlertActive()) {
           the_mesh_cp.sendPing(current_contact);
@@ -538,6 +567,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
         current_page = MainScreenPage::CHAT;
         the_mesh_cp.loadMessageHistory(current_channel.channel.secret, true, chat_history);
         chat_history_offset = 0;
+        unread.resetChannel(current_channel.channel.secret);
       }
       return true;
     }

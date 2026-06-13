@@ -30,6 +30,7 @@
 
 #define USER_FONT_NAME                           (CUSTOM_DATA_DIR "/font.vlw")
 #define CHAT_HISTORY_RINGBUF_SIZE                15
+#define UNREAD_COUNTER_MAX_ITEMS                 32
 
 #define MAX_DISCOVERED_REPEATERS                 8
 #define CONTACT_LOOKUP_BYTES 8 // I hope 8 bytes will be enough
