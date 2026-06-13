@@ -15,7 +15,7 @@ struct HistoryMessage {
   bool out;
 };
 
-using ChatHistory = RingBuffer<HistoryMessage, UI_CHAT_HISTORY_SIZE>;
+using ChatHistory = RingBuffer<HistoryMessage, CHAT_HISTORY_RINGBUF_SIZE>;
 
 class CardputerDataStore : public DataStore {
 private:

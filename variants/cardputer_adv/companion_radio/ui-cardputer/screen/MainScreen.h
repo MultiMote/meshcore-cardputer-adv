@@ -33,7 +33,8 @@ class MainScreen : public UIScreen {
   AdvertPath recent[UI_RECENT_LIST_SIZE];
   String chat_text_box;
 
-  RingBuffer<HistoryMessage, UI_CHAT_HISTORY_SIZE> chat_history;
+  ChatHistory chat_history;
+  int chat_history_offset = 0; // from bottom
 
   int contact_list_idx = 0;
   int channel_list_idx = 0;

@@ -11,6 +11,7 @@ class CardputerDisplay : public DisplayDriver {
 private:
   bool _isOn = false;
   uint16_t _lastColor = 0;
+  int16_t _fontYAdvance = 1;
   M5GFX &LCD = M5Cardputer.Display;
 
   inline uint16_t convertColor(Color c) {
@@ -36,6 +37,9 @@ private:
     }
   }
 
+  void updateFontYAdvance();
+
+
 public:
   CardputerDisplay() : DisplayDriver(240, 135) {}
   bool begin();
@@ -53,7 +57,8 @@ public:
   void fillRect(int x, int y, int w, int h) override;
   void drawRect(int x, int y, int w, int h) override;
   void drawXbm(int x, int y, const uint8_t *bits, int w, int h) override;
-  uint16_t getTextWidth(const char *str);
-  void endFrame();
+  void endFrame() override;
+  uint16_t getTextWidth(const char *str) override;
   int32_t getFontHeight() const;
+  int16_t getFontYAdvance() const;
 };

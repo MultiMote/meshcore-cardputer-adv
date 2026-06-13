@@ -54,7 +54,7 @@ public:
   bool sendRepeatersDiscover();
   uint32_t getLastPingTag() const { return last_ping_tag; }
   inline CustomNodePrefs *getCustomNodePrefs() { return &_custom_prefs; }
-  void loadMessageHistory(const uint8_t pkey[PUB_KEY_SIZE], bool is_channel, RingBuffer<HistoryMessage, UI_CHAT_HISTORY_SIZE> &history);
+  void loadMessageHistory(const uint8_t pkey[PUB_KEY_SIZE], bool is_channel, ChatHistory &history);
 
 };
 

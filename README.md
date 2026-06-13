@@ -69,6 +69,10 @@ Currently implemented (companion):
 - Compose and send messages
    * After sending group message, "Heard repeats" appears
 - Chat history
+   * Full history stored on SD card
+   * Last 15 messages stored in buffer
+   * When contact/channel is selected, history is loaded from SD card
+   * Press `Up`/`Down` to scroll
 - Basic display unicode support. Font is `DejaVu Sans 12` converted with `Processing 4`.
 
   Included unicode blocks:

@@ -16,7 +16,7 @@
 #define UI_CONTACT_LIST_SIZE                     8
 #define UI_CHANNEL_LIST_SIZE                     8
 #define UI_SETTINGS_LIST_SIZE                    9
-#define UI_CHAT_HISTORY_SIZE                     7
+#define UI_CHAT_HISTORY_SIZE                     6
 #define UI_TOOLS_LIST_SIZE                       9
 
 #define AUTO_OFF_MILLIS                          15000 // 15 seconds
@@ -29,6 +29,7 @@
 #define KB_LAYOUT_FILE                           (CUSTOM_DATA_DIR "/keyboard.txt")
 
 #define USER_FONT_NAME                           (CUSTOM_DATA_DIR "/font.vlw")
+#define CHAT_HISTORY_RINGBUF_SIZE                15
 
 #define MAX_DISCOVERED_REPEATERS                 8
 #define CONTACT_LOOKUP_BYTES 8 // I hope 8 bytes will be enough

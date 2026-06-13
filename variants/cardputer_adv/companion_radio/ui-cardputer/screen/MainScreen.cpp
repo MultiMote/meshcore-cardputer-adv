@@ -1,6 +1,6 @@
 #include "MainScreen.h"
 
-#define PRESS_LABEL      "long press / Enter"
+#define PRESS_LABEL "long press / Enter"
 
 void MainScreen::renderStatusIcons() {
   char tmp[8];
@@ -151,21 +151,49 @@ int MainScreen::renderChatPage() {
 
   display.setColor(DisplayDriver::GREEN);
 
-  for (size_t i = 0; i < chat_history.count(); i++) {
-    const HistoryMessage *msg;
-    if (chat_history.get(i, msg)) {
-      if(msg->out) {
-        int text_w = display.getTextWidth(msg->text);
+  int current_y = 35 + (UI_CHAT_HISTORY_SIZE - 1) * display.getFontYAdvance();
+  int total_lines_drawn = 0;
 
-        if(text_w > display.width()) {
-          text_w = display.width() - 10;
-        }
+  int start_index = (int)chat_history.count() - 1 - chat_history_offset;
 
-        display.drawTextEllipsized(display.width() - text_w - 5, 30 + i * UI_TEXT_LINE_HEIGHT, text_w, msg->text);
-      } else {
-        display.drawTextEllipsized(5, 30 + i * UI_TEXT_LINE_HEIGHT, display.width() - 5, msg->text);
-      }
+  for (int i = start_index; i >= 0; i--) {
+    if (total_lines_drawn >= UI_CHAT_HISTORY_SIZE) {
+      break;
     }
+
+    const HistoryMessage *msg;
+
+    if (!chat_history.get(i, msg)) {
+      break;
+    }
+
+    int text_w = display.getTextWidth(msg->text);
+    int message_lines = (text_w / display.width()) + 1;
+
+    if (total_lines_drawn + message_lines > UI_CHAT_HISTORY_SIZE) {
+      message_lines = UI_CHAT_HISTORY_SIZE - total_lines_drawn;
+    }
+
+    int message_top_y = current_y - ((message_lines - 1) * display.getFontYAdvance());
+
+    if (msg->out) {
+      if (text_w <= display.width()) {
+        display.setCursor(display.width() - text_w - 5, message_top_y);
+      } else {
+        display.setCursor(5, message_top_y);
+      }
+    } else {
+      display.setCursor(5, message_top_y);
+    }
+
+    if ((text_w / display.width()) + 1 == message_lines) {
+      display.print(msg->text); // wraps text automatically
+    } else {
+      display.drawTextEllipsized(5, message_top_y, display.width(), msg->text);
+    }
+
+    current_y -= (message_lines * display.getFontYAdvance());
+    total_lines_drawn += message_lines;
   }
 
   int start_x = 5;
@@ -357,6 +385,7 @@ void MainScreen::onChannelMessageRecv(const mesh::GroupChannel &channel, const c
     HistoryMessage *msg = chat_history.push_ref();
     msg->out = false;
     snprintf(msg->text, MAX_MESSAGE_LENGTH, "%s", text);
+    chat_history_offset = 0;
   }
 }
 
@@ -366,6 +395,7 @@ void MainScreen::onContactMessageRecv(const ContactInfo &contact, const char *te
     HistoryMessage *msg = chat_history.push_ref();
     msg->out = false;
     snprintf(msg->text, MAX_MESSAGE_LENGTH, "%s", text);
+    chat_history_offset = 0;
   }
 }
 
@@ -409,6 +439,7 @@ void MainScreen::sendChatMessage() {
       snprintf(msg->text, MAX_MESSAGE_LENGTH, "%s", chat_text_box.c_str());
 
       chat_text_box.clear();
+      chat_history_offset = 0;
     }
     return;
   }
@@ -424,6 +455,7 @@ void MainScreen::sendChatMessage() {
       snprintf(msg->text, MAX_MESSAGE_LENGTH, "%s", chat_text_box.c_str());
 
       chat_text_box.clear();
+      chat_history_offset = 0;
       _task->showAlert("Waiting for repeats...", 2000);
     }
     return;
@@ -471,6 +503,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
           current_channel_idx = -1;
           current_page = MainScreenPage::CHAT;
           the_mesh_cp.loadMessageHistory(current_contact.id.pub_key, false, chat_history);
+          chat_history_offset = 0;
         } else if ((current_contact.type == ADV_TYPE_REPEATER || current_contact.type == ADV_TYPE_ROOM) &&
                    !_task->isAlertActive()) {
           the_mesh_cp.sendPing(current_contact);
@@ -504,6 +537,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
         current_contact_idx = -1;
         current_page = MainScreenPage::CHAT;
         the_mesh_cp.loadMessageHistory(current_channel.channel.secret, true, chat_history);
+        chat_history_offset = 0;
       }
       return true;
     }
@@ -522,6 +556,20 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
 
     if (c == ASCII_CTRL_SUBST) {
       _keyboard_layout->switchLayout();
+      return true;
+    }
+
+    if (c == KEY_DOWN) {
+      if (chat_history_offset > 0) {
+        chat_history_offset--;
+      }
+      return true;
+    }
+
+    if (c == KEY_UP) {
+      if (chat_history_offset < chat_history.count() - 1) {
+        chat_history_offset++;
+      }
       return true;
     }
 

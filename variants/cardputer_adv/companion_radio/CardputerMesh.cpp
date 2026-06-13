@@ -180,6 +180,6 @@ bool CardputerMesh::sendRepeatersDiscover() {
 }
 
 void CardputerMesh::loadMessageHistory(const uint8_t pkey[PUB_KEY_SIZE], bool is_channel,
-                                       RingBuffer<HistoryMessage, UI_CHAT_HISTORY_SIZE> &history) {
+                                       ChatHistory &history) {
   _store->loadMessages(pkey, is_channel, history);
 }

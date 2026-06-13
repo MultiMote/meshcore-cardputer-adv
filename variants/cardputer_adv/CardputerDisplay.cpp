@@ -12,6 +12,12 @@ int32_t emoji_draw_callback(lgfx::LGFXBase *gfx, int32_t x, int32_t y, uint32_t 
   return w;
 }
 
+void CardputerDisplay::updateFontYAdvance() {
+  lgfx::FontMetrics metrics;
+  LCD.getFont()->getDefaultMetric(&metrics);
+  _fontYAdvance = metrics.y_advance;
+}
+
 bool CardputerDisplay::begin() {
   LCD.setBaseColor(TFT_BLACK);
 
@@ -24,11 +30,10 @@ bool CardputerDisplay::begin() {
   LCD.setTextColor(TFT_WHITE, TFT_BLACK);
   LCD.loadFont(DejaVuSans_11);
   LCD.setEmojiCallback(emoji_draw_callback);
+
+  updateFontYAdvance();
   return true;
 }
-
-
-
 
 void CardputerDisplay::tryLoadUserFont() {
 #if USE_SD_CARD
@@ -37,6 +42,7 @@ void CardputerDisplay::tryLoadUserFont() {
     MESH_DEBUG_PRINTLN("User font found");
     if (LCD.loadFont(SD, USER_FONT_NAME)) {
       MESH_DEBUG_PRINTLN("%s loaded", USER_FONT_NAME);
+      updateFontYAdvance();
     } else {
       MESH_DEBUG_PRINTLN("%s load failed", USER_FONT_NAME);
     }
@@ -69,6 +75,10 @@ void CardputerDisplay::endFrame() {
 
 int32_t CardputerDisplay::getFontHeight() const {
   return LCD.fontHeight();
+}
+
+int16_t CardputerDisplay::getFontYAdvance() const {
+  return _fontYAdvance;
 }
 
 void CardputerDisplay::setTextSize(int sz) {
