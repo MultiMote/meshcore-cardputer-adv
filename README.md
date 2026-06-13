@@ -74,6 +74,8 @@ Currently implemented (companion):
    * When contact/channel is selected, history is loaded from SD card
    * Press `Up`/`Down` to scroll
 - Unread counter
+   * On main screen
+   * Near contact/channel
 - Basic display unicode support. Font is `DejaVu Sans 12` converted with `Processing 4`.
 
   Included unicode blocks:

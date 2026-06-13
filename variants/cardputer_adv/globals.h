@@ -11,7 +11,7 @@
 #define BATT_MIN_MILLIVOLTS                      3350 // From M5Unified
 #define BATT_MAX_MILLIVOLTS                      4150 // From M5Unified
 
-#define UI_TEXT_LINE_HEIGHT                      12 // adjust to the used font
+#define UI_TEXT_LINE_HEIGHT                      12 // adjust to the used font todo: replace to display.getFontLineHeight
 #define UI_RECENT_LIST_SIZE                      4
 #define UI_CONTACT_LIST_SIZE                     8
 #define UI_CHANNEL_LIST_SIZE                     8

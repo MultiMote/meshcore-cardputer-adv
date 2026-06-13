@@ -6,7 +6,7 @@
 
 struct UnreadCounterItem {
   bool is_channel;
-  uint8_t pkey[CONTACT_LOOKUP_BYTES];
+  uint8_t pkey[CONTACT_LOOKUP_BYTES]; // todo: maybe replace to index, but what should we do if it gets deleted?
   int count;
 };
 
@@ -19,7 +19,13 @@ private:
 
 public:
   UnreadCounter() {}
-  inline const UnreadCounterItem *items() const { return _items; }
+
+  const UnreadCounterItem *get(uint16_t index) const {
+    if (index < 0 || index >= _count) {
+      return nullptr;
+    }
+    return &_items[index];
+  }
 
   inline const uint16_t countChats() const { return _count; }
   const uint16_t countMessages() const {

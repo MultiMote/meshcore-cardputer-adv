@@ -98,8 +98,11 @@ int MainScreen::renderChannelsPage() {
   int real_idx = 0;
   int list_page = channel_list_idx / UI_CHANNEL_LIST_SIZE;
   int list_idx = channel_list_idx % UI_CHANNEL_LIST_SIZE;
+  char buf[6];
 
   for (int i = 0; i < UI_CHANNEL_LIST_SIZE; i++) {
+    display.setColor(DisplayDriver::GREEN);
+
     ChannelDetails channel;
     real_idx = list_page * UI_CHANNEL_LIST_SIZE + i;
 
@@ -107,11 +110,31 @@ int MainScreen::renderChannelsPage() {
       break;
     }
 
+    int unread_count = 0;
+
+    for (int j = 0; j < unread.countChats(); j++) {
+      const UnreadCounterItem *item = unread.get(j);
+      if (item && item->is_channel && memcmp(item->pkey, channel.channel.secret, CONTACT_LOOKUP_BYTES) == 0) {
+        unread_count = item->count;
+        break;
+      }
+    }
+
     if (i == list_idx) {
       display.drawTextLeftAlign(5, 30 + i * UI_TEXT_LINE_HEIGHT, ">");
     }
 
-    display.drawTextLeftAlign(25, 30 + i * UI_TEXT_LINE_HEIGHT, channel.name);
+    int right_pad = 0;
+
+    if (unread_count > 0) {
+      snprintf(buf, sizeof(buf), "%d", unread_count);
+      right_pad = display.getTextWidth(buf) + 5;
+      display.setColor(DisplayDriver::ORANGE);
+      display.drawTextRightAlign(display.width() - 1, 30 + i * UI_TEXT_LINE_HEIGHT, buf);
+    }
+
+    display.drawTextEllipsized(25, 30 + i * UI_TEXT_LINE_HEIGHT, display.width() - 25 - right_pad,
+                               channel.name);
   }
 
   return 5000;
@@ -123,8 +146,11 @@ int MainScreen::renderContactsPage() {
   int real_idx = 0;
   int list_page = contact_list_idx / UI_CONTACT_LIST_SIZE;
   int list_idx = contact_list_idx % UI_CONTACT_LIST_SIZE;
+  char buf[6];
 
   for (int i = 0; i < UI_CONTACT_LIST_SIZE; i++) {
+    display.setColor(DisplayDriver::GREEN);
+
     ContactInfo contact;
     real_idx = list_page * UI_CONTACT_LIST_SIZE + i;
 
@@ -132,15 +158,35 @@ int MainScreen::renderContactsPage() {
       break;
     }
 
+    int unread_count = 0;
+
+    for (int j = 0; j < unread.countChats(); j++) {
+      const UnreadCounterItem *item = unread.get(j);
+      if (item && !item->is_channel && memcmp(item->pkey, contact.id.pub_key, CONTACT_LOOKUP_BYTES) == 0) {
+        unread_count = item->count;
+        break;
+      }
+    }
+
     if (i == list_idx) {
       display.drawTextLeftAlign(5, 30 + i * UI_TEXT_LINE_HEIGHT, ">");
+    }
+
+    int right_pad = 0;
+
+    if (unread_count > 0) {
+      snprintf(buf, sizeof(buf), "%d", unread_count);
+      right_pad = display.getTextWidth(buf) + 5;
+      display.setColor(DisplayDriver::ORANGE);
+      display.drawTextRightAlign(display.width() - 1, 30 + i * UI_TEXT_LINE_HEIGHT, buf);
     }
 
     if (contact.type == ADV_TYPE_CHAT) {
       display.drawTextLeftAlign(15, 30 + i * UI_TEXT_LINE_HEIGHT, "C");
     }
 
-    display.drawTextLeftAlign(25, 30 + i * UI_TEXT_LINE_HEIGHT, contact.name);
+    display.drawTextEllipsized(25, 30 + i * UI_TEXT_LINE_HEIGHT, display.width() - 25 - right_pad,
+                               contact.name);
   }
   return 5000;
 }
