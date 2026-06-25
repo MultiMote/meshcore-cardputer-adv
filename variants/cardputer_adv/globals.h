@@ -33,4 +33,4 @@
 #define UNREAD_COUNTER_MAX_ITEMS                 32
 
 #define MAX_DISCOVERED_REPEATERS                 8
-#define CONTACT_LOOKUP_BYTES 8 // I hope 8 bytes will be enough
+#define CONTACT_LOOKUP_BYTES                     6

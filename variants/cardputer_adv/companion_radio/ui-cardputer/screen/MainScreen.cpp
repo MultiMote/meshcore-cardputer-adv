@@ -192,13 +192,22 @@ int MainScreen::renderContactsPage() {
 }
 
 int MainScreen::renderChatPage() {
+  char buf[64];
+
   display.setColor(DisplayDriver::GREEN);
 
   if (current_contact_idx == -1 && current_channel_idx == -1) {
     display.setColor(DisplayDriver::ORANGE);
     display.drawTextCentered(display.width() / 2, 20, "Contact/Channel not selected");
   } else if (current_contact_idx != -1) {
-    display.drawTextCentered(display.width() / 2, 20, current_contact.name);
+    if (current_contact.out_path_len == OUT_PATH_UNKNOWN) {
+      snprintf(buf, sizeof(buf), "%s F", current_contact.name);
+    } else if (current_contact.out_path_len == 0) {
+      snprintf(buf, sizeof(buf), "%s D", current_contact.name);
+    } else {
+      snprintf(buf, sizeof(buf), "%s %uH", current_contact.name, current_contact.out_path_len);
+    }
+    display.drawTextCentered(display.width() / 2, 20, buf);
   } else if (current_channel_idx != -1) {
     display.drawTextCentered(display.width() / 2, 20, current_channel.name);
   }
@@ -583,6 +592,20 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
                    !_task->isAlertActive()) {
           the_mesh_cp.sendPing(current_contact);
           _task->showAlert("Waiting for response...", 4000);
+        }
+      }
+      return true;
+    }
+
+    if (c == 'r') { // reset path
+      ContactInfo c;
+      if (the_mesh_cp.getContactByIdx(contact_list_idx, c)) {
+        if (c.type == ADV_TYPE_CHAT) {
+          // getContactByIdx does not return a reference
+          ContactInfo *ref = the_mesh_cp.lookupContactByPubKey(c.id.pub_key, CONTACT_LOOKUP_BYTES);
+          ref->out_path_len = OUT_PATH_UNKNOWN;
+          _task->showAlert("Path cleared", 1000);
+          // todo: update if it is current selected contact
         }
       }
       return true;

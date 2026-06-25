@@ -66,6 +66,7 @@ Currently implemented (companion):
 - Contacts list
    * Press `Enter` on repeater/room to ping
    * Press `Enter` on contact to start conversation
+   * Press `r` to reset path
 - Compose and send messages
    * After sending group message, "Heard repeats" appears
 - Chat history
@@ -111,13 +112,12 @@ Currently implemented (companion):
 Todo:
 
 - Find a way to include MeshCore as submodule in this repository and build it from here
-- Catch and display message ACK's
+- Catch and display direct message ACK's
 - Change display brightness
 - Custom notification sounds (.wav files from SD card)
 - Reduce power consumption (maybe replace M5Unified with more specialized libraries)
 - Import contacts from SD card
 - Delete contacts
-- Reset path
 
 ### Thoughts on Cardputer
 
