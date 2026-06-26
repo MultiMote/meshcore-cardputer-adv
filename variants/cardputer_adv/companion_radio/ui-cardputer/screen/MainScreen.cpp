@@ -482,6 +482,14 @@ void MainScreen::onContactMessageRecv(const ContactInfo &contact, const char *te
   }
 }
 
+void MainScreen::onAckRecv(uint32_t hash) {
+  if (current_page == MainScreenPage::CHAT && hash == last_message_ack) {
+    last_message_ack = 0;
+    _task->showAlert("Message delivered", 2000);
+    _task->playSound(SoundType::MessageAck);
+  }
+}
+
 void MainScreen::poll() {
   if (shutdown_init && !_task->isButtonPressed()) { // must wait for USR button to be released
     _task->shutdown();
@@ -511,10 +519,9 @@ void MainScreen::sendChatMessage() {
 
   if (current_contact_idx != -1 && current_contact.type == ADV_TYPE_CHAT) { // direct msg
     uint32_t est_timeout;
-    uint32_t expected_ack;
 
     int result =
-        the_mesh_cp.sendMessage(current_contact, ts, 0, chat_text_box.c_str(), expected_ack, est_timeout);
+        the_mesh_cp.sendMessage(current_contact, ts, 0, chat_text_box.c_str(), last_message_ack, est_timeout);
 
     if (result != MSG_SEND_FAILED) {
       HistoryMessage *msg = chat_history.push_ref();

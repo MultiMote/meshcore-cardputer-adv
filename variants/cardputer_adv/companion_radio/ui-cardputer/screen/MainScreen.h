@@ -48,6 +48,8 @@ class MainScreen : public UIScreen {
   ContactInfo current_contact;
   int current_contact_idx = -1;
 
+  uint32_t last_message_ack = 0;
+
   int getChannelCount();
   void sendChatMessage();
   void chatInputRemoveLastChar();
@@ -73,7 +75,7 @@ public:
   void messageRepeatsRecv(uint16_t count);
   void onChannelMessageRecv(const mesh::GroupChannel &channel, const char *text);
   void onContactMessageRecv(const ContactInfo &contact, const char *text);
-
+  void onAckRecv(uint32_t hash);
   void poll() override;
   int render(DisplayDriver &display) override;
   bool handleInput(char c) override;

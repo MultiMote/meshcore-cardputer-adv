@@ -103,6 +103,14 @@ void CardputerMesh::logRxRaw(float snr, float rssi, const uint8_t raw[], int len
   rx_packet_count++;
 }
 
+ContactInfo *CardputerMesh::processAck(const uint8_t *data) {
+  uint32_t hash;
+  memcpy(&hash, data, 4);
+  _ui->onAckRecv(hash);
+
+  return MyMesh::processAck(data);
+}
+
 void CardputerMesh::begin(bool has_display) {
   MyMesh::begin(has_display);
   _store->loadCustomPrefs(_custom_prefs);

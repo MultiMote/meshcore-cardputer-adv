@@ -42,8 +42,10 @@ public:
   // not virtual; using function hiding
   int sendMessage(const ContactInfo& recipient, uint32_t timestamp, uint8_t attempt, const char* text, uint32_t& expected_ack, uint32_t& est_timeout);
 
-
   void logRxRaw(float snr, float rssi, const uint8_t raw[], int len) override;
+
+  ContactInfo* processAck(const uint8_t *data) override;
+
 
   inline uint64_t receivedPacketsCount() const { return rx_packet_count; }
 

@@ -68,7 +68,8 @@ Currently implemented (companion):
    * Press `Enter` on contact to start conversation
    * Press `r` to reset path
 - Compose and send messages
-   * After sending group message, "Heard repeats" appears
+   * After sending group message, "Heard repeats" appears (if any)
+   * After sending direct message, "Message delivered" appears (if ACK received)
 - Chat history
    * Full history stored on SD card
    * Last 15 messages stored in buffer
@@ -112,12 +113,13 @@ Currently implemented (companion):
 Todo:
 
 - Find a way to include MeshCore as submodule in this repository and build it from here
-- Catch and display direct message ACK's
 - Change display brightness
 - Custom notification sounds (.wav files from SD card)
 - Reduce power consumption (maybe replace M5Unified with more specialized libraries)
 - Import contacts from SD card
 - Delete contacts
+- Add hash channels
+- Retry direct message sending if ACK is not received
 
 ### Thoughts on Cardputer
 

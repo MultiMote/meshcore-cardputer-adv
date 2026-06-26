@@ -113,6 +113,10 @@ void CardputerUITask::onContactMessageRecv(const ContactInfo &contact, const cha
 
 }
 
+void CardputerUITask::onAckRecv(uint32_t hash) {
+  ((MainScreen *)main_screen)->onAckRecv(hash);
+}
+
 void CardputerUITask::pingRecv(float snr_tx, float snr_rx) {
   char buf[40];
   sprintf(buf, "SNR there/back: %.2f/%.2f", snr_tx, snr_rx);
