@@ -79,4 +79,5 @@ public:
   void poll() override;
   int render(DisplayDriver &display) override;
   bool handleInput(char c) override;
+  void refreshSelectedContact();
 };

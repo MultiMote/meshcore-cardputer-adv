@@ -487,6 +487,7 @@ void MainScreen::onAckRecv(uint32_t hash) {
     last_message_ack = 0;
     _task->showAlert("Message delivered", 2000);
     _task->playSound(SoundType::MessageAck);
+    refreshSelectedContact();
   }
 }
 
@@ -530,6 +531,7 @@ void MainScreen::sendChatMessage() {
 
       chat_text_box.clear();
       chat_history_offset = 0;
+      _task->showAlert("Waiting for delivery...", 2000);
     }
     return;
   }
@@ -598,8 +600,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
           the_mesh_cp.loadMessageHistory(c.id.pub_key, false, chat_history);
           chat_history_offset = 0;
           unread.resetContact(c.id.pub_key);
-        } else if ((c.type == ADV_TYPE_REPEATER || c.type == ADV_TYPE_ROOM) &&
-                   !_task->isAlertActive()) {
+        } else if ((c.type == ADV_TYPE_REPEATER || c.type == ADV_TYPE_ROOM) && !_task->isAlertActive()) {
           the_mesh_cp.sendPing(c);
           _task->showAlert("Waiting for response...", 4000);
         }
@@ -615,7 +616,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
           ContactInfo *ref = the_mesh_cp.lookupContactByPubKey(c.id.pub_key, CONTACT_LOOKUP_BYTES);
           ref->out_path_len = OUT_PATH_UNKNOWN;
           _task->showAlert("Path cleared", 1000);
-          // todo: update if it is current selected contact
+          refreshSelectedContact();
         }
       }
       return true;
@@ -744,4 +745,13 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
   }
 
   return false;
+}
+
+void MainScreen::refreshSelectedContact() {
+  if (current_contact_idx != -1) {
+    ContactInfo c;
+    if (the_mesh_cp.getContactByIdx(contact_list_idx, c)) {
+      current_contact = c;
+    }
+  }
 }
