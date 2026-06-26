@@ -580,17 +580,20 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
       return true;
     }
     if (c == ASCII_CTRL_LF) {
-      if (the_mesh_cp.getContactByIdx(contact_list_idx, current_contact)) {
-        if (current_contact.type == ADV_TYPE_CHAT) {
+      ContactInfo c;
+
+      if (the_mesh_cp.getContactByIdx(contact_list_idx, c)) {
+        if (c.type == ADV_TYPE_CHAT) {
+          current_contact = c;
           current_contact_idx = contact_list_idx;
           current_channel_idx = -1;
           current_page = MainScreenPage::CHAT;
-          the_mesh_cp.loadMessageHistory(current_contact.id.pub_key, false, chat_history);
+          the_mesh_cp.loadMessageHistory(c.id.pub_key, false, chat_history);
           chat_history_offset = 0;
-          unread.resetContact(current_contact.id.pub_key);
-        } else if ((current_contact.type == ADV_TYPE_REPEATER || current_contact.type == ADV_TYPE_ROOM) &&
+          unread.resetContact(c.id.pub_key);
+        } else if ((c.type == ADV_TYPE_REPEATER || c.type == ADV_TYPE_ROOM) &&
                    !_task->isAlertActive()) {
-          the_mesh_cp.sendPing(current_contact);
+          the_mesh_cp.sendPing(c);
           _task->showAlert("Waiting for response...", 4000);
         }
       }
@@ -630,13 +633,15 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
       return true;
     }
     if (c == ASCII_CTRL_LF) {
-      if (the_mesh_cp.getChannel(channel_list_idx, current_channel) && strlen(current_channel.name) > 0) {
+      ChannelDetails c;
+      if (the_mesh_cp.getChannel(channel_list_idx, c) && strlen(c.name) > 0) {
+        current_channel = c;
         current_channel_idx = channel_list_idx;
         current_contact_idx = -1;
         current_page = MainScreenPage::CHAT;
-        the_mesh_cp.loadMessageHistory(current_channel.channel.secret, true, chat_history);
+        the_mesh_cp.loadMessageHistory(c.channel.secret, true, chat_history);
         chat_history_offset = 0;
-        unread.resetChannel(current_channel.channel.secret);
+        unread.resetChannel(c.channel.secret);
       }
       return true;
     }
