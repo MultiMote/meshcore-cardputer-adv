@@ -2,6 +2,8 @@ name: Build firmware
 
 on:
   push:
+    tags:
+      - "*"
     paths:
       - "variants/cardputer_adv/**"
   workflow_dispatch:
@@ -53,8 +55,25 @@ jobs:
         run: /usr/bin/env bash build.sh build-firmware cardputer_adv_companion_radio_ble
         working-directory: MeshCore
 
-      - name: Update GitHub release
+      - name: Update GitHub "latest" release
         if: github.repository == 'MultiMote/meshcore-cardputer-adv'
         run: gh release upload latest MeshCore/out/* --repo MultiMote/meshcore-cardputer-adv --clobber
         env:
           GH_TOKEN: ${{ github.token }}
+
+      - name: Replace "latest" with current tag in file names
+        if: github.ref_type == 'tag'
+        run: |
+          cd MeshCore/out
+          for file in *latest*; do
+            mv "$file" "${file//latest/${{ github.ref_name }}}"
+          done
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v3
+        if: github.ref_type == 'tag'
+        with:
+          name: Firmware ${{ github.ref_name }}
+          body: ""
+          draft: true
+          files: MeshCore/out/*
