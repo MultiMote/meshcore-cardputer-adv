@@ -3,7 +3,7 @@
 #include "../../CardputerMesh.h"
 #include "../CardputerUITask.h"
 
-class ToolsScreen : public UIScreen {
+class ToolsScreen : public CardputerScreen {
   enum ToolsPage { MenuPage, DiscoverPage };
   enum ToolsMenuItem { AdvertZeroHop, AdvertFlood, DiscoverRepeaters, Count };
 
@@ -32,7 +32,7 @@ public:
   ToolsScreen(CardputerUITask *task, mesh::RTCClock *rtc) : _task(task), _rtc(rtc) {}
   int render(DisplayDriver &display) override;
   void menuItemEnter(ToolsMenuItem item);
-  bool handleInput(char c) override;
+  bool handleInput(Keyboard::Event &e) override;
   void discoverRecv(const mesh::Identity &id, float snr);
 
 };

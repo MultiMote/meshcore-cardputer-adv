@@ -1,7 +1,5 @@
 #include "MainScreen.h"
 
-#define PRESS_LABEL "long press / Enter"
-
 void MainScreen::renderStatusIcons() {
   char tmp[8];
   uint16_t batteryMilliVolts = _task->getBattMilliVolts();
@@ -214,13 +212,13 @@ int MainScreen::renderChatPage() {
 
   display.setColor(DisplayDriver::GREEN);
 
-  int current_y = 35 + (UI_CHAT_HISTORY_SIZE - 1) * display.getFontLineHeight();
+  int current_y = 35 + (UI_CHAT_HISTORY_LIST_SIZE - 1) * display.getFontLineHeight();
   int total_lines_drawn = 0;
 
   int start_index = (int)chat_history.count() - 1 - chat_history_offset;
 
   for (int i = start_index; i >= 0; i--) {
-    if (total_lines_drawn >= UI_CHAT_HISTORY_SIZE) {
+    if (total_lines_drawn >= UI_CHAT_HISTORY_LIST_SIZE) {
       break;
     }
 
@@ -233,8 +231,8 @@ int MainScreen::renderChatPage() {
     int text_w = display.getTextWidth(msg->text);
     int message_lines = (text_w / display.width()) + 1;
 
-    if (total_lines_drawn + message_lines > UI_CHAT_HISTORY_SIZE) {
-      message_lines = UI_CHAT_HISTORY_SIZE - total_lines_drawn;
+    if (total_lines_drawn + message_lines > UI_CHAT_HISTORY_LIST_SIZE) {
+      message_lines = UI_CHAT_HISTORY_LIST_SIZE - total_lines_drawn;
     }
 
     int message_top_y = current_y - ((message_lines - 1) * display.getFontLineHeight());
@@ -262,10 +260,12 @@ int MainScreen::renderChatPage() {
   int start_x = 5;
   display.drawRect(1, display.height() - UI_TEXT_LINE_HEIGHT - 2, display.width() - 1, 1);
 
-  if (_keyboard_layout->hasSecondary()) {
-    const char *layout_label = _keyboard_layout->getCurrentCode();
-    int label_width = std::max(display.getTextWidth(_keyboard_layout->getPrimaryCode()),
-                               display.getTextWidth(_keyboard_layout->getSecondaryCode()));
+  CardputerLayout *lay = _task->getBoard()->getLayout();
+
+  if (lay->hasAlternateLayout()) {
+    const char *layout_label = _task->getBoard()->getLayout()->getCurrentCode();
+    int label_width = std::max(display.getTextWidth(lay->getMainLayoutCode()),
+                               display.getTextWidth(lay->getAlternateLayoutCode()));
     start_x += label_width;
     display.drawRect(start_x, display.height() - UI_TEXT_LINE_HEIGHT - 2, 1, UI_TEXT_LINE_HEIGHT + 2);
     display.drawTextLeftAlign(2, display.height() - UI_TEXT_LINE_HEIGHT - 2, layout_label);
@@ -376,12 +376,9 @@ int MainScreen::renderGpsPage() {
 int MainScreen::renderShutdownPage() {
   display.setColor(DisplayDriver::GREEN);
   display.setTextSize(1);
-  if (shutdown_init) {
-    display.drawTextCentered(display.width() / 2, 34, "hibernating...");
-  } else {
-    display.drawXbm((display.width() - 32) / 2, 18, power_icon, 32, 32);
-    display.drawTextCentered(display.width() / 2, 64 - 11, "hibernate:" PRESS_LABEL);
-  }
+  display.drawXbm((display.width() - 32) / 2, 18, power_icon, 32, 32);
+  display.drawTextCentered(display.width() / 2, 53, "Press Enter to hibernate");
+  display.drawTextCentered(display.width() / 2, 53 + UI_TEXT_LINE_HEIGHT, "Press R to reset");
   return 5000;
 }
 
@@ -491,11 +488,7 @@ void MainScreen::onAckRecv(uint32_t hash) {
   }
 }
 
-void MainScreen::poll() {
-  if (shutdown_init && !_task->isButtonPressed()) { // must wait for USR button to be released
-    _task->shutdown();
-  }
-}
+void MainScreen::poll() {}
 
 int MainScreen::getChannelCount() { // not sure if there is no gaps
   ChannelDetails channel;
@@ -570,9 +563,10 @@ void MainScreen::chatInputRemoveLastChar() {
   chat_text_box.remove(len - bytesToRemove, bytesToRemove);
 }
 
-bool MainScreen::handleInput(char c) { // todo: refactor this mess
+bool MainScreen::handleInput(Keyboard::Event &e) {
+
   if (current_page == MainScreenPage::CONTACTS) {
-    if (c == KEY_UP) {
+    if (e.key == Keyboard::ARROW_UP) {
       if (contact_list_idx == 0) {
         contact_list_idx = std::max(the_mesh_cp.getNumContacts() - 1, 0);
       } else {
@@ -580,7 +574,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
       }
       return true;
     }
-    if (c == KEY_DOWN) {
+    if (e.key == Keyboard::ARROW_DOWN) {
       if (contact_list_idx < the_mesh_cp.getNumContacts() - 1) {
         contact_list_idx++;
       } else {
@@ -588,7 +582,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
       }
       return true;
     }
-    if (c == ASCII_CTRL_LF) {
+    if (e.key == Keyboard::KEY_RETURN) {
       ContactInfo c;
 
       if (the_mesh_cp.getContactByIdx(contact_list_idx, c)) {
@@ -608,7 +602,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
       return true;
     }
 
-    if (c == 'r') { // reset path
+    if (e.key == Keyboard::KEY_R) { // reset path
       ContactInfo c;
       if (the_mesh_cp.getContactByIdx(contact_list_idx, c)) {
         if (c.type == ADV_TYPE_CHAT) {
@@ -624,7 +618,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
   }
 
   if (current_page == MainScreenPage::CHANNELS) {
-    if (c == KEY_UP) {
+    if (e.key == Keyboard::ARROW_UP) {
       if (channel_list_idx == 0) {
         channel_list_idx = std::max(getChannelCount() - 1, 0);
       } else {
@@ -632,7 +626,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
       }
       return true;
     }
-    if (c == KEY_DOWN) {
+    if (e.key == Keyboard::ARROW_DOWN) {
       if (channel_list_idx < getChannelCount() - 1) {
         channel_list_idx++;
       } else {
@@ -640,7 +634,7 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
       }
       return true;
     }
-    if (c == ASCII_CTRL_LF) {
+    if (e.key == Keyboard::KEY_RETURN) {
       ChannelDetails c;
       if (the_mesh_cp.getChannel(channel_list_idx, c) && strlen(c.name) > 0) {
         current_channel = c;
@@ -656,94 +650,112 @@ bool MainScreen::handleInput(char c) { // todo: refactor this mess
   }
 
   if (current_page == MainScreenPage::CHAT) {
-    if (c == ASCII_CTRL_BACKSPACE) {
+    CardputerLayout *lay = _task->getBoard()->getLayout();
+
+    if (e.key == Keyboard::KEY_BACKSPACE) {
       chatInputRemoveLastChar();
       return true;
     }
 
-    if (c == ASCII_CTRL_LF) {
+    if (e.key == Keyboard::KEY_RETURN) {
       sendChatMessage();
       return true;
     }
 
-    if (c == ASCII_CTRL_SUBST) {
-      _keyboard_layout->switchLayout();
+    if (e.modifiers.ctrl && e.key == Keyboard::KEY_SPACE) {
+      lay->switchLayout();
       return true;
     }
 
-    if (c == KEY_DOWN) {
-      if (chat_history_offset > 0) {
-        chat_history_offset--;
+    // Determine if arrow keys should act as scrolling/navigation or text input
+    bool fnPressed = (chat_text_box.length() == 0) ? !e.modifiers.fn : e.modifiers.fn;
+
+    if (fnPressed) {
+      if (e.key == Keyboard::ARROW_DOWN) {
+        if (chat_history_offset > 0) {
+          chat_history_offset--;
+        }
+        return true;
       }
-      return true;
+
+      if (e.key == Keyboard::ARROW_UP) {
+        if (chat_history_offset < chat_history.count() - 1) {
+          chat_history_offset++;
+        }
+        return true;
+      }
     }
 
-    if (c == KEY_UP) {
-      if (chat_history_offset < chat_history.count() - 1) {
-        chat_history_offset++;
-      }
-      return true;
-    }
+    bool skip_input = (fnPressed && (e.key == Keyboard::ARROW_RIGHT || e.key == Keyboard::ARROW_LEFT)) ||
+                      e.key == Keyboard::KEY_ESC;
 
-    if (isprint(c)) {
-      const char *repl = _keyboard_layout->findReplacement(c);
-      int maxlen = MAX_MESSAGE_LENGTH - strlen(_node_prefs->node_name);
+    if (!skip_input) {
+      const char *repl = lay->lookup(e);
 
-      if (repl != nullptr && chat_text_box.length() + strlen(repl) <= maxlen) {
-        chat_text_box += repl;
-      } else if (chat_text_box.length() < maxlen) {
-        chat_text_box += c;
+      if (repl[0]) {
+        int maxlen = MAX_MESSAGE_LENGTH - strlen(_node_prefs->node_name);
+
+        if (chat_text_box.length() + strlen(repl) <= maxlen) {
+          chat_text_box += repl;
+        }
+        return true;
       }
-      return true;
     }
   }
 
-  if (c == KEY_LEFT || c == KEY_PREV) {
+  if (e.key == Keyboard::ARROW_LEFT) {
     current_page = (current_page + MainScreenPage::Count - 1) % MainScreenPage::Count;
     return true;
   }
 
-  if (c == KEY_NEXT || c == KEY_RIGHT) {
+  if (e.key == Keyboard::ARROW_RIGHT || e.key == Keyboard::KEY_TAB) {
     current_page = (current_page + 1) % MainScreenPage::Count;
     return true;
   }
 
 #if ENV_INCLUDE_GPS == 1
-  if (c == ASCII_CTRL_LF && current_page == MainScreenPage::GPS) {
+  if (current_page == MainScreenPage::GPS && e.key == Keyboard::KEY_RETURN) {
     _task->toggleGPS();
     return true;
   }
 #endif
 
   if (current_page == MainScreenPage::SHUTDOWN) {
-    if (c == ASCII_CTRL_LF) {
-      shutdown_init = true; // need to wait for button to be released
+    if (e.key == Keyboard::KEY_RETURN) {
+      bool done = false;
+      // Wait for key release to not fire interrupt
+      do {
+        Keyboard::Event e = _task->getBoard()->getKeyboard()->poll();
+        done = (e.changed && e.key == Keyboard::KEY_RETURN && e.down == false);
+        delay(10);
+      } while (!done);
+
+      _task->shutdown();
       return true;
     }
 
-    if (c == 'r') {
+    if (e.key == Keyboard::KEY_R) {
       ESP.restart();
       return true;
     }
   }
 
   if (current_page == MainScreenPage::FIRST) {
-    if (c == ASCII_CTRL_DC1) {
+    if (e.modifiers.opt) {
       _task->gotoSettingsScreen();
       return true;
     }
 
-    if (c == 't') {
+    if (e.key == Keyboard::KEY_T) {
       _task->gotoToolsScreen();
       return true;
     }
   }
 
-  if (c == ASCII_CTRL_ESCAPE) {
+  if (e.key == Keyboard::KEY_ESC) {
     current_page = MainScreenPage::FIRST;
     return true;
   }
-
   return false;
 }
 

@@ -1,7 +1,6 @@
 #include "CardputerUITask.h"
 
 #include "../CardputerMesh.h"
-#include "KeyboardLayout.h"
 #include "screen/MainScreen.h"
 #include "screen/MsgPreviewScreen.h"
 #include "screen/SettingsScreen.h"
@@ -9,19 +8,11 @@
 #include "screen/ToolsScreen.h"
 #include "target.h"
 
-#include <M5Cardputer.h>
-#include <helpers/TxtDataHelpers.h>
-
 void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs,
-                            CustomNodePrefs *custom_prefs, KeyboardLayout *keyboard_layout) {
+                            CustomNodePrefs *custom_prefs) {
   _display = display;
   _sensors = sensors;
-  _keyboard_layout = keyboard_layout;
   auto_off_time = millis() + AUTO_OFF_MILLIS;
-
-#if defined(PIN_USER_BTN)
-  user_btn.begin();
-#endif
 
   _node_prefs = node_prefs;
   _custom_prefs = custom_prefs;
@@ -33,7 +24,7 @@ void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, Node
   ui_started_at = millis();
 
   splash_screen = new SplashScreen(this);
-  main_screen = new MainScreen(this, &rtc_clock, sensors, node_prefs, custom_prefs, keyboard_layout);
+  main_screen = new MainScreen(this, &rtc_clock, sensors, node_prefs, custom_prefs);
   settings_screen = new SettingsScreen(this, &rtc_clock, node_prefs, custom_prefs, _board);
   msg_preview_screen = new MsgPreviewScreen(this, &rtc_clock);
   tools_screen = new ToolsScreen(this, &rtc_clock);
@@ -68,14 +59,14 @@ void CardputerUITask::playSound(SoundType t) {
 
   switch (t) {
     case SoundType::Keyboard:
-      M5Cardputer.Speaker.tone(4000, 50);
+      _board->getSpeaker()->queueTone(4000, 50, 0.2f);
       break;
     case SoundType::NewMessage:
-      M5Cardputer.Speaker.tone(3000, 100);
+      _board->getSpeaker()->queueTone(3000, 100);
       break;
     case SoundType::DiscoveryResult:
     case SoundType::MessageAck:
-      M5Cardputer.Speaker.tone(800, 70);
+      _board->getSpeaker()->queueTone(800, 70, 0.3f);
       break;
   }
 }
@@ -110,7 +101,6 @@ void CardputerUITask::onChannelMessageRecv(const mesh::GroupChannel &channel, co
 
 void CardputerUITask::onContactMessageRecv(const ContactInfo &contact, const char *text) {
   ((MainScreen *)main_screen)->onContactMessageRecv(contact, text);
-
 }
 
 void CardputerUITask::onAckRecv(uint32_t hash) {
@@ -135,7 +125,7 @@ void CardputerUITask::messageRepeatsRecv(uint16_t count) {
   }
 }
 
-void CardputerUITask::setCurrScreen(UIScreen *c) {
+void CardputerUITask::setCurrScreen(CardputerScreen *c) {
   current_screen = c;
   next_refresh = 100;
 }
@@ -153,65 +143,17 @@ void CardputerUITask::shutdown(bool restart) {
   }
 }
 
-bool CardputerUITask::isButtonPressed() const {
-#ifdef PIN_USER_BTN
-  return user_btn.isPressed();
-#else
-  return false;
-#endif
-}
-
 void CardputerUITask::loop() {
-  M5Cardputer.Keyboard.updateKeyList();
-  M5Cardputer.Keyboard.updateKeysState();
+  _board->getSpeaker()->processQueue();
 
-  char c = 0;
-  if (M5Cardputer.Keyboard.isChange()) {
-    if (M5Cardputer.Keyboard.isPressed()) {
-      Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
+  auto event = _board->getKeyboard()->poll();
 
-      if (M5Cardputer.Keyboard.isKeyPressed(',') && !status.alt) { // left
-        c = checkDisplayOn(KEY_LEFT);
-      } else if ((M5Cardputer.Keyboard.isKeyPressed('/') && !status.alt) || status.tab) { // right
-        c = checkDisplayOn(KEY_RIGHT);
-      } else if (M5Cardputer.Keyboard.isKeyPressed(';') && !status.alt) { // up
-        c = checkDisplayOn(KEY_UP);
-      } else if (M5Cardputer.Keyboard.isKeyPressed('.') && !status.alt) { // down
-        c = checkDisplayOn(KEY_DOWN);
-      } else if (M5Cardputer.Keyboard.isKeyPressed('`') && !status.alt) { // esc
-        c = checkDisplayOn(ASCII_CTRL_ESCAPE);
-      } else if (M5Cardputer.Keyboard.isKeyPressed(' ') && status.ctrl) { // ctrl+space keyboard layout switch
-        c = checkDisplayOn(ASCII_CTRL_SUBST);
-      } else if (status.enter) { // enter
-        c = checkDisplayOn(ASCII_CTRL_LF);
-      } else if (status.del) { // backspace
-        c = checkDisplayOn(ASCII_CTRL_BACKSPACE);
-      } else if (status.opt) { // opt
-        c = checkDisplayOn(ASCII_CTRL_DC1);
-      } else if (status.word.size() > 0) {
-        c = checkDisplayOn(status.word.at(0));
-      }
-    }
-  } else {
-#if defined(PIN_USER_BTN)
-    int ev = user_btn.check();
-    if (ev == BUTTON_EVENT_CLICK) {
-      c = checkDisplayOn(KEY_NEXT);
-    } else if (ev == BUTTON_EVENT_LONG_PRESS) {
-      c = handleLongPress(ASCII_CTRL_LF);
-    } else if (ev == BUTTON_EVENT_DOUBLE_CLICK) {
-      c = handleDoubleClick(KEY_PREV);
-    } else if (ev == BUTTON_EVENT_TRIPLE_CLICK) {
-      c = handleTripleClick(KEY_SELECT);
-    }
-#endif
-  }
-
-  if (c != 0 && current_screen) {
+  if (event.changed && event.down && !turnDisplayOn()) {
     playSound(SoundType::Keyboard);
-    current_screen->handleInput(c);
-    auto_off_time = millis() + AUTO_OFF_MILLIS; // extend auto-off timer
-    next_refresh = 100;                         // trigger refresh
+
+    if (current_screen) {
+      current_screen->handleInput(event);
+    }
   }
 
   if (current_screen) {
@@ -240,6 +182,7 @@ void CardputerUITask::loop() {
 #if AUTO_OFF_MILLIS > 0
     if (millis() > auto_off_time) {
       _display->turnOff();
+      _board->getSpeaker()->sleep();
     }
 #endif
   }
@@ -255,36 +198,18 @@ void CardputerUITask::loop() {
 #endif
 }
 
-char CardputerUITask::checkDisplayOn(char c) {
+bool CardputerUITask::turnDisplayOn() {
   if (_display != NULL) {
-    if (!_display->isOn()) {
-      _display->turnOn(); // turn display on and consume event
-      c = 0;
-    }
     auto_off_time = millis() + AUTO_OFF_MILLIS; // extend auto-off timer
     next_refresh = 0;                           // trigger refresh
+
+    if (!_display->isOn()) {
+      _display->turnOn();
+      return true;
+    }
+
   }
-  return c;
-}
-
-char CardputerUITask::handleLongPress(char c) {
-  if (millis() - ui_started_at < 8000) { // long press in first 8 seconds since startup -> CLI/rescue
-    the_mesh_cp.enterCLIRescue();
-    c = 0; // consume event
-  }
-  return c;
-}
-
-char CardputerUITask::handleDoubleClick(char c) {
-  checkDisplayOn(c);
-  return c;
-}
-
-char CardputerUITask::handleTripleClick(char c) {
-  checkDisplayOn(c);
-  toggleBuzzer();
-  c = 0;
-  return c;
+  return false;
 }
 
 bool CardputerUITask::getGPSState() {

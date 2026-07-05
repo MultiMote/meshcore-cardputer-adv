@@ -57,8 +57,7 @@ void SettingsScreen::renderItem(DisplayDriver &display, SettingsItem item, int x
       break;
 
     case SettingsItem::DeviceBatteryCorrection:
-      snprintf(tmp, sizeof(tmp), "Battery correction: %.3f",
-               _custom_prefs->battery_correction);
+      snprintf(tmp, sizeof(tmp), "Battery correction: %.3f", _custom_prefs->battery_correction);
       break;
 
     case SettingsItem::MeshPathSize:
@@ -134,7 +133,7 @@ bool SettingsScreen::enterItemEdit(SettingsItem item) {
       return true;
 
     case SettingsItem::DeviceBatteryCorrection:
-      edit_buffer = String(_board->getBattMilliVolts());
+      edit_buffer = String(_task->getBoard()->getBattMilliVolts());
       is_editing = true;
       return true;
 
@@ -195,7 +194,7 @@ bool SettingsScreen::commitItemEdit(SettingsItem item) {
 
       if (edit_buffer.length() > 0) {
         uint16_t real = edit_buffer.toInt();
-        uint16_t adc = _board->getBattMilliVolts();
+        uint16_t adc = _task->getBoard()->getBattMilliVolts();
         if (adc != 0) {
           _custom_prefs->battery_correction = (float)real / adc;
           the_mesh_cp.savePrefs();
@@ -212,53 +211,60 @@ bool SettingsScreen::commitItemEdit(SettingsItem item) {
   return false;
 }
 
-void SettingsScreen::handleEditInput(SettingsItem item, char k) {
+void SettingsScreen::handleEditInput(SettingsItem item, Keyboard::Event &e) {
   switch (item) {
     case SettingsItem::RadioSf:
-      if (k == KEY_LEFT && edit_u8 > 5) {
+      if (e.key == Keyboard::ARROW_LEFT && edit_u8 > 5) {
         edit_u8--;
-      } else if (k == KEY_RIGHT && edit_u8 < 12) {
+      } else if (e.key == Keyboard::ARROW_RIGHT && edit_u8 < 12) {
         edit_u8++;
       }
       break;
     case SettingsItem::RadioCr:
-      if (k == KEY_LEFT && edit_u8 > 5) {
+      if (e.key == Keyboard::ARROW_LEFT && edit_u8 > 5) {
         edit_u8--;
-      } else if (k == KEY_RIGHT && edit_u8 < 8) {
+      } else if (e.key == Keyboard::ARROW_RIGHT && edit_u8 < 8) {
         edit_u8++;
       }
       break;
 
     case SettingsItem::RadioPwr:
-      if (k == KEY_LEFT && edit_u8 > 1) {
+      if (e.key == Keyboard::ARROW_LEFT && edit_u8 > 1) {
         edit_u8--;
-      } else if (k == KEY_RIGHT && edit_u8 < LORA_TX_POWER) {
+      } else if (e.key == Keyboard::ARROW_RIGHT && edit_u8 < LORA_TX_POWER) {
         edit_u8++;
       }
       break;
     case SettingsItem::MeshPathSize:
-      if (k == KEY_LEFT && edit_u8 > 1) {
+      if (e.key == Keyboard::ARROW_LEFT && edit_u8 > 1) {
         edit_u8--;
-      } else if (k == KEY_RIGHT && edit_u8 < 3) {
+      } else if (e.key == Keyboard::ARROW_RIGHT && edit_u8 < 3) {
         edit_u8++;
       }
       break;
 
     case SettingsItem::RadioFreq:
     case SettingsItem::RadioBw:
-      if (k == ASCII_CTRL_BACKSPACE && edit_buffer.length() > 0) {
+
+      if (e.key == Keyboard::KEY_BACKSPACE && edit_buffer.length() > 0) {
         edit_buffer.remove(edit_buffer.length() - 1);
-      } else if ((k == '.' || k == KEY_DOWN) && edit_buffer.indexOf('.') == -1) {
+      } else if (e.key == Keyboard::KEY_PERIOD && edit_buffer.indexOf('.') == -1) {
         edit_buffer.concat('.');
-      } else if (isdigit(k)) {
-        edit_buffer.concat(k);
+      } else {
+        const char ch = _task->getBoard()->getLayout()->lookup(e, true)[0];
+        if (ch && isdigit(ch)) {
+          edit_buffer.concat(ch);
+        }
       }
       break;
     case SettingsItem::DeviceBatteryCorrection:
-      if (k == ASCII_CTRL_BACKSPACE && edit_buffer.length() > 0) {
+      if (e.key == Keyboard::KEY_BACKSPACE && edit_buffer.length() > 0) {
         edit_buffer.remove(edit_buffer.length() - 1);
-      } else if (isdigit(k) && edit_buffer.length() < 4) {
-        edit_buffer.concat(k);
+      } else {
+        const char ch = _task->getBoard()->getLayout()->lookup(e, true)[0];
+        if (ch && isdigit(ch) && edit_buffer.length() < 4) {
+          edit_buffer.concat(ch);
+        }
       }
       break;
 
@@ -349,7 +355,7 @@ int SettingsScreen::render(DisplayDriver &display) {
         display.drawTextCentered(display.width() / 2, display.height() / 2 - 8, buf);
 
         display.setTextSize(1);
-        sprintf(buf, "Read value = %umV, real =", _board->getBattMilliVolts());
+        sprintf(buf, "Read value = %umV, real =", _task->getBoard()->getBattMilliVolts());
         display.drawTextCentered(display.width() / 2, display.height() / 2 - 16, buf);
         break;
 
@@ -361,9 +367,9 @@ int SettingsScreen::render(DisplayDriver &display) {
   return 5000;
 }
 
-bool SettingsScreen::handleInput(char c) {
+bool SettingsScreen::handleInput(Keyboard::Event &e) {
   if (is_editing) {
-    if (c == ASCII_CTRL_LF) {
+    if (e.key == Keyboard::KEY_RETURN) {
       if (!commitItemEdit(static_cast<SettingsItem>(menu_index))) {
         _task->showAlert("Invalid value", 1000);
       } else {
@@ -372,20 +378,20 @@ bool SettingsScreen::handleInput(char c) {
       return true;
     }
 
-    if (c == ASCII_CTRL_ESCAPE) {
+    if (e.key == Keyboard::KEY_ESC) {
       cancelItemEdit(static_cast<SettingsItem>(menu_index));
       return true;
     }
 
-    handleEditInput(static_cast<SettingsItem>(menu_index), c);
+    handleEditInput(static_cast<SettingsItem>(menu_index), e);
 
   } else {
-    if (c == ASCII_CTRL_ESCAPE || c == ASCII_CTRL_DC1) {
+    if (e.key == Keyboard::KEY_ESC || e.modifiers.opt) {
       _task->gotoMainScreen();
       return true;
     }
 
-    if (c == KEY_UP) {
+    if (e.key == Keyboard::ARROW_UP) {
       if (menu_index == 0) {
         menu_index = SettingsItem::Count - 1;
       } else {
@@ -394,7 +400,7 @@ bool SettingsScreen::handleInput(char c) {
 
       return true;
     }
-    if (c == KEY_DOWN) {
+    if (e.key == Keyboard::ARROW_DOWN) {
       if (menu_index < SettingsItem::Count - 1) {
         menu_index++;
       } else {
@@ -403,13 +409,12 @@ bool SettingsScreen::handleInput(char c) {
 
       return true;
     }
-    if (c == ASCII_CTRL_LF) {
+    if (e.key == Keyboard::KEY_RETURN) {
       if (!enterItemEdit(static_cast<SettingsItem>(menu_index))) {
         _task->showAlert("Not implemented yet", 2000);
       }
       return true;
     }
   }
-
   return false;
 }

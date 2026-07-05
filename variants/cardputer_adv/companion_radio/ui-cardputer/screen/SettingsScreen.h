@@ -1,9 +1,8 @@
 #include "../../CardputerMesh.h"
 #include "../CardputerUITask.h"
 #include "../icons.h"
-#include "CardputerAdvBoard.h"
 
-class SettingsScreen : public UIScreen {
+class SettingsScreen : public CardputerScreen {
   enum SettingsItem {
     HdrRadio,
     RadioFreq,
@@ -26,7 +25,6 @@ class SettingsScreen : public UIScreen {
   mesh::RTCClock *_rtc;
   NodePrefs *_node_prefs;
   CustomNodePrefs *_custom_prefs;
-  CardputerAdvBoard *_board;
 
   int menu_index = 0;
   bool is_editing = false;
@@ -38,13 +36,13 @@ class SettingsScreen : public UIScreen {
   bool enterItemEdit(SettingsItem item);
   void cancelItemEdit(SettingsItem item);
   bool commitItemEdit(SettingsItem item);
-  void handleEditInput(SettingsItem item, char key);
+  void handleEditInput(SettingsItem item, Keyboard::Event &e);
   bool inputParsePositiveFloat(float &val);
 
 public:
   SettingsScreen(CardputerUITask *task, mesh::RTCClock *rtc, NodePrefs *node_prefs,
                  CustomNodePrefs *custom_prefs, CardputerAdvBoard *board)
-      : _task(task), _rtc(rtc), _node_prefs(node_prefs), _custom_prefs(custom_prefs), _board(board) {}
+      : _task(task), _rtc(rtc), _node_prefs(node_prefs), _custom_prefs(custom_prefs) {}
   int render(DisplayDriver &display) override;
-  bool handleInput(char c) override;
+  bool handleInput(Keyboard::Event &e) override;
 };

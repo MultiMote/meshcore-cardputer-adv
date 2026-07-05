@@ -4,7 +4,6 @@
 #include <helpers/sensors/MicroNMEALocationProvider.h>
 
 CardputerAdvBoard board;
-m5::PI4IOE5V6408_Class ioe(0x43, 400000, &m5::In_I2C);
 RADIO_CLASS radio = new Module(P_LORA_NSS, P_LORA_DIO_1, P_LORA_RESET, P_LORA_BUSY, SPI);
 WRAPPER_CLASS radio_driver(radio, board);
 ESP32RTCClock rtc_clock;
@@ -13,18 +12,28 @@ MicroNMEALocationProvider nmea = MicroNMEALocationProvider(Serial1, &rtc_clock);
 CardputerSensorManager sensors = CardputerSensorManager(nmea);
 
 DISPLAY_CLASS display;
-MomentaryButton user_btn(PIN_USER_BTN, 1000, true);
 
 bool radio_init() {
   rtc_clock.begin();
 
-  if (ioe.begin()) {
-    ioe.setDirection(0, true);      // Output
-    ioe.setHighImpedance(0, false); // Disable high-impedance so pin can actually drive
-    ioe.digitalWrite(0, true);      // High Level
-  } else {
+  Wire1.beginTransmission(LORA_IOE_I2C_ADDRESS);  // PI4IOE5V6408ZTAEX Address
+  Wire1.write(0x03); // Direction
+  Wire1.write(0x01); // Output
+  uint8_t err = Wire1.endTransmission();
+
+  if (err != 0) {
     MESH_DEBUG_PRINTLN("Cap LoRa-1262 not found");
   }
+
+  Wire1.beginTransmission(LORA_IOE_I2C_ADDRESS);
+  Wire1.write(0x07); // High-impedance
+  Wire1.write(0x00); // Disable high-impedance so pin can actually drive
+  Wire1.endTransmission();
+
+  Wire1.beginTransmission(LORA_IOE_I2C_ADDRESS);
+  Wire1.write(0x05); // IO set
+  Wire1.write(0x01); // High Level
+  Wire1.endTransmission();
 
   return radio.std_init(&SPI);
 }

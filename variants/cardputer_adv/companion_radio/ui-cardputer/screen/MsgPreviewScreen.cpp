@@ -59,8 +59,8 @@ int MsgPreviewScreen::render(DisplayDriver &display) {
 #endif
 }
 
-bool MsgPreviewScreen::handleInput(char c) {
-  if (c == KEY_NEXT || c == KEY_RIGHT || c == ASCII_CTRL_LF) {
+bool MsgPreviewScreen::handleInput(Keyboard::Event &e) {
+  if (e.key == Keyboard::KEY_RETURN || e.key == Keyboard::ARROW_RIGHT) {
     head = (head + MAX_UNREAD_MSGS - 1) % MAX_UNREAD_MSGS;
     if (num_unread > 0) {
       num_unread--;
@@ -70,7 +70,7 @@ bool MsgPreviewScreen::handleInput(char c) {
     }
     return true;
   }
-  if (c == ASCII_CTRL_ESCAPE) {
+  if (e.key == Keyboard::KEY_ESC) {
     num_unread = 0; // clear unread queue
     _task->gotoMainScreen();
     return true;

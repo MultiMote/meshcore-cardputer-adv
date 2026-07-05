@@ -56,10 +56,12 @@ Currently implemented (companion):
 - Tools menu (press `T` at main screen)
    * Advert (flood / zero hop)
    * Discover repeaters (testing)
-- Light sleep (testing)
-   * Power consumption drops to ~52mA after display off
-   * Can be enabled in settings menu
-   * Bluetooth connection is not preserved
+- Power optimizations
+   - Light sleep
+      * Power consumption drops to ~22mA after display off
+      * Can be enabled in settings menu
+      * Bluetooth connection is not preserved
+   - Audio codec power control
 - Battery ADC correction
 - Channels list
    * Press `Enter` on channel to start conversation
@@ -78,36 +80,23 @@ Currently implemented (companion):
 - Unread counter
    * On main screen
    * Near contact/channel
-- Basic display unicode support. Font is `DejaVu Sans 12` converted with `Processing 4`.
+- Basic display unicode support. Font is `DejaVu Sans 12` converted with `Processing 4` to vlw format.
 
   Included unicode blocks:
    * Basic Latin (U+0000-U+007F)
    * Latin-1 Supplement (U+0080-U+00FF)
+   * Latin Extended-A (U+0100-U+017F)
    * Cyrillic (U+0400-U+04FF)
+   * Currency Symbols (U+20A0-U+20CF)
+
 - Keyboard layouts
 
-   * Enabled if `/meshcore_custom/keyboard.txt` file is present on SD card
+   * Enabled if `/meshcore_custom/keyboard_alt.txt` file is present on SD card
    * Switch with Ctrl+Space
-   * File format (encoding is UTF-8, LF or CRLF line endings):
-
-     ```
-     layout_label (2 characters)
-     key_char=replacement
-     key_char=replacement
-     ...rest of keys...
-     ```
-
-     Example:
-
-     ```
-     ru
-     q=й
-     w=ц
-     e=у
-     ```
-
-   * Limits: up to 100 keys, up to 3 byte character replacement (UTF-8).
-   * Available to download: [Russian](keyboard_layouts/ru/keyboard.txt)
+   * Create own layout with [Layout Editor](https://github.com/MultiMote/cardputer-adv-layout-editor).
+   * Up to 3 byte character replacement (UTF-8).
+   * Ready to use: [keyboard_layouts](keyboard_layouts).
+   * More info: https://github.com/MultiMote/meshcore-cardputer-adv/wiki/Keyboard-layout-format
 
 
 Todo:
@@ -115,7 +104,6 @@ Todo:
 - Find a way to include MeshCore as submodule in this repository and build it from here
 - Change display brightness
 - Custom notification sounds (.wav files from SD card)
-- Reduce power consumption (maybe replace M5Unified with more specialized libraries)
 - Import contacts from SD card
 - Delete contacts
 - Add hash channels

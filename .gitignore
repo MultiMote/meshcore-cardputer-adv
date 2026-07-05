@@ -6,6 +6,7 @@
 !/.github/workflows/build-firmware.yml
 !/keyboard_layouts/
 !/LICENSE
+!/CHANGELOG.md
 !/images/
 !/.gitignore
 !/README.md

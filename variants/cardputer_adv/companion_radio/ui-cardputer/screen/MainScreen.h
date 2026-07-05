@@ -7,7 +7,7 @@
 #include "RingBuffer.h"
 #include "UnreadCounter.h"
 
-class MainScreen : public UIScreen {
+class MainScreen : public CardputerScreen {
   enum MainScreenPage {
     FIRST,
     CHANNELS,
@@ -27,10 +27,8 @@ class MainScreen : public UIScreen {
   SensorManager *_sensors;
   NodePrefs *_node_prefs;
   CustomNodePrefs *_custom_prefs;
-  KeyboardLayout *_keyboard_layout;
 
   uint8_t current_page = MainScreenPage::FIRST;
-  bool shutdown_init = false;
   AdvertPath recent[UI_RECENT_LIST_SIZE];
   String chat_text_box;
 
@@ -67,9 +65,8 @@ class MainScreen : public UIScreen {
 
 public:
   MainScreen(CardputerUITask *task, mesh::RTCClock *rtc, SensorManager *sensors, NodePrefs *node_prefs,
-             CustomNodePrefs *custom_prefs, KeyboardLayout *keyboard_layout)
-      : _task(task), _rtc(rtc), _sensors(sensors), _node_prefs(node_prefs), _custom_prefs(custom_prefs),
-        _keyboard_layout(keyboard_layout) {
+             CustomNodePrefs *custom_prefs)
+      : _task(task), _rtc(rtc), _sensors(sensors), _node_prefs(node_prefs), _custom_prefs(custom_prefs) {
     chat_text_box.reserve(MAX_MESSAGE_LENGTH);
   }
   void messageRepeatsRecv(uint16_t count);
@@ -78,6 +75,6 @@ public:
   void onAckRecv(uint32_t hash);
   void poll() override;
   int render(DisplayDriver &display) override;
-  bool handleInput(char c) override;
+  bool handleInput(Keyboard::Event &e) override;
   void refreshSelectedContact();
 };

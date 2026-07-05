@@ -1,22 +1,22 @@
 #if CUSTOM_CARDPUTER_UI
-  #define TASK_CLASS   CardputerUITask
-  #define THE_MESH_OBJ the_mesh_cp
-  #include "CardputerMesh.h"
-  #include "CardputerUITask.h"
-  #include "KeyboardLayout.h"
+#define TASK_CLASS   CardputerUITask
+#define THE_MESH_OBJ the_mesh_cp
+#include "CardputerMesh.h"
+#include "CardputerUITask.h"
 
 #else
-  #define TASK_CLASS   UITask
-  #define THE_MESH_OBJ the_mesh
-  #include "UITask.h"
+#define TASK_CLASS   UITask
+#define THE_MESH_OBJ the_mesh
+#include "UITask.h"
 
-  #include <MyMesh.h>
+#include <MyMesh.h>
 #endif
+
+#include "CardputerDataStore.h"
 
 #include <Arduino.h>
 #include <Mesh.h>
 #include <helpers/esp32/SerialBLEInterface.h>
-#include "CardputerDataStore.h"
 
 static uint32_t _atoi(const char *sp) {
   uint32_t n = 0;
@@ -28,11 +28,10 @@ static uint32_t _atoi(const char *sp) {
 }
 
 #ifdef USE_SD_CARD
-  #include <SD.h>
+#include <SD.h>
 CardputerDataStore store(SD, rtc_clock);
-KeyboardLayout layout;
 #else
-  #include <SPIFFS.h>
+#include <SPIFFS.h>
 CardputerDataStore store(SPIFFS, rtc_clock);
 #endif
 
@@ -49,6 +48,15 @@ CardputerMesh the_mesh_cp(radio_driver, fast_rng, rtc_clock, tables, store, &ui_
 MyMesh the_mesh(radio_driver, fast_rng, rtc_clock, tables, store, &ui_task);
 #endif
 
+void displayMessage(DisplayDriver *disp, const char *msg) {
+  if (disp) {
+    disp->startFrame();
+    disp->setTextSize(2);
+    disp->drawTextCentered(disp->width() / 2, 28, msg);
+    disp->endFrame();
+  }
+}
+
 void halt() {
   while (1) {
   }
@@ -61,13 +69,12 @@ void setup() {
   DisplayDriver *disp = NULL;
   if (display.begin()) {
     disp = &display;
-    disp->startFrame();
-    disp->setTextSize(2);
-    disp->drawTextCentered(disp->width() / 2, 28, "Loading...");
+    displayMessage(disp, "Loading...");
     disp->endFrame();
   }
 
   if (!radio_init()) {
+    displayMessage(disp, "Radio init failed");
     halt();
   }
 
@@ -76,18 +83,13 @@ void setup() {
 #ifdef USE_SD_CARD
   // SPI setup done in radio.std_init so not calling SPI.begin
   if (!SD.begin(PIN_SD_CS, SPI, 25000000)) {
-    if (disp) {
-      disp->startFrame();
-      disp->setTextSize(2);
-      disp->drawTextCentered(disp->width() / 2, 28, "Insert SD Card");
-      disp->endFrame();
-    }
+    displayMessage(disp, "Insert SD Card");
     halt();
   }
   if (disp) {
     display.tryLoadUserFont();
   }
-  layout.begin(SD);
+  board.readKeyboardLayout(SD);
 #else
   SPIFFS.begin(true);
 #endif
@@ -104,11 +106,10 @@ void setup() {
 #endif
 
 #if CUSTOM_CARDPUTER_UI
-  ui_task.begin(disp, &sensors, THE_MESH_OBJ.getNodePrefs(), THE_MESH_OBJ.getCustomNodePrefs(), &layout);
+  ui_task.begin(disp, &sensors, THE_MESH_OBJ.getNodePrefs(), THE_MESH_OBJ.getCustomNodePrefs());
 #else
   ui_task.begin(disp, &sensors, THE_MESH_OBJ.getNodePrefs());
 #endif
-
 }
 
 void loop() {

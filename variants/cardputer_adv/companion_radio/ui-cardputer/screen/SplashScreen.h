@@ -3,7 +3,7 @@
 #include "../icons.h"
 #include "globals.h"
 
-class SplashScreen : public UIScreen {
+class SplashScreen : public CardputerScreen {
   CardputerUITask *_task;
   unsigned long dismiss_after;
   char version_info[12];

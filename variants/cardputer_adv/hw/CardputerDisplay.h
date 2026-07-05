@@ -4,15 +4,26 @@
   #include <SD.h>
   #include "CardputerDataStore.h"
 #endif
-#include <M5Cardputer.h>
+#include <LovyanGFX.hpp>
 #include <helpers/ui/DisplayDriver.h>
+
+
+class LGFX : public lgfx::LGFX_Device {
+  lgfx::Panel_ST7789 panel_instance_;
+  lgfx::Bus_SPI bus_instance_;
+  lgfx::Light_PWM light_instance_;
+
+public:
+  LGFX();
+};
+
 
 class CardputerDisplay : public DisplayDriver {
 private:
   bool _isOn = false;
   uint16_t _lastColor = 0;
   int16_t _fontYAdvance = 1;
-  M5GFX &LCD = M5Cardputer.Display;
+  LGFX LCD;
 
   inline uint16_t convertColor(Color c) {
     {

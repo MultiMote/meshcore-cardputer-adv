@@ -81,18 +81,18 @@ void ToolsScreen::menuItemEnter(ToolsMenuItem item) {
   }
 }
 
-bool ToolsScreen::handleInput(char c) {
+bool ToolsScreen::handleInput(Keyboard::Event &e) {
   if (_task->isAlertActive()) {
     return false;
   }
 
   if (page == ToolsPage::MenuPage) {
-    if (c == ASCII_CTRL_ESCAPE) {
+    if (e.key == Keyboard::KEY_ESC) {
       _task->gotoMainScreen();
       return true;
     }
 
-    if (c == KEY_UP) {
+    if (e.key == Keyboard::ARROW_UP) {
       if (menu_index == 0) {
         menu_index = ToolsMenuItem::Count - 1;
       } else {
@@ -101,7 +101,7 @@ bool ToolsScreen::handleInput(char c) {
       return true;
     }
 
-    if (c == KEY_DOWN) {
+    if (e.key == Keyboard::ARROW_DOWN) {
       if (menu_index < ToolsMenuItem::Count - 1) {
         menu_index++;
       } else {
@@ -110,17 +110,16 @@ bool ToolsScreen::handleInput(char c) {
       return true;
     }
 
-    if (c == ASCII_CTRL_LF) {
+    if (e.key == Keyboard::KEY_RETURN) {
       menuItemEnter(static_cast<ToolsMenuItem>(menu_index));
       return true;
     }
   } else if (page == ToolsPage::DiscoverPage) {
-    if (c == ASCII_CTRL_ESCAPE) {
+    if (e.key == Keyboard::KEY_ESC) {
       page = ToolsPage::MenuPage;
       return true;
     }
   }
-
   return false;
 }
 

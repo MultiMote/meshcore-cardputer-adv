@@ -12,6 +12,53 @@ int32_t emoji_draw_callback(lgfx::LGFXBase *gfx, int32_t x, int32_t y, uint32_t 
   return w;
 }
 
+LGFX::LGFX() {
+  {
+    auto cfg = bus_instance_.config();
+    cfg.spi_host = TFT_SPI_HOST;
+    cfg.spi_mode = 0;
+    cfg.freq_write = 40000000; // 40 MHz write clock
+    cfg.spi_3wire = true;
+    cfg.use_lock = true;
+    cfg.dma_channel = SPI_DMA_CH_AUTO;
+    cfg.pin_sclk = PIN_TFT_SCK;
+    cfg.pin_mosi = PIN_TFT_MOSI;
+    cfg.pin_miso = -1;
+    cfg.pin_dc = PIN_TFT_DC;
+    bus_instance_.config(cfg);
+    panel_instance_.setBus(&bus_instance_);
+  }
+
+  {
+    auto cfg = panel_instance_.config();
+    cfg.pin_cs = PIN_TFT_CS;
+    cfg.pin_rst = PIN_TFT_RST;
+    cfg.panel_width = 135;
+    cfg.panel_height = 240;
+    cfg.offset_x = 52; // values from M5GFX
+    cfg.offset_y = 40;
+    cfg.readable = false;
+    cfg.invert = true;
+    // cfg.rgb_order = false;
+    // cfg.dlen_16bit = false;
+    // cfg.bus_shared = true;
+    panel_instance_.config(cfg);
+  }
+
+  {
+    auto cfg = light_instance_.config();
+    cfg.pin_bl = PIN_TFT_BL;
+    cfg.invert = false;
+    cfg.freq = 256;
+    cfg.offset = 16;
+    cfg.pwm_channel = 7;
+    light_instance_.config(cfg);
+    panel_instance_.setLight(&light_instance_);
+  }
+
+  setPanel(&panel_instance_);
+}
+
 void CardputerDisplay::updateFontYAdvance() {
   lgfx::FontMetrics metrics;
   LCD.getFont()->getDefaultMetric(&metrics);
@@ -26,6 +73,10 @@ bool CardputerDisplay::begin() {
   if (!success) {
     return false;
   }
+
+  LCD.setRotation(1);
+  LCD.setColorDepth(16); // lower SPI bandwidth
+  LCD.setBrightness(128);
 
   LCD.setTextColor(TFT_WHITE, TFT_BLACK);
   LCD.loadFont(DejaVuSans_11);

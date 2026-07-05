@@ -3,7 +3,7 @@
 #include "../icons.h"
 #include "globals.h"
 
-class MsgPreviewScreen : public UIScreen {
+class MsgPreviewScreen : public CardputerScreen {
   struct MsgEntry {
     uint32_t timestamp;
     char origin[62];
@@ -20,5 +20,5 @@ public:
   MsgPreviewScreen(CardputerUITask *task, mesh::RTCClock *rtc) : _task(task), _rtc(rtc) {}
   void addPreview(uint8_t path_len, const char *from_name, const char *msg);
   int render(DisplayDriver &display) override;
-  bool handleInput(char c) override;
+  bool handleInput(Keyboard::Event &e) override;
 };

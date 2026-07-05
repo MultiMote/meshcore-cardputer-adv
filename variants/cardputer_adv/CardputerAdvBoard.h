@@ -1,26 +1,27 @@
 #pragma once
 
-#include <Arduino.h>
-#include <M5Cardputer.h>
-#include <helpers/ESP32Board.h>
-#include <driver/rtc_io.h>
+#include "globals.h"
+#include "hw/CardputerSpeaker.h"
+#include "hw/CardputerKeyboard.h"
+#include "hw/CardputerLayout.h"
 
+#include <Arduino.h>
+#include <driver/rtc_io.h>
+#include <helpers/ESP32Board.h>
 
 class CardputerAdvBoard : public ESP32Board {
 private:
+  CardputerSpeaker speaker;
+  CardputerKeyboard keyboard;
+  CardputerLayout layout;
 public:
   CardputerAdvBoard() {}
 
   void begin() {
     ESP32Board::begin();
 
-    auto cfg = M5.config();
-    cfg.internal_mic = false;
-    cfg.internal_imu = false;
-    cfg.pmic_button = false;
-
-    M5Cardputer.begin(cfg, true);
-    M5Cardputer.Speaker.begin();
+    Wire1.begin(PIN_I2C_INTERNAL_SDA, PIN_I2C_INTERNAL_SCL, 100000);
+    keyboard.begin();
 
     esp_reset_reason_t reason = esp_reset_reason();
     if (reason == ESP_RST_DEEPSLEEP) {
@@ -62,21 +63,17 @@ public:
   void enterLightSleep() {
     esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
 
-    // prevent speaker clicking after wakeup
-    // begin() will automatically called after first sound played
-    M5Cardputer.Speaker.end();
-
-    // LoRa have active-high interrupt output, keyboard and user button have active-low,
+    // LoRa have active-high interrupt output, keyboard have active-low,
     // so we have to use both ext0 and ext1
     esp_sleep_enable_ext0_wakeup((gpio_num_t)P_LORA_DIO_1, 1); // LoRa
-    esp_sleep_enable_ext1_wakeup((1L << PIN_KEYBOARD_INT) | (1L << PIN_USER_BTN),
-                                 ESP_EXT1_WAKEUP_ANY_LOW); // keyboard + G0
+    esp_sleep_enable_ext1_wakeup((1L << PIN_KEYBOARD_INT), ESP_EXT1_WAKEUP_ANY_LOW);
 
     Serial.flush();
-    delay(10);
+
+    delay(50);
     Serial.end(); // USB CDC does not exits light sleep normally so turning it off
 
-    esp_light_sleep_start();
+    esp_light_sleep_start(); // CPU halts here and resumes after interrupt
 
     delay(10);
     Serial.begin(115200);
@@ -84,9 +81,13 @@ public:
 
   void powerOff() override { enterDeepSleep(0); }
 
-  uint16_t getBattMilliVolts() override { return M5Cardputer.Power.getBatteryVoltage(); }
+  CardputerSpeaker *getSpeaker() { return &speaker; }
 
-  void beep() { M5Cardputer.Speaker.tone(4000, 50); }
+  CardputerKeyboard *getKeyboard() { return &keyboard; }
+
+  CardputerLayout *getLayout() { return &layout; }
 
   const char *getManufacturerName() const override { return "Cardputer-ADV"; }
+
+  void readKeyboardLayout(FS &fs) { layout.begin(fs); }
 };
