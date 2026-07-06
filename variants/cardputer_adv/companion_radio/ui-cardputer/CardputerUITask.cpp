@@ -81,6 +81,11 @@ void CardputerUITask::msgRead(int msgcount) {
 void CardputerUITask::newMsg(uint8_t path_len, const char *from_name, const char *text, int msgcount) {
   unsynced_msg_count = msgcount;
 
+  if (current_screen == main_screen && ((MainScreen *)main_screen)->getCurrentPage() == MainScreen::CHAT &&
+      _display->isOn()) {
+    return;
+  }
+
   ((MsgPreviewScreen *)msg_preview_screen)->addPreview(path_len, from_name, text);
   setCurrScreen(msg_preview_screen);
 

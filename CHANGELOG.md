@@ -1,4 +1,4 @@
-# 2026.4.0
+# 2026.7.0
 
 * Add versioning
 * **Cardputer hardware abstraction rework**
@@ -19,3 +19,4 @@
 * Move status icons to the left side
 * Add unread icon
 * Fix chat input line truncated at the wrong side
+* Do not pop up the message preview in the chat page

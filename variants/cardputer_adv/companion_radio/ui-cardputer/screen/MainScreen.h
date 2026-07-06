@@ -3,24 +3,12 @@
 #include "../../CardputerMesh.h"
 #include "../CardputerUITask.h"
 #include "../icons.h"
-#include "globals.h"
 #include "RingBuffer.h"
 #include "UnreadCounter.h"
+#include "globals.h"
+
 
 class MainScreen : public CardputerScreen {
-  enum MainScreenPage {
-    FIRST,
-    CHANNELS,
-    CONTACTS,
-    CHAT,
-    RECENT,
-    STATS,
-#if ENV_INCLUDE_GPS == 1
-    GPS,
-#endif
-    Count // keep as last
-  };
-
   CardputerUITask *_task;
   mesh::RTCClock *_rtc;
   SensorManager *_sensors;
@@ -60,6 +48,19 @@ class MainScreen : public CardputerScreen {
   int renderGpsPage();
 
 public:
+  enum MainScreenPage {
+    FIRST,
+    CHANNELS,
+    CONTACTS,
+    CHAT,
+    RECENT,
+    STATS,
+#if ENV_INCLUDE_GPS == 1
+    GPS,
+#endif
+    Count // keep as last
+  };
+  
   MainScreen(CardputerUITask *task, mesh::RTCClock *rtc, SensorManager *sensors, NodePrefs *node_prefs,
              CustomNodePrefs *custom_prefs)
       : _task(task), _rtc(rtc), _sensors(sensors), _node_prefs(node_prefs), _custom_prefs(custom_prefs) {
@@ -73,4 +74,5 @@ public:
   int render(DisplayDriver &display) override;
   bool handleInput(Keyboard::Event &e) override;
   void refreshSelectedContact();
+  inline MainScreenPage getCurrentPage() const { return (MainScreenPage)current_page; }
 };
