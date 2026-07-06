@@ -49,8 +49,6 @@ class MainScreen : public CardputerScreen {
 
   int getChannelCount();
   void sendChatMessage();
-  void chatInputRemoveLastChar();
-
   void renderStatusIcons();
 
   int renderFirstPage();

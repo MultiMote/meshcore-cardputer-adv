@@ -20,8 +20,17 @@ void SettingsScreen::renderItem(DisplayDriver &display, SettingsItem item, int x
       snprintf(tmp, sizeof(tmp), "---- MESH ----");
       break;
 
+    case SettingsItem::HdrPublicInfo:
+      text_color = DisplayDriver::GREEN;
+      snprintf(tmp, sizeof(tmp), "---- PUBLIC INFO ----");
+      break;
+
     case SettingsItem::RadioFreq:
       snprintf(tmp, sizeof(tmp), "FREQ: %06.3f", _node_prefs->freq);
+      break;
+
+    case SettingsItem::PublicInfoName:
+      snprintf(tmp, sizeof(tmp), "Name: %s", _node_prefs->node_name);
       break;
 
     case SettingsItem::RadioBw:
@@ -71,7 +80,7 @@ void SettingsScreen::renderItem(DisplayDriver &display, SettingsItem item, int x
   }
 
   display.setColor(text_color);
-  display.drawTextLeftAlign(x, y, tmp);
+  display.drawTextEllipsized(x, y, display.width() - x, tmp);
 }
 
 bool SettingsScreen::enterItemEdit(SettingsItem item) {
@@ -122,6 +131,11 @@ bool SettingsScreen::enterItemEdit(SettingsItem item) {
       is_editing = true;
       return true;
 
+    case SettingsItem::PublicInfoName:
+      edit_buffer = String(_node_prefs->node_name);
+      is_editing = true;
+      return true;
+
     case SettingsItem::RadioFreq:
       edit_buffer = String(_node_prefs->freq, 3);
       is_editing = true;
@@ -151,6 +165,12 @@ void SettingsScreen::cancelItemEdit(SettingsItem item) {
 bool SettingsScreen::commitItemEdit(SettingsItem item) {
 
   switch (item) {
+    case SettingsItem::PublicInfoName:
+      strncpy(_node_prefs->node_name, edit_buffer.c_str(), sizeof(_node_prefs->node_name) - 1);
+      _node_prefs->node_name[sizeof(_node_prefs->node_name) - 1] = '\0';
+      the_mesh_cp.savePrefs();
+      return true;
+
     case SettingsItem::RadioSf:
       _node_prefs->sf = edit_u8;
       the_mesh_cp.savePrefs();
@@ -246,23 +266,33 @@ void SettingsScreen::handleEditInput(SettingsItem item, Keyboard::Event &e) {
     case SettingsItem::RadioFreq:
     case SettingsItem::RadioBw:
 
-      if (e.key == Keyboard::KEY_BACKSPACE && edit_buffer.length() > 0) {
-        edit_buffer.remove(edit_buffer.length() - 1);
+      if (e.key == Keyboard::KEY_BACKSPACE) {
+        _task->removeLastStringChar(edit_buffer);
       } else if (e.key == Keyboard::KEY_PERIOD && edit_buffer.indexOf('.') == -1) {
         edit_buffer.concat('.');
       } else {
-        const char ch = _task->getBoard()->getLayout()->lookup(e, true)[0];
+        const char ch = _task->getBoard()->getLayout()->lookupDefault(e)[0];
         if (ch && isdigit(ch)) {
           edit_buffer.concat(ch);
         }
       }
       break;
     case SettingsItem::DeviceBatteryCorrection:
-      if (e.key == Keyboard::KEY_BACKSPACE && edit_buffer.length() > 0) {
-        edit_buffer.remove(edit_buffer.length() - 1);
+      if (e.key == Keyboard::KEY_BACKSPACE) {
+        _task->removeLastStringChar(edit_buffer);
       } else {
-        const char ch = _task->getBoard()->getLayout()->lookup(e, true)[0];
+        const char ch = _task->getBoard()->getLayout()->lookupDefault(e)[0];
         if (ch && isdigit(ch) && edit_buffer.length() < 4) {
+          edit_buffer.concat(ch);
+        }
+      }
+      break;
+    case SettingsItem::PublicInfoName:
+      if (e.key == Keyboard::KEY_BACKSPACE) {
+        _task->removeLastStringChar(edit_buffer);
+      } else if (edit_buffer.length() < sizeof(_node_prefs->node_name) - 2) {
+        const char *ch = _task->getBoard()->getLayout()->lookup(e);
+        if (ch[0]) {
           edit_buffer.concat(ch);
         }
       }
@@ -344,17 +374,27 @@ int SettingsScreen::render(DisplayDriver &display) {
         sprintf(buf, "- %d +", edit_u8);
         display.drawTextCentered(display.width() / 2, display.height() / 2 - 8, buf);
         break;
-
+      case SettingsItem::PublicInfoName:
       case SettingsItem::RadioFreq:
       case SettingsItem::RadioBw:
+      case SettingsItem::DeviceBatteryCorrection:
+        if (menu_index == SettingsItem::PublicInfoName) {
+          display.setTextSize(1);
+        }
         sprintf(buf, "%s_", edit_buffer.c_str());
         display.drawTextCentered(display.width() / 2, display.height() / 2 - 8, buf);
+      default:
+        break;
+    }
+
+    display.setTextSize(1);
+
+    switch (menu_index) {
+      case SettingsItem::PublicInfoName:
+        display.drawTextCentered(display.width() / 2, display.height() / 2 - 24,
+                                 _task->getBoard()->getLayout()->getCurrentCode());
         break;
       case SettingsItem::DeviceBatteryCorrection:
-        sprintf(buf, "%s_", edit_buffer.c_str());
-        display.drawTextCentered(display.width() / 2, display.height() / 2 - 8, buf);
-
-        display.setTextSize(1);
         sprintf(buf, "Read value = %umV, real =", _task->getBoard()->getBattMilliVolts());
         display.drawTextCentered(display.width() / 2, display.height() / 2 - 16, buf);
         break;
@@ -380,6 +420,11 @@ bool SettingsScreen::handleInput(Keyboard::Event &e) {
 
     if (e.key == Keyboard::KEY_ESC) {
       cancelItemEdit(static_cast<SettingsItem>(menu_index));
+      return true;
+    }
+
+    if (e.modifiers.ctrl && e.key == Keyboard::KEY_SPACE) {
+      _task->getBoard()->getLayout()->switchLayout();
       return true;
     }
 

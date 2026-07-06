@@ -4,6 +4,8 @@
 
 class SettingsScreen : public CardputerScreen {
   enum SettingsItem {
+    HdrPublicInfo,
+    PublicInfoName,
     HdrRadio,
     RadioFreq,
     RadioBw,

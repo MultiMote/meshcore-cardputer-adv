@@ -56,6 +56,8 @@ public:
   /// @return Utf-8 character or empty string. NULL is never returned.
   const char *lookup(Keyboard::Event &event, bool force_default = false);
 
+  inline const char *lookupDefault(Keyboard::Event &event) { return lookup(event, true); }
+
   void switchLayout();
   inline Keyboard::Layout::LayoutType getCurrentLayoutType() const { return current_layout_type; }
   inline bool hasAlternateLayout() const { return alternate_layout; }

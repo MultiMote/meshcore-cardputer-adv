@@ -15,4 +15,7 @@
 * Remove G0 button handling
 * Add more Unicode blocks to font
 * Move shutdown and reset to the tools menu
+* Move node name to the settings menu and make it editable
+* Move status icons to the left side
+* Add unread icon
 * Fix chat input line truncated at the wrong side

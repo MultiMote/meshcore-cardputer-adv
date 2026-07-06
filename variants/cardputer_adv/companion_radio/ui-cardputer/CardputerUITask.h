@@ -85,4 +85,5 @@ public:
   void loop() override;
   void shutdown(bool restart = false);
   CardputerAdvBoard *getBoard() { return _board; }
+  void removeLastStringChar(String &str);
 };

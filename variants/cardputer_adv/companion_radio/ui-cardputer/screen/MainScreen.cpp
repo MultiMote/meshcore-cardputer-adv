@@ -16,7 +16,7 @@ void MainScreen::renderStatusIcons() {
   int iconWidth = 26;
   int iconHeight = 14;
   int iconX = display.width() - iconWidth - 5; // Position the icon near the top-right corner
-  int iconY = 0;
+  int iconY = 2;
   display.setColor(DisplayDriver::GREEN);
 
   // battery outline
@@ -34,19 +34,24 @@ void MainScreen::renderStatusIcons() {
   display.setColor(DisplayDriver::DARK);
   display.drawTextCentered(iconX + 2 + iconWidth / 2 - 1, 0, tmp);
 
-  iconX -= 3;
-  iconY += 3;
+  iconX = 3;
+  iconY = 3;
+
+  display.setColor(DisplayDriver::GREEN);
 
   if (_task->isBuzzerQuiet()) {
-    iconX -= 9;
-    display.setColor(DisplayDriver::RED);
-    display.drawXbm(iconX, iconY + 1, muted_icon, 8, 8);
+    display.drawXbm(iconX, iconY, muted_icon, 8, 8);
+    iconX += 11;
   }
 
   if (_task->powerSaveEnabled()) {
-    iconX -= 9;
-    display.setColor(DisplayDriver::BLUE);
-    display.drawXbm(iconX, iconY + 1, sleep_icon, 8, 8);
+    display.drawXbm(iconX, iconY, sleep_icon, 8, 8);
+    iconX += 11;
+  }
+
+  if (unread.countChats() > 0) {
+    display.drawXbm(iconX, iconY, unread_icon, 8, 8);
+    iconX += 11;
   }
 }
 
@@ -378,12 +383,8 @@ int MainScreen::renderGpsPage() {
 #endif
 
 int MainScreen::render(DisplayDriver &display) {
-  char tmp[80];
-  // node name
   display.setTextSize(1);
   display.setColor(DisplayDriver::GREEN);
-  display.setCursor(0, 0);
-  display.print(_node_prefs->node_name);
 
   renderStatusIcons();
 
@@ -540,22 +541,6 @@ void MainScreen::sendChatMessage() {
   }
 }
 
-// In case if input has utf-8 multibyte characters
-void MainScreen::chatInputRemoveLastChar() {
-  unsigned int len = chat_text_box.length();
-  if (len == 0) {
-    return;
-  }
-
-  unsigned int bytesToRemove = 1;
-
-  while (len - bytesToRemove > 0 && ((unsigned char)chat_text_box[len - bytesToRemove] & 0xC0) == 0x80) {
-    bytesToRemove++;
-  }
-
-  chat_text_box.remove(len - bytesToRemove, bytesToRemove);
-}
-
 bool MainScreen::handleInput(Keyboard::Event &e) {
 
   if (current_page == MainScreenPage::CONTACTS) {
@@ -646,7 +631,7 @@ bool MainScreen::handleInput(Keyboard::Event &e) {
     CardputerLayout *lay = _task->getBoard()->getLayout();
 
     if (e.key == Keyboard::KEY_BACKSPACE) {
-      chatInputRemoveLastChar();
+      _task->removeLastStringChar(chat_text_box);
       return true;
     }
 
