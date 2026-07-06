@@ -70,6 +70,11 @@ const char *CardputerLayout::lookup(Keyboard::Event &event, bool force_default) 
     }
   }
 
+  // Handle space if it not overriden
+  if (event.key == Keyboard::KEY_SPACE && !event.modifiers.ctrl) {
+    return " ";
+  }
+
   return "";
 }
 
