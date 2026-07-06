@@ -258,7 +258,7 @@ int MainScreen::renderChatPage() {
   }
 
   int start_x = 5;
-  display.drawRect(1, display.height() - UI_TEXT_LINE_HEIGHT - 2, display.width() - 1, 1);
+  display.drawRect(1, display.height() - UI_TEXT_LINE_HEIGHT - 4, display.width() - 1, 1);
 
   CardputerLayout *lay = _task->getBoard()->getLayout();
 
@@ -267,13 +267,13 @@ int MainScreen::renderChatPage() {
     int label_width = std::max(display.getTextWidth(lay->getMainLayoutCode()),
                                display.getTextWidth(lay->getAlternateLayoutCode()));
     start_x += label_width;
-    display.drawRect(start_x, display.height() - UI_TEXT_LINE_HEIGHT - 2, 1, UI_TEXT_LINE_HEIGHT + 2);
-    display.drawTextLeftAlign(2, display.height() - UI_TEXT_LINE_HEIGHT - 2, layout_label);
+    display.drawRect(start_x, display.height() - UI_TEXT_LINE_HEIGHT - 4, 1, UI_TEXT_LINE_HEIGHT + 4);
+    display.drawTextLeftAlign(2, display.height() - UI_TEXT_LINE_HEIGHT - 4, layout_label);
     start_x += 5;
   }
 
   display.setColor(DisplayDriver::LIGHT);
-  display.drawTextEllipsized(start_x, display.height() - UI_TEXT_LINE_HEIGHT - 2, display.width() - start_x,
+  display.drawTextEllipsized(start_x, display.height() - UI_TEXT_LINE_HEIGHT - 4, display.width() - start_x,
                              chat_text_box.c_str());
   return 15000;
 }
