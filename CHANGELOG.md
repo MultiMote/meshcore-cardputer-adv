@@ -15,3 +15,4 @@
 * Remove G0 button handling
 * Add more Unicode blocks to font
 * Move shutdown and reset to the tools menu
+* Fix chat input line truncated at the wrong side

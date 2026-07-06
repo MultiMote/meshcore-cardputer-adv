@@ -132,6 +132,41 @@ int16_t CardputerDisplay::getFontLineHeight() const {
   return _fontYAdvance;
 }
 
+void CardputerDisplay::drawTextLeftAlignWithScroll(int x, int y, int available_width, const char *text) {
+  int text_len = strlen(text);
+  int offset = 0;
+
+  // Calculate how many characters from the start to skip so the text fits
+  while (offset < text_len) {
+    if (getTextWidth(&text[offset]) <= available_width) {
+      break;
+    }
+    // Skip to next UTF-8 character boundary
+    unsigned char b = text[offset];
+    if ((b & 0x80) == 0) {
+      // Single-byte character (ASCII)
+      offset += 1;
+    } else if ((b & 0xE0) == 0xC0) {
+      // 2-byte character
+      offset += 2;
+    } else if ((b & 0xF0) == 0xE0) {
+      // 3-byte character
+      offset += 3;
+    } else if ((b & 0xF8) == 0xF0) {
+      // 4-byte character
+      offset += 4;
+    } else {
+      offset += 1; // Invalid UTF-8, skip single byte
+    }
+
+    if (offset >= text_len) {
+      break;
+    }
+  }
+
+  drawTextLeftAlign(x, y, &text[offset]);
+}
+
 void CardputerDisplay::setTextSize(int sz) {
   LCD.setTextSize(sz);
 }

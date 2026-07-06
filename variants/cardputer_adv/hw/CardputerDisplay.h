@@ -72,4 +72,5 @@ public:
   uint16_t getTextWidth(const char *str) override;
   int32_t getFontHeight() const;
   int16_t getFontLineHeight() const;
+  void drawTextLeftAlignWithScroll(int x, int y, int available_width, const char *text);
 };

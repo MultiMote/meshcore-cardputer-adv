@@ -273,8 +273,12 @@ int MainScreen::renderChatPage() {
   }
 
   display.setColor(DisplayDriver::LIGHT);
-  display.drawTextEllipsized(start_x, display.height() - UI_TEXT_LINE_HEIGHT - 4, display.width() - start_x,
-                             chat_text_box.c_str());
+
+  int available_width = display.width() - start_x;
+
+  display.drawTextLeftAlignWithScroll(start_x, display.height() - UI_TEXT_LINE_HEIGHT - 4, available_width,
+                                      chat_text_box.c_str());
+
   return 15000;
 }
 
