@@ -2,8 +2,8 @@ name: Build firmware
 
 on:
   push:
-    branches:
-      - "main"
+    tags:
+      - '*'
   workflow_dispatch:
 
 env:
