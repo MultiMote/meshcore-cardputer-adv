@@ -2,10 +2,8 @@ name: Build firmware
 
 on:
   push:
-    tags:
-      - "*"
-    paths:
-      - "variants/cardputer_adv/**"
+    branches:
+      - "main"
   workflow_dispatch:
 
 env:
