@@ -19,8 +19,9 @@ int ToolsScreen::render(DisplayDriver &display) {
         break;
       }
 
-      display.setColor(DisplayDriver::YELLOW);
-      display.drawTextLeftAlign(15, 20 + i * UI_TEXT_LINE_HEIGHT, menu_item_labels[real_idx]);
+      const char *label = menu_item_labels[real_idx];
+      display.setColor(label[0] == '-' ? DisplayDriver::GREEN : DisplayDriver::YELLOW);
+      display.drawTextLeftAlign(15, 20 + i * UI_TEXT_LINE_HEIGHT, label);
 
       if (i == list_idx) {
         display.setColor(DisplayDriver::GREEN);
@@ -76,6 +77,21 @@ void ToolsScreen::menuItemEnter(ToolsMenuItem item) {
 
       break;
 
+    case ToolsMenuItem::PowerOff: {
+      bool done = false;
+      // Wait for key release to prevent firing interrupt
+      do {
+        Keyboard::Event e = _task->getBoard()->getKeyboard()->poll();
+        done = (e.changed && e.key == Keyboard::KEY_RETURN && e.down == false);
+        delay(10);
+      } while (!done);
+      _task->shutdown();
+    } break;
+
+    case ToolsMenuItem::Restart:
+      ESP.restart();
+      break;
+
     default:
       break;
   }
@@ -129,8 +145,7 @@ void ToolsScreen::discoverRecv(const mesh::Identity &id, float snr) {
     rep.snr = snr;
     rep.name[0] = '\0';
 
-    ContactInfo *contact =
-        the_mesh_cp.lookupContactByPubKey(id.pub_key, CONTACT_LOOKUP_BYTES);
+    ContactInfo *contact = the_mesh_cp.lookupContactByPubKey(id.pub_key, CONTACT_LOOKUP_BYTES);
 
     if (contact) {
       snprintf(rep.name, sizeof(rep.name), "%s", contact->name);

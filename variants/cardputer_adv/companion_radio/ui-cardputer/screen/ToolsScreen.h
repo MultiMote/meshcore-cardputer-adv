@@ -5,7 +5,16 @@
 
 class ToolsScreen : public CardputerScreen {
   enum ToolsPage { MenuPage, DiscoverPage };
-  enum ToolsMenuItem { AdvertZeroHop, AdvertFlood, DiscoverRepeaters, Count };
+  enum ToolsMenuItem {
+    MeshcoreSeparator,
+    AdvertZeroHop,
+    AdvertFlood,
+    DiscoverRepeaters,
+    PowerOff,
+    DeviceSeparator,
+    Restart,
+    Count
+  };
 
   struct DiscoveredRepeater {
     char name[25];
@@ -13,9 +22,13 @@ class ToolsScreen : public CardputerScreen {
   };
 
   const char *menu_item_labels[ToolsMenuItem::Count] = {
+    "---- RADIO ----",
     "Advert (Zero Hop)",
     "Advert (Flood)",
     "Discover repeaters",
+    "---- DEVICE ----",
+    "Power off",
+    "Restart",
   };
 
   CardputerUITask *_task;

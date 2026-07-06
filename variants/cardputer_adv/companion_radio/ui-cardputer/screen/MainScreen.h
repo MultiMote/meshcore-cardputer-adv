@@ -18,7 +18,6 @@ class MainScreen : public CardputerScreen {
 #if ENV_INCLUDE_GPS == 1
     GPS,
 #endif
-    SHUTDOWN,
     Count // keep as last
   };
 
@@ -61,7 +60,6 @@ class MainScreen : public CardputerScreen {
   int renderRecentPage();
   int renderStatsPage();
   int renderGpsPage();
-  int renderShutdownPage();
 
 public:
   MainScreen(CardputerUITask *task, mesh::RTCClock *rtc, SensorManager *sensors, NodePrefs *node_prefs,

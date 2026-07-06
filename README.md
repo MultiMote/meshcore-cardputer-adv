@@ -93,8 +93,8 @@ Currently implemented (companion):
    * Enabled if `/meshcore_custom/keyboard_alt.txt` file is present on SD card
    * Switch with Ctrl+Space
    * Create own layout with [Layout Editor](https://github.com/MultiMote/cardputer-adv-layout-editor).
-   * Up to 3 byte character replacement (UTF-8).
-   * Ready to use: [keyboard_layouts](keyboard_layouts).
+   * Up to 3 byte character replacement (UTF-8)
+   * Ready to use: [keyboard_layouts](keyboard_layouts)
    * More info: https://github.com/MultiMote/meshcore-cardputer-adv/wiki/Keyboard-layout-format
 
 

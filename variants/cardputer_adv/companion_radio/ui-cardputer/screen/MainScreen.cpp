@@ -373,15 +373,6 @@ int MainScreen::renderGpsPage() {
 }
 #endif
 
-int MainScreen::renderShutdownPage() {
-  display.setColor(DisplayDriver::GREEN);
-  display.setTextSize(1);
-  display.drawXbm((display.width() - 32) / 2, 18, power_icon, 32, 32);
-  display.drawTextCentered(display.width() / 2, 53, "Press Enter to hibernate");
-  display.drawTextCentered(display.width() / 2, 53 + UI_TEXT_LINE_HEIGHT, "Press R to reset");
-  return 5000;
-}
-
 int MainScreen::render(DisplayDriver &display) {
   char tmp[80];
   // node name
@@ -422,8 +413,6 @@ int MainScreen::render(DisplayDriver &display) {
     case MainScreenPage::GPS:
       return renderGpsPage();
 #endif
-    case MainScreenPage::SHUTDOWN:
-      return renderShutdownPage();
     default:
       break;
   }
@@ -719,26 +708,6 @@ bool MainScreen::handleInput(Keyboard::Event &e) {
     return true;
   }
 #endif
-
-  if (current_page == MainScreenPage::SHUTDOWN) {
-    if (e.key == Keyboard::KEY_RETURN) {
-      bool done = false;
-      // Wait for key release to not fire interrupt
-      do {
-        Keyboard::Event e = _task->getBoard()->getKeyboard()->poll();
-        done = (e.changed && e.key == Keyboard::KEY_RETURN && e.down == false);
-        delay(10);
-      } while (!done);
-
-      _task->shutdown();
-      return true;
-    }
-
-    if (e.key == Keyboard::KEY_R) {
-      ESP.restart();
-      return true;
-    }
-  }
 
   if (current_page == MainScreenPage::FIRST) {
     if (e.modifiers.opt) {
