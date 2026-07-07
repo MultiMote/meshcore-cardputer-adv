@@ -71,6 +71,8 @@ Currently implemented (companion):
 - Compose and send messages
    * After sending group message, "Heard repeats" appears (if any)
    * After sending direct message, "Message delivered" appears (if ACK received)
+   * Retry direct message sending if ACK is not received
+
 - Chat history
    * Full history stored on SD card
    * Last 15 messages stored in buffer
@@ -106,7 +108,6 @@ Todo:
 - Import contacts from SD card
 - Delete contacts
 - Add hash channels
-- Retry direct message sending if ACK is not received
 
 ### Thoughts on Cardputer
 
