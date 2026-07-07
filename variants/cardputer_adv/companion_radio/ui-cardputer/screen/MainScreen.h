@@ -15,7 +15,7 @@ class MainScreen : public CardputerScreen {
   NodePrefs *_node_prefs;
   CustomNodePrefs *_custom_prefs;
 
-  uint8_t current_page = MainScreenPage::FIRST;
+  uint8_t current_page = MainScreen::FIRST;
   AdvertPath recent[UI_RECENT_LIST_SIZE];
   String chat_text_box;
 
@@ -60,7 +60,7 @@ public:
 #endif
     Count // keep as last
   };
-  
+
   MainScreen(CardputerUITask *task, mesh::RTCClock *rtc, SensorManager *sensors, NodePrefs *node_prefs,
              CustomNodePrefs *custom_prefs)
       : _task(task), _rtc(rtc), _sensors(sensors), _node_prefs(node_prefs), _custom_prefs(custom_prefs) {
@@ -70,6 +70,8 @@ public:
   void onChannelMessageRecv(const mesh::GroupChannel &channel, const char *text);
   void onContactMessageRecv(const ContactInfo &contact, const char *text);
   void onAckRecv(uint32_t hash);
+  void onMessageSendAttempt(uint8_t attempt, uint8_t total);
+
   void poll() override;
   int render(DisplayDriver &display) override;
   bool handleInput(Keyboard::Event &e) override;

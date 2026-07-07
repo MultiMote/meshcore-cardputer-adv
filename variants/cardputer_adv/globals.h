@@ -35,6 +35,9 @@
 #define MAX_DISCOVERED_REPEATERS                 8
 #define CONTACT_LOOKUP_BYTES                     6
 
+#define DIRECT_SEND_ROUTE_ATTEMPTS               3
+#define DIRECT_SEND_FLOOD_ATTEMPTS               3
+
 // ================== PINS ==================
 
 // Cap LoRa-1262 IO expander, audio codec (ES8311), keyboard (TCA8418)

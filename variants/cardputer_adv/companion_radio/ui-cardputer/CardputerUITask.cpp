@@ -112,6 +112,14 @@ void CardputerUITask::onAckRecv(uint32_t hash) {
   ((MainScreen *)main_screen)->onAckRecv(hash);
 }
 
+void CardputerUITask::onMessageSendAttempt(uint8_t attempt, uint8_t total) {
+  auto_off_time = millis() + AUTO_OFF_MILLIS;
+  
+  if (current_screen == main_screen) {
+    static_cast<MainScreen *>(main_screen)->onMessageSendAttempt(attempt, total);
+  }
+}
+
 void CardputerUITask::pingRecv(float snr_tx, float snr_rx) {
   char buf[40];
   sprintf(buf, "SNR there/back: %.2f/%.2f", snr_tx, snr_rx);

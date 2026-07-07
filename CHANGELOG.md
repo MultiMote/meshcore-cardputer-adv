@@ -1,3 +1,7 @@
+# 2026.7.1
+
+* Multiple direct message sending attempts
+
 # 2026.7.0
 
 * Add versioning

@@ -476,9 +476,24 @@ void MainScreen::onContactMessageRecv(const ContactInfo &contact, const char *te
 void MainScreen::onAckRecv(uint32_t hash) {
   if (current_page == MainScreenPage::CHAT && hash == last_message_ack) {
     last_message_ack = 0;
+    refreshSelectedContact();
     _task->showAlert("Message delivered", 2000);
     _task->playSound(SoundType::MessageAck);
+  }
+}
+
+void MainScreen::onMessageSendAttempt(uint8_t attempt, uint8_t total) {
+  char buf[32];
+
+  if (attempt == 4 && total == 6) { // Path reset
     refreshSelectedContact();
+  }
+
+  if (attempt == 1) {
+    _task->showAlert("Waiting for delivery...", 4000);
+  } else {
+    sprintf(buf, "Resending... (%u/%u)", attempt, total);
+    _task->showAlert(buf, 4000);
   }
 }
 
@@ -518,7 +533,6 @@ void MainScreen::sendChatMessage() {
 
       chat_text_box.clear();
       chat_history_offset = 0;
-      _task->showAlert("Waiting for delivery...", 2000);
     }
     return;
   }

@@ -22,6 +22,21 @@ class CardputerMesh : public MyMesh {
     .battery_correction = 1.0f
   };
 
+  struct LastSentMessage {
+    ContactInfo recipient;
+    uint32_t timestamp = 0;
+    uint8_t attempt = 0;
+    uint8_t total_attempts = 0;
+    uint32_t expected_ack;
+    char text[MAX_MESSAGE_LENGTH + 1] = { 0 };
+    bool delivered = false;
+    bool need_direct = false;
+  };
+
+  LastSentMessage last_msg;
+
+  bool need_resend_message = false;
+
 public:
   CardputerMesh(mesh::Radio &radio, mesh::RNG &rng, mesh::RTCClock &rtc, SimpleMeshTables &tables,
                 CardputerDataStore &store, CardputerUITask *ui)
@@ -44,6 +59,8 @@ public:
 
   void logRxRaw(float snr, float rssi, const uint8_t raw[], int len) override;
 
+  void onSendTimeout() override;
+
   ContactInfo* processAck(const uint8_t *data) override;
 
 
@@ -57,7 +74,7 @@ public:
   uint32_t getLastPingTag() const { return last_ping_tag; }
   inline CustomNodePrefs *getCustomNodePrefs() { return &_custom_prefs; }
   void loadMessageHistory(const uint8_t pkey[PUB_KEY_SIZE], bool is_channel, ChatHistory &history);
-
+  void loop();
 };
 
 extern CardputerMesh the_mesh_cp;

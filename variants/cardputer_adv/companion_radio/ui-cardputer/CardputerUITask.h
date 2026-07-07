@@ -76,6 +76,7 @@ public:
   void onChannelMessageRecv(const mesh::GroupChannel &channel, const char *text);
   void onContactMessageRecv(const ContactInfo &contact, const char *text);
   void onAckRecv(uint32_t hash);
+  void onMessageSendAttempt(uint8_t attempt, uint8_t total);
 
   void pingRecv(float snr_tx, float snr_rx);
   void discoverRecv(const mesh::Identity &id, float snr);
