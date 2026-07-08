@@ -1,6 +1,5 @@
 #include "CardputerUITask.h"
 
-#include "../CardputerMesh.h"
 #include "screen/MainScreen.h"
 #include "screen/MsgPreviewScreen.h"
 #include "screen/SettingsScreen.h"
@@ -108,15 +107,11 @@ void CardputerUITask::onContactMessageRecv(const ContactInfo &contact, const cha
   ((MainScreen *)main_screen)->onContactMessageRecv(contact, text);
 }
 
-void CardputerUITask::onAckRecv(uint32_t hash) {
-  ((MainScreen *)main_screen)->onAckRecv(hash);
-}
-
-void CardputerUITask::onMessageSendAttempt(uint8_t attempt, uint8_t total) {
+void CardputerUITask::onMessageSendAttempt(uint8_t attempt, uint8_t total, MessageSendState state) {
   auto_off_time = millis() + AUTO_OFF_MILLIS;
-  
+
   if (current_screen == main_screen) {
-    static_cast<MainScreen *>(main_screen)->onMessageSendAttempt(attempt, total);
+    static_cast<MainScreen *>(main_screen)->onMessageSendAttempt(attempt, total, state);
   }
 }
 

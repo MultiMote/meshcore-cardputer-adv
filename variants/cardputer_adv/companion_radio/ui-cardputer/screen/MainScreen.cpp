@@ -473,17 +473,20 @@ void MainScreen::onContactMessageRecv(const ContactInfo &contact, const char *te
   }
 }
 
-void MainScreen::onAckRecv(uint32_t hash) {
-  if (current_page == MainScreenPage::CHAT && hash == last_message_ack) {
-    last_message_ack = 0;
+void MainScreen::onMessageSendAttempt(uint8_t attempt, uint8_t total, MessageSendState state) {
+  char buf[32];
+
+  if (state == MessageSendState::MESSAGE_FAILED) {
+    _task->showAlert("Message ACK not received", 2000);
+    return;
+  }
+
+  if (state == MessageSendState::MESSAGE_DELIVERED) {
     refreshSelectedContact();
     _task->showAlert("Message delivered", 2000);
     _task->playSound(SoundType::MessageAck);
+    return;
   }
-}
-
-void MainScreen::onMessageSendAttempt(uint8_t attempt, uint8_t total) {
-  char buf[32];
 
   if (attempt == 4 && total == 6) { // Path reset
     refreshSelectedContact();
@@ -524,7 +527,7 @@ void MainScreen::sendChatMessage() {
     uint32_t est_timeout;
 
     int result =
-        the_mesh_cp.sendMessage(current_contact, ts, 0, chat_text_box.c_str(), last_message_ack, est_timeout);
+        the_mesh_cp.sendDirectMessage(current_contact, ts, chat_text_box.c_str());
 
     if (result != MSG_SEND_FAILED) {
       HistoryMessage *msg = chat_history.push_ref();

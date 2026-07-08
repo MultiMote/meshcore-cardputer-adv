@@ -3,6 +3,7 @@
 #include "CardputerAdvBoard.h"
 #include "CardputerDataStore.h"
 #include "screen/CardputerScreen.h"
+#include "types.h"
 
 #include <AbstractUITask.h>
 #include <Arduino.h>
@@ -14,13 +15,6 @@
 #include <helpers/ui/DisplayDriver.h>
 
 #define LONG_PRESS_MILLIS 1200
-
-enum class SoundType {
-  NewMessage,
-  Keyboard,
-  DiscoveryResult,
-  MessageAck,
-};
 
 class CardputerUITask : public AbstractUITask {
   DisplayDriver *_display;
@@ -75,8 +69,7 @@ public:
 
   void onChannelMessageRecv(const mesh::GroupChannel &channel, const char *text);
   void onContactMessageRecv(const ContactInfo &contact, const char *text);
-  void onAckRecv(uint32_t hash);
-  void onMessageSendAttempt(uint8_t attempt, uint8_t total);
+  void onMessageSendAttempt(uint8_t attempt, uint8_t total, MessageSendState state);
 
   void pingRecv(float snr_tx, float snr_rx);
   void discoverRecv(const mesh::Identity &id, float snr);

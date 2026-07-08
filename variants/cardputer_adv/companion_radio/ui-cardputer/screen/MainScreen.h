@@ -33,8 +33,6 @@ class MainScreen : public CardputerScreen {
   ContactInfo current_contact;
   int current_contact_idx = -1;
 
-  uint32_t last_message_ack = 0;
-
   int getChannelCount();
   void sendChatMessage();
   void renderStatusIcons();
@@ -69,8 +67,7 @@ public:
   void messageRepeatsRecv(uint16_t count);
   void onChannelMessageRecv(const mesh::GroupChannel &channel, const char *text);
   void onContactMessageRecv(const ContactInfo &contact, const char *text);
-  void onAckRecv(uint32_t hash);
-  void onMessageSendAttempt(uint8_t attempt, uint8_t total);
+  void onMessageSendAttempt(uint8_t attempt, uint8_t total, MessageSendState state);
 
   void poll() override;
   int render(DisplayDriver &display) override;

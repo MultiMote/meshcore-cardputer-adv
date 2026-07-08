@@ -93,30 +93,27 @@ bool CardputerMesh::sendGroupMessage(uint32_t timestamp, mesh::GroupChannel &cha
 
 
 
-int CardputerMesh::sendMessage(const ContactInfo &recipient, uint32_t timestamp, uint8_t /*attempt*/,
-                               const char *text, uint32_t &expected_ack, uint32_t &est_timeout) {
-
+int CardputerMesh::sendDirectMessage(const ContactInfo &recipient, uint32_t timestamp, const char *text) {
+  uint32_t est_timeout;
   bool flood = (recipient.out_path_len == OUT_PATH_UNKNOWN);
   last_msg.timestamp = timestamp;
   last_msg.recipient = recipient;
   strncpy(last_msg.text, text, sizeof(last_msg.text));
   last_msg.text[sizeof(last_msg.text) - 1] = 0;
-  last_msg.delivered = false;
+  last_msg.state = MESSAGE_SENDING;
   last_msg.need_direct = !flood;
   last_msg.attempt = 1;
   last_msg.total_attempts = DIRECT_SEND_FLOOD_ATTEMPTS + (!flood ? DIRECT_SEND_ROUTE_ATTEMPTS : 0);
 
-  _ui->onMessageSendAttempt(last_msg.attempt, last_msg.total_attempts);
-
+  _ui->onMessageSendAttempt(last_msg.attempt, last_msg.total_attempts, last_msg.state);
   int rc = MyMesh::sendMessage(recipient, timestamp, 0, text, last_msg.expected_ack, est_timeout);
-  expected_ack = last_msg.expected_ack;
   _store->storeMessage(recipient.id.pub_key, text, true, false);
   return rc;
 }
 
 void CardputerMesh::onSendTimeout() {
   // TODO: longer timeout?
-  if (last_msg.delivered || need_resend_message) {
+  if (last_msg.state != MESSAGE_SENDING || need_resend_message) {
     return;
   }
 
@@ -141,6 +138,8 @@ void CardputerMesh::onSendTimeout() {
     return;
   }
 
+  last_msg.state = MESSAGE_FAILED;
+  _ui->onMessageSendAttempt(last_msg.attempt + 1, last_msg.total_attempts, last_msg.state);
   MESH_DEBUG_PRINTLN("Message sending failed");
 }
 
@@ -152,10 +151,12 @@ void CardputerMesh::logRxRaw(float snr, float rssi, const uint8_t raw[], int len
 ContactInfo *CardputerMesh::processAck(const uint8_t *data) {
   uint32_t hash;
   memcpy(&hash, data, 4);
-  _ui->onAckRecv(hash);
+  // _ui->onAckRecv(hash);
 
   if (last_msg.expected_ack == hash) {
-    last_msg.delivered = true;
+    last_msg.state = MESSAGE_DELIVERED;
+    _ui->onMessageSendAttempt(last_msg.attempt + 1, last_msg.total_attempts, last_msg.state);
+
   }
 
   return MyMesh::processAck(data);
@@ -252,7 +253,7 @@ void CardputerMesh::loop() {
     uint32_t expected_ack;
     uint32_t est_timeout;
 
-    _ui->onMessageSendAttempt(last_msg.attempt + 1, last_msg.total_attempts);
+    _ui->onMessageSendAttempt(last_msg.attempt + 1, last_msg.total_attempts, last_msg.state);
 
     MyMesh::sendMessage(last_msg.recipient, last_msg.timestamp, last_msg.attempt, last_msg.text,
                         expected_ack, est_timeout);
