@@ -90,6 +90,7 @@ Currently implemented (companion):
    * Latin Extended-A (U+0100-U+017F)
    * Cyrillic (U+0400-U+04FF)
    * Currency Symbols (U+20A0-U+20CF)
+   * Arrows (U+2190-U+21FF)
 
 - Keyboard layouts
 

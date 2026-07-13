@@ -2,6 +2,7 @@
 
 * Multiple direct message sending attempts
 * Press `Ctrl+Up` to insert last sent message into the text field
+* Add arrows to font
 
 # 2026.7.0
 
