@@ -117,6 +117,8 @@ struct Modifiers {
   bool shift = false;
   bool opt = false;
   bool alt = false;
+
+  bool any() const { return fn || ctrl || shift || opt || alt; }
 };
 
 struct Event {

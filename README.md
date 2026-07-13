@@ -72,6 +72,7 @@ Currently implemented (companion):
    * After sending group message, "Heard repeats" appears (if any)
    * After sending direct message, "Message delivered" appears (if ACK received)
    * Retry direct message sending if ACK is not received
+   * Press `Ctrl+Up` to insert last sent message into the text field
 
 - Chat history
    * Full history stored on SD card

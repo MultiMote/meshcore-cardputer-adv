@@ -17,6 +17,7 @@ class MainScreen : public CardputerScreen {
 
   uint8_t current_page = MainScreen::FIRST;
   AdvertPath recent[UI_RECENT_LIST_SIZE];
+  String last_sent_message;
   String chat_text_box;
 
   ChatHistory chat_history;

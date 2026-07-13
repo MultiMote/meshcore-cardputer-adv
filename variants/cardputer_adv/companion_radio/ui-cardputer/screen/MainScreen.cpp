@@ -534,6 +534,8 @@ void MainScreen::sendChatMessage() {
       msg->out = true;
       snprintf(msg->text, MAX_MESSAGE_LENGTH, "%s", chat_text_box.c_str());
 
+
+      last_sent_message = chat_text_box;
       chat_text_box.clear();
       chat_history_offset = 0;
     }
@@ -550,6 +552,7 @@ void MainScreen::sendChatMessage() {
 
       snprintf(msg->text, MAX_MESSAGE_LENGTH, "%s", chat_text_box.c_str());
 
+      last_sent_message = chat_text_box;
       chat_text_box.clear();
       chat_history_offset = 0;
       _task->showAlert("Waiting for repeats...", 2000);
@@ -649,6 +652,11 @@ bool MainScreen::handleInput(Keyboard::Event &e) {
 
     if (e.key == Keyboard::KEY_BACKSPACE) {
       _task->removeLastStringChar(chat_text_box);
+      return true;
+    }
+
+    if (e.modifiers.ctrl && e.key == Keyboard::ARROW_UP && chat_text_box.isEmpty()) {
+      chat_text_box = last_sent_message;
       return true;
     }
 
