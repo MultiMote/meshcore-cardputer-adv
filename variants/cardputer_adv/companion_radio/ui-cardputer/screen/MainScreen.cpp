@@ -592,6 +592,14 @@ bool MainScreen::handleInput(Keyboard::Event &e) {
           the_mesh_cp.loadMessageHistory(c.id.pub_key, false, chat_history);
           chat_history_offset = 0;
           unread.resetContact(c.id.pub_key);
+
+          const HistoryMessage *msg;
+          for(size_t i = chat_history.count(); i > 0; i--) {
+            if (chat_history.get(i - 1, msg) && msg->out) {
+              last_sent_message = msg->text;
+              break;
+            }
+          }
         } else if ((c.type == ADV_TYPE_REPEATER || c.type == ADV_TYPE_ROOM) && !_task->isAlertActive()) {
           the_mesh_cp.sendPing(c);
           _task->showAlert("Waiting for response...", 4000);
@@ -642,6 +650,14 @@ bool MainScreen::handleInput(Keyboard::Event &e) {
         the_mesh_cp.loadMessageHistory(c.channel.secret, true, chat_history);
         chat_history_offset = 0;
         unread.resetChannel(c.channel.secret);
+
+        const HistoryMessage *msg;
+        for(size_t i = chat_history.count(); i > 0; i--) {
+          if (chat_history.get(i - 1, msg) && msg->out) {
+            last_sent_message = msg->text;
+            break;
+          }
+        }
       }
       return true;
     }
