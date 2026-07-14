@@ -19,7 +19,7 @@ class CardputerMesh : public MyMesh {
   uint16_t last_message_heard_repeats = 0;
   CustomNodePrefs _custom_prefs{ .power_save = 0, .battery_correction = 1.0f };
   LastSentMessage last_msg;
-  bool need_resend_message = false;
+  unsigned long resend_timeout = 0;
 
 public:
   CardputerMesh(mesh::Radio &radio, mesh::RNG &rng, mesh::RTCClock &rtc, SimpleMeshTables &tables,
@@ -44,7 +44,7 @@ public:
 
   void logRxRaw(float snr, float rssi, const uint8_t raw[], int len) override;
 
-  void onSendTimeout() override;
+  void checkResend();
 
   ContactInfo *processAck(const uint8_t *data) override;
 
@@ -59,6 +59,7 @@ public:
   inline CustomNodePrefs *getCustomNodePrefs() { return &_custom_prefs; }
   void loadMessageHistory(const uint8_t pkey[PUB_KEY_SIZE], bool is_channel, ChatHistory &history);
   void loop();
+  void cancelResending();
 };
 
 extern CardputerMesh the_mesh_cp;

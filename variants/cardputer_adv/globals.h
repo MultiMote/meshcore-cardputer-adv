@@ -36,7 +36,9 @@
 #define CONTACT_LOOKUP_BYTES                     6
 
 #define DIRECT_SEND_ROUTE_ATTEMPTS               3
+#define DIRECT_SEND_ROUTE_RESEND_RELAY           8000
 #define DIRECT_SEND_FLOOD_ATTEMPTS               3
+#define DIRECT_SEND_FLOOD_RESEND_RELAY           10000
 
 // ================== PINS ==================
 

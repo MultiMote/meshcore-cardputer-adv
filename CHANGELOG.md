@@ -1,6 +1,7 @@
 # 2026.7.1
 
 * Multiple direct message sending attempts
+* Press `Ctrl+T` to break resending
 * Press `Ctrl+Up` to insert last sent message into the text field
 * Add arrows to font
 * Fix screen not updated on new message

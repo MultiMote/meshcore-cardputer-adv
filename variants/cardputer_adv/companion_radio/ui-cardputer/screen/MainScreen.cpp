@@ -492,11 +492,13 @@ void MainScreen::onMessageSendAttempt(uint8_t attempt, uint8_t total, MessageSen
     refreshSelectedContact();
   }
 
+  unsigned long ms = std::max(DIRECT_SEND_ROUTE_RESEND_RELAY, DIRECT_SEND_FLOOD_RESEND_RELAY);
+
   if (attempt == 1) {
-    _task->showAlert("Waiting for delivery...", 4000);
+    _task->showAlert("Waiting for delivery...", ms);
   } else {
     sprintf(buf, "Resending... (%u/%u)", attempt, total);
-    _task->showAlert(buf, 4000);
+    _task->showAlert(buf, ms);
   }
 }
 
@@ -673,6 +675,11 @@ bool MainScreen::handleInput(Keyboard::Event &e) {
 
     if (e.modifiers.ctrl && e.key == Keyboard::ARROW_UP && chat_text_box.isEmpty()) {
       chat_text_box = last_sent_message;
+      return true;
+    }
+
+    if (e.modifiers.ctrl && e.key == Keyboard::KEY_T) {
+      the_mesh_cp.cancelResending();
       return true;
     }
 

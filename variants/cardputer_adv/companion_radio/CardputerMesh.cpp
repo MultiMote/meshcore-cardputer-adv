@@ -91,8 +91,6 @@ bool CardputerMesh::sendGroupMessage(uint32_t timestamp, mesh::GroupChannel &cha
   return ok;
 }
 
-
-
 int CardputerMesh::sendDirectMessage(const ContactInfo &recipient, uint32_t timestamp, const char *text) {
   uint32_t est_timeout;
   bool flood = (recipient.out_path_len == OUT_PATH_UNKNOWN);
@@ -106,41 +104,16 @@ int CardputerMesh::sendDirectMessage(const ContactInfo &recipient, uint32_t time
   last_msg.total_attempts = DIRECT_SEND_FLOOD_ATTEMPTS + (!flood ? DIRECT_SEND_ROUTE_ATTEMPTS : 0);
 
   _ui->onMessageSendAttempt(last_msg.attempt, last_msg.total_attempts, last_msg.state);
+
+  if (recipient.out_path_len == OUT_PATH_UNKNOWN) {
+    resend_timeout = futureMillis(DIRECT_SEND_FLOOD_RESEND_RELAY);
+  } else {
+    resend_timeout = futureMillis(DIRECT_SEND_ROUTE_RESEND_RELAY);
+  }
+
   int rc = MyMesh::sendMessage(recipient, timestamp, 0, text, last_msg.expected_ack, est_timeout);
   _store->storeMessage(recipient.id.pub_key, text, true, false);
   return rc;
-}
-
-void CardputerMesh::onSendTimeout() {
-  // TODO: longer timeout?
-  if (last_msg.state != MESSAGE_SENDING || need_resend_message) {
-    return;
-  }
-
-  if (last_msg.need_direct) {
-    if (last_msg.attempt < DIRECT_SEND_ROUTE_ATTEMPTS) {
-      need_resend_message = true;
-      return;
-    } else {
-      last_msg.need_direct = false;
-
-      MESH_DEBUG_PRINTLN("Resetting path");
-      ContactInfo *ref = the_mesh_cp.lookupContactByPubKey(last_msg.recipient.id.pub_key, CONTACT_LOOKUP_BYTES);
-      if (ref) {
-        ref->out_path_len = OUT_PATH_UNKNOWN;
-      }
-      last_msg.recipient.out_path_len = OUT_PATH_UNKNOWN;
-    }
-  }
-
-  if (last_msg.attempt < last_msg.total_attempts) {
-    need_resend_message = true;
-    return;
-  }
-
-  last_msg.state = MESSAGE_FAILED;
-  _ui->onMessageSendAttempt(last_msg.attempt + 1, last_msg.total_attempts, last_msg.state);
-  MESH_DEBUG_PRINTLN("Message sending failed");
 }
 
 void CardputerMesh::logRxRaw(float snr, float rssi, const uint8_t raw[], int len) {
@@ -156,7 +129,6 @@ ContactInfo *CardputerMesh::processAck(const uint8_t *data) {
   if (last_msg.expected_ack == hash) {
     last_msg.state = MESSAGE_DELIVERED;
     _ui->onMessageSendAttempt(last_msg.attempt + 1, last_msg.total_attempts, last_msg.state);
-
   }
 
   return MyMesh::processAck(data);
@@ -243,21 +215,58 @@ void CardputerMesh::loadMessageHistory(const uint8_t pkey[PUB_KEY_SIZE], bool is
   _store->loadMessages(pkey, is_channel, history);
 }
 
-void CardputerMesh::loop() {
-  MyMesh::loop();
+void CardputerMesh::checkResend() {
+  if (last_msg.state != MESSAGE_SENDING) {
+    return;
+  }
 
-  // Not doing that in onSendTimeout because txt_send_timeout sets to 0 after its execution
-  if (need_resend_message) {
-    need_resend_message = false;
+  if (last_msg.need_direct && last_msg.attempt >= DIRECT_SEND_ROUTE_ATTEMPTS) {
+    last_msg.need_direct = false;
 
+    MESH_DEBUG_PRINTLN("Resetting path");
+    ContactInfo *ref = the_mesh_cp.lookupContactByPubKey(last_msg.recipient.id.pub_key, CONTACT_LOOKUP_BYTES);
+    if (ref) {
+      ref->out_path_len = OUT_PATH_UNKNOWN;
+    }
+    last_msg.recipient.out_path_len = OUT_PATH_UNKNOWN;
+  }
+
+  if (last_msg.attempt < last_msg.total_attempts) {
     uint32_t expected_ack;
     uint32_t est_timeout;
 
     _ui->onMessageSendAttempt(last_msg.attempt + 1, last_msg.total_attempts, last_msg.state);
 
-    MyMesh::sendMessage(last_msg.recipient, last_msg.timestamp, last_msg.attempt, last_msg.text,
-                        expected_ack, est_timeout);
+    if (last_msg.recipient.out_path_len == OUT_PATH_UNKNOWN) {
+      resend_timeout = futureMillis(DIRECT_SEND_FLOOD_RESEND_RELAY);
+    } else {
+      resend_timeout = futureMillis(DIRECT_SEND_ROUTE_RESEND_RELAY);
+    }
+
+    MyMesh::sendMessage(last_msg.recipient, last_msg.timestamp, last_msg.attempt, last_msg.text, expected_ack,
+                        est_timeout);
 
     last_msg.attempt++;
+  } else {
+    last_msg.state = MESSAGE_FAILED;
+    _ui->onMessageSendAttempt(last_msg.attempt + 1, last_msg.total_attempts, last_msg.state);
+    MESH_DEBUG_PRINTLN("Message sending failed");
+  }
+}
+
+void CardputerMesh::loop() {
+  MyMesh::loop();
+
+  if (resend_timeout && millisHasNowPassed(resend_timeout)) {
+    resend_timeout = 0;
+    checkResend();
+  }
+}
+
+void CardputerMesh::cancelResending() {
+  resend_timeout = 0;
+  if (last_msg.state == MESSAGE_SENDING) {
+    last_msg.state = MESSAGE_FAILED;
+    _ui->onMessageSendAttempt(last_msg.total_attempts, last_msg.total_attempts, last_msg.state);
   }
 }
