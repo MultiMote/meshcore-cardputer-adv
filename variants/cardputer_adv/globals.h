@@ -63,7 +63,7 @@
 #define PIN_AUDIO_LRCK                           43
 #define PIN_AUDIO_DSDIN                          42
 #define AUDIO_SAMPLE_RATE                        16000
-#define AUDIO_MAX_SAFE_VOLUME                    28000.0f
+#define AUDIO_MAX_SAFE_VOLUME                    20000.0f
 #define AUDIO_BUFFER_SIZE                        256
 /** Time to wait from codec init to first sound played */
 #define AUDIO_WARMUP_MS                          1100
