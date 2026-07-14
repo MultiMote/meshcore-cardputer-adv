@@ -1,3 +1,9 @@
+# 2026.7.2
+
+* Remove messages preview screen
+* Add "New message" screen that appears when a new message is received when screen is off or current page is main
+* Move unsynced messages count to the stats page
+
 # 2026.7.1
 
 * Multiple direct message sending attempts

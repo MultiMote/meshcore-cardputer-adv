@@ -58,21 +58,15 @@ void MainScreen::renderStatusIcons() {
 int MainScreen::renderFirstPage() {
   char tmp[80];
 
-  display.setColor(DisplayDriver::ORANGE);
-  display.setTextSize(2);
-  sprintf(tmp, "MSG: %d", _task->getMsgCount());
-  display.drawTextCentered(display.width() / 2, 40, tmp);
-
   if (_task->hasConnection()) {
     display.setColor(DisplayDriver::GREEN);
     display.setTextSize(1);
-    display.drawTextCentered(display.width() / 2, 63, "< Connected >");
-
+    display.drawTextCentered(display.width() / 2, 43, "< Connected >");
   } else if (the_mesh_cp.getBLEPin() != 0) { // BT pin
     display.setColor(DisplayDriver::RED);
     display.setTextSize(2);
     sprintf(tmp, "Pin: %d", the_mesh_cp.getBLEPin());
-    display.drawTextCentered(display.width() / 2, 63, tmp);
+    display.drawTextCentered(display.width() / 2, 43, tmp);
   }
 
   display.setTextSize(1);
@@ -344,6 +338,10 @@ int MainScreen::renderStatsPage() { // todo: separate menu maybe
 
   y += UI_TEXT_LINE_HEIGHT;
   sprintf(tmp, "Battery: %.0fmV", (float)_task->getBattMilliVolts() * _custom_prefs->battery_correction);
+  display.drawTextLeftAlign(5, y, tmp);
+
+  y += UI_TEXT_LINE_HEIGHT;
+  sprintf(tmp, "Unsynced messages: %d", _task->getMsgCount());
   display.drawTextLeftAlign(5, y, tmp);
 
   return 5000;

@@ -1,7 +1,7 @@
 #include "CardputerUITask.h"
 
 #include "screen/MainScreen.h"
-#include "screen/MsgPreviewScreen.h"
+#include "screen/NewMessageScreen.h"
 #include "screen/SettingsScreen.h"
 #include "screen/SplashScreen.h"
 #include "screen/ToolsScreen.h"
@@ -25,7 +25,7 @@ void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, Node
   splash_screen = new SplashScreen(this);
   main_screen = new MainScreen(this, &rtc_clock, sensors, node_prefs, custom_prefs);
   settings_screen = new SettingsScreen(this, &rtc_clock, node_prefs, custom_prefs, _board);
-  msg_preview_screen = new MsgPreviewScreen(this, &rtc_clock);
+  new_message_screen = new NewMessageScreen(this);
   tools_screen = new ToolsScreen(this, &rtc_clock);
   setCurrScreen(splash_screen);
 }
@@ -80,15 +80,13 @@ void CardputerUITask::msgRead(int msgcount) {
 void CardputerUITask::newMsg(uint8_t path_len, const char *from_name, const char *text, int msgcount) {
   unsynced_msg_count = msgcount;
 
-  if (current_screen == main_screen && ((MainScreen *)main_screen)->getCurrentPage() == MainScreen::CHAT &&
-      _display->isOn()) {
-    extendAutoOff();
-    scheduleRefresh();
-    return;
-  }
+  bool onFirstPage =
+      (current_screen == main_screen && ((MainScreen *)main_screen)->getCurrentPage() == MainScreen::FIRST);
 
-  ((MsgPreviewScreen *)msg_preview_screen)->addPreview(path_len, from_name, text);
-  setCurrScreen(msg_preview_screen);
+  if (!_display->isOn() || current_screen == new_message_screen || onFirstPage) {
+    ((NewMessageScreen *)new_message_screen)->newMessage(from_name, text);
+    setCurrScreen(new_message_screen);
+  }
 
   if (_display != NULL) {
     if (!_display->isOn() && !hasConnection()) {

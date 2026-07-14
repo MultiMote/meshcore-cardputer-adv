@@ -28,6 +28,7 @@
 
 #define MAX_UNREAD_MSGS                          32
 #define BOOT_SCREEN_MILLIS                       2000
+#define NEW_MESSAGE_DISPLAY_MILLIS               AUTO_OFF_MILLIS
 
 #define CHAT_HISTORY_RINGBUF_SIZE                15
 #define UNREAD_COUNTER_MAX_ITEMS                 32

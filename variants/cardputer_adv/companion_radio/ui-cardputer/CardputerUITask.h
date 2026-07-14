@@ -33,7 +33,7 @@ class CardputerUITask : public AbstractUITask {
 
   CardputerScreen *splash_screen;
   CardputerScreen *main_screen;
-  CardputerScreen *msg_preview_screen;
+  CardputerScreen *new_message_screen;
   CardputerScreen *settings_screen;
   CardputerScreen *tools_screen;
   CardputerScreen *current_screen = nullptr;
