@@ -80,4 +80,6 @@ public:
   void shutdown(bool restart = false);
   CardputerAdvBoard *getBoard() { return _board; }
   void removeLastStringChar(String &str);
+  inline void extendAutoOff() { auto_off_time = millis() + AUTO_OFF_MILLIS; }
+  inline void scheduleRefresh(unsigned long ms = 0) { next_refresh = millis() + ms; }
 };

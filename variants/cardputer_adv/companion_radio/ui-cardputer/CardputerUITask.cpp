@@ -11,7 +11,7 @@ void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, Node
                             CustomNodePrefs *custom_prefs) {
   _display = display;
   _sensors = sensors;
-  auto_off_time = millis() + AUTO_OFF_MILLIS;
+  extendAutoOff();
 
   _node_prefs = node_prefs;
   _custom_prefs = custom_prefs;
@@ -33,12 +33,12 @@ void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, Node
 void CardputerUITask::showAlert(const char *text, int duration_millis) {
   snprintf(alert_text, sizeof(alert_text), "%s", text);
   alert_expiry = millis() + duration_millis;
-  next_refresh = 0;
+  scheduleRefresh();
 }
 
 void CardputerUITask::dismissAlert() {
   alert_expiry = 0;
-  next_refresh = 0;
+  scheduleRefresh();
 }
 
 bool CardputerUITask::isAlertActive() {
@@ -82,6 +82,8 @@ void CardputerUITask::newMsg(uint8_t path_len, const char *from_name, const char
 
   if (current_screen == main_screen && ((MainScreen *)main_screen)->getCurrentPage() == MainScreen::CHAT &&
       _display->isOn()) {
+    extendAutoOff();
+    scheduleRefresh();
     return;
   }
 
@@ -93,8 +95,8 @@ void CardputerUITask::newMsg(uint8_t path_len, const char *from_name, const char
       _display->turnOn();
     }
     if (_display->isOn()) {
-      auto_off_time = millis() + AUTO_OFF_MILLIS; // extend the auto-off timer
-      next_refresh = 100;                         // trigger refresh
+      extendAutoOff();
+      scheduleRefresh();
     }
   }
 }
@@ -108,7 +110,7 @@ void CardputerUITask::onContactMessageRecv(const ContactInfo &contact, const cha
 }
 
 void CardputerUITask::onMessageSendAttempt(uint8_t attempt, uint8_t total, MessageSendState state) {
-  auto_off_time = millis() + AUTO_OFF_MILLIS;
+  extendAutoOff();
 
   if (current_screen == main_screen) {
     static_cast<MainScreen *>(main_screen)->onMessageSendAttempt(attempt, total, state);
@@ -135,7 +137,7 @@ void CardputerUITask::messageRepeatsRecv(uint16_t count) {
 
 void CardputerUITask::setCurrScreen(CardputerScreen *c) {
   current_screen = c;
-  next_refresh = 100;
+  scheduleRefresh();
 }
 
 /*
@@ -199,7 +201,7 @@ void CardputerUITask::loop() {
         _display->drawTextCentered(_display->width() / 2, y + p * 3, alert_text);
         next_refresh = alert_expiry; // will need refresh when alert is dismissed
       } else {
-        next_refresh = millis() + delay_millis;
+        scheduleRefresh(delay_millis);
       }
       _display->endFrame();
     }
@@ -224,8 +226,8 @@ void CardputerUITask::loop() {
 
 bool CardputerUITask::turnDisplayOn() {
   if (_display != NULL) {
-    auto_off_time = millis() + AUTO_OFF_MILLIS; // extend auto-off timer
-    next_refresh = 0;                           // trigger refresh
+    extendAutoOff();
+    scheduleRefresh();
 
     if (!_display->isOn()) {
       _display->turnOn();
@@ -260,7 +262,7 @@ void CardputerUITask::toggleGPS() {
           _node_prefs->gps_enabled = 1;
         }
         the_mesh_cp.savePrefs();
-        next_refresh = 0;
+        scheduleRefresh();
         break;
       }
     }
