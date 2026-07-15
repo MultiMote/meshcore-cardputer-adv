@@ -7,15 +7,30 @@
 #include "UnreadCounter.h"
 #include "globals.h"
 
-
 class MainScreen : public CardputerScreen {
+public:
+  enum MainScreenPage {
+    FIRST,
+    CHANNELS,
+    CONTACTS,
+    CHAT,
+    RECENT,
+    STATS,
+#if ENV_INCLUDE_GPS == 1
+    GPS,
+#endif
+    Count
+  };
+
+private:
   CardputerUITask *_task;
   mesh::RTCClock *_rtc;
   SensorManager *_sensors;
   NodePrefs *_node_prefs;
   CustomNodePrefs *_custom_prefs;
 
-  uint8_t current_page = MainScreen::FIRST;
+  MainScreenPage current_page = MainScreen::FIRST;
+  MainScreenPage page_to_return = MainScreen::FIRST;
   AdvertPath recent[UI_RECENT_LIST_SIZE];
   String last_sent_message;
   String chat_text_box;
@@ -47,19 +62,6 @@ class MainScreen : public CardputerScreen {
   int renderGpsPage();
 
 public:
-  enum MainScreenPage {
-    FIRST,
-    CHANNELS,
-    CONTACTS,
-    CHAT,
-    RECENT,
-    STATS,
-#if ENV_INCLUDE_GPS == 1
-    GPS,
-#endif
-    Count // keep as last
-  };
-
   MainScreen(CardputerUITask *task, mesh::RTCClock *rtc, SensorManager *sensors, NodePrefs *node_prefs,
              CustomNodePrefs *custom_prefs)
       : _task(task), _rtc(rtc), _sensors(sensors), _node_prefs(node_prefs), _custom_prefs(custom_prefs) {
@@ -75,4 +77,8 @@ public:
   bool handleInput(Keyboard::Event &e) override;
   void refreshSelectedContact();
   inline MainScreenPage getCurrentPage() const { return (MainScreenPage)current_page; }
+  inline void setCurrentPage(MainScreenPage page) {
+    page_to_return = MainScreenPage::FIRST;
+    current_page = page;
+  }
 };

@@ -526,14 +526,12 @@ void MainScreen::sendChatMessage() {
   if (current_contact_idx != -1 && current_contact.type == ADV_TYPE_CHAT) { // direct msg
     uint32_t est_timeout;
 
-    int result =
-        the_mesh_cp.sendDirectMessage(current_contact, ts, chat_text_box.c_str());
+    int result = the_mesh_cp.sendDirectMessage(current_contact, ts, chat_text_box.c_str());
 
     if (result != MSG_SEND_FAILED) {
       HistoryMessage *msg = chat_history.push_ref();
       msg->out = true;
       snprintf(msg->text, MAX_MESSAGE_LENGTH, "%s", chat_text_box.c_str());
-
 
       last_sent_message = chat_text_box;
       chat_text_box.clear();
@@ -588,13 +586,14 @@ bool MainScreen::handleInput(Keyboard::Event &e) {
           current_contact = c;
           current_contact_idx = contact_list_idx;
           current_channel_idx = -1;
-          current_page = MainScreenPage::CHAT;
+          setCurrentPage(MainScreenPage::CHAT);
+          page_to_return = MainScreenPage::CONTACTS;
           the_mesh_cp.loadMessageHistory(c.id.pub_key, false, chat_history);
           chat_history_offset = 0;
           unread.resetContact(c.id.pub_key);
 
           const HistoryMessage *msg;
-          for(size_t i = chat_history.count(); i > 0; i--) {
+          for (size_t i = chat_history.count(); i > 0; i--) {
             if (chat_history.get(i - 1, msg) && msg->out) {
               last_sent_message = msg->text;
               break;
@@ -646,13 +645,14 @@ bool MainScreen::handleInput(Keyboard::Event &e) {
         current_channel = c;
         current_channel_idx = channel_list_idx;
         current_contact_idx = -1;
-        current_page = MainScreenPage::CHAT;
+        setCurrentPage(MainScreenPage::CHAT);
+        page_to_return = MainScreenPage::CHANNELS;
         the_mesh_cp.loadMessageHistory(c.channel.secret, true, chat_history);
         chat_history_offset = 0;
         unread.resetChannel(c.channel.secret);
 
         const HistoryMessage *msg;
-        for(size_t i = chat_history.count(); i > 0; i--) {
+        for (size_t i = chat_history.count(); i > 0; i--) {
           if (chat_history.get(i - 1, msg) && msg->out) {
             last_sent_message = msg->text;
             break;
@@ -668,6 +668,11 @@ bool MainScreen::handleInput(Keyboard::Event &e) {
 
     if (e.key == Keyboard::KEY_BACKSPACE) {
       _task->removeLastStringChar(chat_text_box);
+      return true;
+    }
+
+    if (e.key == Keyboard::KEY_ESC) {
+      setCurrentPage(page_to_return);
       return true;
     }
 
@@ -728,12 +733,14 @@ bool MainScreen::handleInput(Keyboard::Event &e) {
   }
 
   if (e.key == Keyboard::ARROW_LEFT) {
-    current_page = (current_page + MainScreenPage::Count - 1) % MainScreenPage::Count;
+    auto p = static_cast<MainScreenPage>((current_page + MainScreenPage::Count - 1) % MainScreenPage::Count);
+    setCurrentPage(p);
     return true;
   }
 
   if (e.key == Keyboard::ARROW_RIGHT || e.key == Keyboard::KEY_TAB) {
-    current_page = (current_page + 1) % MainScreenPage::Count;
+    auto p = static_cast<MainScreenPage>((current_page + 1) % MainScreenPage::Count);
+    setCurrentPage(p);
     return true;
   }
 

@@ -3,6 +3,7 @@
 * Remove messages preview screen
 * Add "New message" screen that appears when a new message is received when screen is off or current page is main
 * Move unsynced messages count to the stats page
+* After selecting chat and pressing `Esc`, current page is restored to the previous one
 
 # 2026.7.1
 
