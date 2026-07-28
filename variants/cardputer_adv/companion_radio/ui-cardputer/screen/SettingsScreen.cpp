@@ -73,6 +73,11 @@ void SettingsScreen::renderItem(DisplayDriver &display, SettingsItem item, int x
       snprintf(tmp, sizeof(tmp), "Path hash size: %d", _node_prefs->path_hash_mode + 1);
       break;
 
+    case SettingsItem::MeshDefaultScope:
+      snprintf(tmp, sizeof(tmp), "Default scope: %s",
+               _node_prefs->default_scope_name[0] ? _node_prefs->default_scope_name : "none");
+      break;
+
     default:
       text_color = DisplayDriver::RED;
       snprintf(tmp, sizeof(tmp), "???");
@@ -136,6 +141,11 @@ bool SettingsScreen::enterItemEdit(SettingsItem item) {
       is_editing = true;
       return true;
 
+    case SettingsItem::MeshDefaultScope:
+      edit_buffer = String(_node_prefs->default_scope_name);
+      is_editing = true;
+      return true;
+
     case SettingsItem::RadioFreq:
       edit_buffer = String(_node_prefs->freq, 3);
       is_editing = true;
@@ -168,6 +178,25 @@ bool SettingsScreen::commitItemEdit(SettingsItem item) {
     case SettingsItem::PublicInfoName:
       strncpy(_node_prefs->node_name, edit_buffer.c_str(), sizeof(_node_prefs->node_name) - 1);
       _node_prefs->node_name[sizeof(_node_prefs->node_name) - 1] = '\0';
+      the_mesh_cp.savePrefs();
+      return true;
+
+    case SettingsItem::MeshDefaultScope:
+      memset(_node_prefs->default_scope_name, 0, sizeof(_node_prefs->default_scope_name));
+      memset(_node_prefs->default_scope_key, 0, sizeof(_node_prefs->default_scope_key));
+
+      if (edit_buffer.length() > 0) {
+        strncpy(_node_prefs->default_scope_name, edit_buffer.c_str(),
+                sizeof(_node_prefs->default_scope_name) - 1);
+        _node_prefs->default_scope_name[sizeof(_node_prefs->default_scope_name) - 1] = '\0';
+
+        const uint8_t prefix[] = "#";
+
+        mesh::Utils::sha256(_node_prefs->default_scope_key, sizeof(_node_prefs->default_scope_key), prefix, 1,
+                            reinterpret_cast<const uint8_t *>(_node_prefs->default_scope_name),
+                            edit_buffer.length());
+      }
+
       the_mesh_cp.savePrefs();
       return true;
 
@@ -297,6 +326,17 @@ void SettingsScreen::handleEditInput(SettingsItem item, Keyboard::Event &e) {
         }
       }
       break;
+    case SettingsItem::MeshDefaultScope:
+      if (e.key == Keyboard::KEY_BACKSPACE) {
+        _task->removeLastStringChar(edit_buffer);
+      } else {
+        const char ch = _task->getBoard()->getLayout()->lookupDefault(e)[0];
+        if (ch && (isalnum(ch) || ch == '_' || ch == '-') &&
+            edit_buffer.length() < sizeof(_node_prefs->default_scope_name) - 2) {
+          edit_buffer.concat(ch);
+        }
+      }
+      break;
 
     default:
       break;
@@ -378,6 +418,7 @@ int SettingsScreen::render(DisplayDriver &display) {
       case SettingsItem::RadioFreq:
       case SettingsItem::RadioBw:
       case SettingsItem::DeviceBatteryCorrection:
+      case SettingsItem::MeshDefaultScope:
         if (menu_index == SettingsItem::PublicInfoName) {
           display.setTextSize(1);
         }

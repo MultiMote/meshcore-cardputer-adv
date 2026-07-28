@@ -1,3 +1,7 @@
+# 2026.7.3
+
+* Add default scope (region) option to the settings
+
 # 2026.7.2
 
 * Remove messages preview screen

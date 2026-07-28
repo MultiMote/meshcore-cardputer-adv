@@ -20,6 +20,7 @@ class SettingsScreen : public CardputerScreen {
     DeviceBatteryCorrection,
     HdrMesh,
     MeshPathSize,
+    MeshDefaultScope,
     Count
   };
 
