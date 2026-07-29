@@ -34,6 +34,7 @@ private:
   AdvertPath recent[UI_RECENT_LIST_SIZE];
   String last_sent_message;
   String chat_text_box;
+  String contact_search_box;
 
   ChatHistory chat_history;
   int chat_history_offset = 0; // from bottom
@@ -50,6 +51,9 @@ private:
   int current_contact_idx = -1;
 
   int getChannelCount();
+  int getFilteredContactCount();
+  bool getFilteredContactIndex(int list_idx, int &real_idx);
+
   void sendChatMessage();
   void renderStatusIcons();
 

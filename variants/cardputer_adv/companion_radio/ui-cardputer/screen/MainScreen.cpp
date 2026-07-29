@@ -1,5 +1,7 @@
 #include "MainScreen.h"
 
+#include "helpers.h"
+
 void MainScreen::renderStatusIcons() {
   char tmp[8];
   uint16_t batteryMilliVolts = _task->getBattMilliVolts();
@@ -35,9 +37,19 @@ void MainScreen::renderStatusIcons() {
   display.drawTextCentered(iconX + 2 + iconWidth / 2 - 1, 0, tmp);
 
   iconX = 3;
-  iconY = 3;
+  iconY = 5;
 
   display.setColor(DisplayDriver::GREEN);
+
+  CardputerLayout *lay = _task->getBoard()->getLayout();
+
+  if (lay->hasAlternateLayout()) {
+    const char *layout_label = _task->getBoard()->getLayout()->getCurrentCode();
+    int label_width = std::max(display.getTextWidth(lay->getMainLayoutCode()),
+                               display.getTextWidth(lay->getAlternateLayoutCode()));
+    display.drawTextLeftAlign(iconX, 0, layout_label);
+    iconX += label_width + 5;
+  }
 
   if (_task->isBuzzerQuiet()) {
     display.drawXbm(iconX, iconY, muted_icon, 8, 8);
@@ -149,11 +161,13 @@ int MainScreen::renderContactsPage() {
     display.setColor(DisplayDriver::GREEN);
 
     ContactInfo contact;
-    real_idx = list_page * UI_CONTACT_LIST_SIZE + i;
+    int display_idx = list_page * UI_CONTACT_LIST_SIZE + i;
 
-    if (!the_mesh_cp.getContactByIdx(real_idx, contact)) {
+    if (!getFilteredContactIndex(display_idx, real_idx)) {
       break;
     }
+
+    the_mesh_cp.getContactByIdx(real_idx, contact);
 
     int unread_count = 0;
 
@@ -185,6 +199,11 @@ int MainScreen::renderContactsPage() {
     display.drawTextEllipsized(25, 30 + i * UI_TEXT_LINE_HEIGHT, display.width() - 25 - right_pad,
                                contact.name);
   }
+
+  display.drawRect(1, display.height() - UI_TEXT_LINE_HEIGHT - 4, display.width() - 1, 1);
+  display.setColor(DisplayDriver::LIGHT);
+  display.drawTextLeftAlignWithScroll(5, display.height() - UI_TEXT_LINE_HEIGHT - 4, display.width() - 10,
+                                      contact_search_box.c_str());
   return 5000;
 }
 
@@ -258,18 +277,6 @@ int MainScreen::renderChatPage() {
 
   int start_x = 5;
   display.drawRect(1, display.height() - UI_TEXT_LINE_HEIGHT - 4, display.width() - 1, 1);
-
-  CardputerLayout *lay = _task->getBoard()->getLayout();
-
-  if (lay->hasAlternateLayout()) {
-    const char *layout_label = _task->getBoard()->getLayout()->getCurrentCode();
-    int label_width = std::max(display.getTextWidth(lay->getMainLayoutCode()),
-                               display.getTextWidth(lay->getAlternateLayoutCode()));
-    start_x += label_width;
-    display.drawRect(start_x, display.height() - UI_TEXT_LINE_HEIGHT - 4, 1, UI_TEXT_LINE_HEIGHT + 4);
-    display.drawTextLeftAlign(2, display.height() - UI_TEXT_LINE_HEIGHT - 4, layout_label);
-    start_x += 5;
-  }
 
   display.setColor(DisplayDriver::LIGHT);
 
@@ -516,6 +523,46 @@ int MainScreen::getChannelCount() { // not sure if there is no gaps
   return num;
 }
 
+int MainScreen::getFilteredContactCount() {
+  ContactInfo contact;
+  int num = 0;
+
+  for (int i = 0; i < the_mesh_cp.getNumContacts(); i++) {
+    if (!the_mesh_cp.getContactByIdx(i, contact)) {
+      break;
+    }
+
+    if (contact_search_box.isEmpty() ||
+        Helpers::containsIgnoreCase(contact.name, contact_search_box.c_str())) {
+      num++;
+    }
+  }
+
+  return num;
+}
+
+bool MainScreen::getFilteredContactIndex(int list_idx, int &real_idx) {
+  ContactInfo contact;
+  int match_count = 0;
+
+  for (int i = 0; i < the_mesh_cp.getNumContacts(); i++) {
+    if (!the_mesh_cp.getContactByIdx(i, contact)) {
+      break;
+    }
+
+    if (contact_search_box.isEmpty() ||
+        Helpers::containsIgnoreCase(contact.name, contact_search_box.c_str())) {
+      if (match_count == list_idx) {
+        real_idx = i;
+        return true;
+      }
+      match_count++;
+    }
+  }
+
+  return false;
+}
+
 void MainScreen::sendChatMessage() {
   if (chat_text_box.isEmpty()) {
     return;
@@ -560,65 +607,100 @@ void MainScreen::sendChatMessage() {
 }
 
 bool MainScreen::handleInput(Keyboard::Event &e) {
+  if (e.modifiers.ctrl && e.key == Keyboard::KEY_SPACE) {
+    _task->getBoard()->getLayout()->switchLayout();
+    return true;
+  }
 
   if (current_page == MainScreenPage::CONTACTS) {
+    CardputerLayout *lay = _task->getBoard()->getLayout();
+
+    if (e.key == Keyboard::KEY_BACKSPACE) {
+      if (contact_search_box.length() > 0) {
+        _task->removeLastStringChar(contact_search_box);
+        contact_list_idx = 0;
+      }
+      return true;
+    }
+
     if (e.key == Keyboard::ARROW_UP) {
       if (contact_list_idx == 0) {
-        contact_list_idx = std::max(the_mesh_cp.getNumContacts() - 1, 0);
+        contact_list_idx = std::max(getFilteredContactCount() - 1, 0);
       } else {
         contact_list_idx--;
       }
       return true;
     }
+
     if (e.key == Keyboard::ARROW_DOWN) {
-      if (contact_list_idx < the_mesh_cp.getNumContacts() - 1) {
+      if (contact_list_idx < getFilteredContactCount() - 1) {
         contact_list_idx++;
       } else {
         contact_list_idx = 0;
       }
       return true;
     }
+
     if (e.key == Keyboard::KEY_RETURN) {
-      ContactInfo c;
+      int real_idx = -1;
+      if (getFilteredContactIndex(contact_list_idx, real_idx)) {
+        ContactInfo c;
+        if (the_mesh_cp.getContactByIdx(real_idx, c)) {
+          if (c.type == ADV_TYPE_CHAT) {
+            current_contact = c;
+            current_contact_idx = real_idx;
+            current_channel_idx = -1;
+            setCurrentPage(MainScreenPage::CHAT);
+            page_to_return = MainScreenPage::CONTACTS;
+            the_mesh_cp.loadMessageHistory(c.id.pub_key, false, chat_history);
+            chat_history_offset = 0;
+            unread.resetContact(c.id.pub_key);
 
-      if (the_mesh_cp.getContactByIdx(contact_list_idx, c)) {
-        if (c.type == ADV_TYPE_CHAT) {
-          current_contact = c;
-          current_contact_idx = contact_list_idx;
-          current_channel_idx = -1;
-          setCurrentPage(MainScreenPage::CHAT);
-          page_to_return = MainScreenPage::CONTACTS;
-          the_mesh_cp.loadMessageHistory(c.id.pub_key, false, chat_history);
-          chat_history_offset = 0;
-          unread.resetContact(c.id.pub_key);
-
-          const HistoryMessage *msg;
-          for (size_t i = chat_history.count(); i > 0; i--) {
-            if (chat_history.get(i - 1, msg) && msg->out) {
-              last_sent_message = msg->text;
-              break;
+            const HistoryMessage *msg;
+            for (size_t i = chat_history.count(); i > 0; i--) {
+              if (chat_history.get(i - 1, msg) && msg->out) {
+                last_sent_message = msg->text;
+                break;
+              }
             }
+          } else if ((c.type == ADV_TYPE_REPEATER || c.type == ADV_TYPE_ROOM) && !_task->isAlertActive()) {
+            the_mesh_cp.sendPing(c);
+            _task->showAlert("Waiting for response...", 4000);
           }
-        } else if ((c.type == ADV_TYPE_REPEATER || c.type == ADV_TYPE_ROOM) && !_task->isAlertActive()) {
-          the_mesh_cp.sendPing(c);
-          _task->showAlert("Waiting for response...", 4000);
         }
       }
       return true;
     }
 
     if (e.key == Keyboard::KEY_R) { // reset path
-      ContactInfo c;
-      if (the_mesh_cp.getContactByIdx(contact_list_idx, c)) {
-        if (c.type == ADV_TYPE_CHAT) {
-          // getContactByIdx does not return a reference
-          ContactInfo *ref = the_mesh_cp.lookupContactByPubKey(c.id.pub_key, CONTACT_LOOKUP_BYTES);
-          ref->out_path_len = OUT_PATH_UNKNOWN;
-          _task->showAlert("Path cleared", 1000);
-          refreshSelectedContact();
+      int real_idx = -1;
+      if (getFilteredContactIndex(contact_list_idx, real_idx)) {
+        ContactInfo c;
+        if (the_mesh_cp.getContactByIdx(real_idx, c)) {
+          if (c.type == ADV_TYPE_CHAT) {
+            // getContactByIdx does not return a reference
+            ContactInfo *ref = the_mesh_cp.lookupContactByPubKey(c.id.pub_key, CONTACT_LOOKUP_BYTES);
+            ref->out_path_len = OUT_PATH_UNKNOWN;
+            _task->showAlert("Path cleared", 1000);
+            refreshSelectedContact();
+          }
         }
       }
       return true;
+    }
+
+    bool skip_input = e.key == Keyboard::KEY_ESC || e.key == Keyboard::ARROW_LEFT ||
+                      e.key == Keyboard::ARROW_RIGHT || e.key == Keyboard::KEY_TAB;
+
+    if (!skip_input) {
+      const char *repl = lay->lookup(e);
+      if (repl[0]) {
+        if (contact_search_box.length() + strlen(repl) <= UI_CHANNEL_SEARCH_MAX_CHARS) {
+          contact_search_box += repl;
+        }
+        contact_list_idx = 0;
+        return true;
+      }
     }
   }
 
@@ -688,11 +770,6 @@ bool MainScreen::handleInput(Keyboard::Event &e) {
 
     if (e.key == Keyboard::KEY_RETURN) {
       sendChatMessage();
-      return true;
-    }
-
-    if (e.modifiers.ctrl && e.key == Keyboard::KEY_SPACE) {
-      lay->switchLayout();
       return true;
     }
 

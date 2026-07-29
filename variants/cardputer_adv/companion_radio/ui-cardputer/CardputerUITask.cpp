@@ -92,10 +92,8 @@ void CardputerUITask::newMsg(uint8_t path_len, const char *from_name, const char
     if (!_display->isOn() && !hasConnection()) {
       _display->turnOn();
     }
-    if (_display->isOn()) {
-      extendAutoOff();
-      scheduleRefresh();
-    }
+    extendAutoOff();
+    scheduleRefresh();
   }
 }
 

@@ -18,8 +18,9 @@
 
 #define UI_TEXT_LINE_HEIGHT                      12 // adjust to the used font todo: replace to display.getFontLineHeight
 #define UI_RECENT_LIST_SIZE                      4
-#define UI_CONTACT_LIST_SIZE                     8
+#define UI_CONTACT_LIST_SIZE                     7
 #define UI_CHANNEL_LIST_SIZE                     8
+#define UI_CHANNEL_SEARCH_MAX_CHARS              32
 #define UI_SETTINGS_LIST_SIZE                    9
 #define UI_CHAT_HISTORY_LIST_SIZE                5
 #define UI_TOOLS_LIST_SIZE                       9

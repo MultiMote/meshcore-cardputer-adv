@@ -1,6 +1,8 @@
 # 2026.7.3
 
 * Add default scope (region) option to the settings
+* Add search box to the contacts page
+* Move layout icon to the status bar
 
 # 2026.7.2
 
