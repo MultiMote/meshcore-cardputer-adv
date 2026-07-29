@@ -43,7 +43,7 @@ class ToolsScreen : public CardputerScreen {
 
 public:
   ToolsScreen(CardputerUITask *task, mesh::RTCClock *rtc) : _task(task), _rtc(rtc) {}
-  int render(DisplayDriver &display) override;
+  int render(CardputerDisplay &lcd) override;
   void menuItemEnter(ToolsMenuItem item);
   bool handleInput(Keyboard::Event &e) override;
   void discoverRecv(const mesh::Identity &id, float snr);

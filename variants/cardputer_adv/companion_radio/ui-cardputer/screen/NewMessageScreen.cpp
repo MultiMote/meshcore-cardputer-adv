@@ -6,17 +6,17 @@ void NewMessageScreen::newMessage(const char *from, const char *msg) {
   dismiss_after = millis() + NEW_MESSAGE_DISPLAY_MILLIS;
 }
 
-int NewMessageScreen::render(DisplayDriver &display) {
-  display.setTextSize(1);
+int NewMessageScreen::render(CardputerDisplay &lcd) {
+  lcd.setTextSize(1);
 
   // origin
-  display.setColor(DisplayDriver::YELLOW);
-  display.drawTextLeftAlign(0, 0, origin);
+  lcd.setColor(DisplayDriver::YELLOW);
+  lcd.drawTextLeftAlign(0, 0, origin);
 
   // message
-  display.setCursor(0, UI_TEXT_LINE_HEIGHT);
-  display.setColor(DisplayDriver::LIGHT);
-  display.printWordWrap(message, display.width());
+  lcd.setCursor(0, UI_TEXT_LINE_HEIGHT);
+  lcd.setColor(DisplayDriver::LIGHT);
+  lcd.printWordWrap(message, lcd.width());
 
   return NEW_MESSAGE_DISPLAY_MILLIS;
 }

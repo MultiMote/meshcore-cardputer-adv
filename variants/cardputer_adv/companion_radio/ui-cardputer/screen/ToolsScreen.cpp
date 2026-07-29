@@ -1,12 +1,12 @@
 #include "ToolsScreen.h"
 
-int ToolsScreen::render(DisplayDriver &display) {
+int ToolsScreen::render(CardputerDisplay &lcd) {
   char buf[64];
 
-  display.setTextSize(1);
-  display.setColor(DisplayDriver::GREEN);
+  lcd.setTextSize(1);
+  lcd.setColor(DisplayDriver::GREEN);
   if (page == ToolsPage::MenuPage) {
-    display.drawTextCentered(display.width() / 2, 5, "Tools");
+    lcd.drawTextCentered(lcd.width() / 2, 5, "Tools");
 
     int real_idx = 0;
     int list_page = menu_index / UI_TOOLS_LIST_SIZE;
@@ -20,31 +20,31 @@ int ToolsScreen::render(DisplayDriver &display) {
       }
 
       const char *label = menu_item_labels[real_idx];
-      display.setColor(label[0] == '-' ? DisplayDriver::GREEN : DisplayDriver::YELLOW);
-      display.drawTextLeftAlign(15, 20 + i * UI_TEXT_LINE_HEIGHT, label);
+      lcd.setColor(label[0] == '-' ? DisplayDriver::GREEN : DisplayDriver::YELLOW);
+      lcd.drawTextLeftAlign(15, 20 + i * UI_TEXT_LINE_HEIGHT, label);
 
       if (i == list_idx) {
-        display.setColor(DisplayDriver::GREEN);
-        display.drawTextLeftAlign(5, 20 + i * UI_TEXT_LINE_HEIGHT, ">");
+        lcd.setColor(DisplayDriver::GREEN);
+        lcd.drawTextLeftAlign(5, 20 + i * UI_TEXT_LINE_HEIGHT, ">");
       }
     }
   } else if (page == ToolsPage::DiscoverPage) {
-    display.drawTextCentered(display.width() / 2, 5, "Discover");
+    lcd.drawTextCentered(lcd.width() / 2, 5, "Discover");
 
     for (int i = 0; i < discovered_repeaters_count; i++) {
       DiscoveredRepeater *rep = &discovered_repeaters[i];
 
-      display.setColor(DisplayDriver::YELLOW);
-      display.drawTextLeftAlign(0, 25 + i * UI_TEXT_LINE_HEIGHT, rep->name);
+      lcd.setColor(DisplayDriver::YELLOW);
+      lcd.drawTextLeftAlign(0, 25 + i * UI_TEXT_LINE_HEIGHT, rep->name);
 
       if (rep->snr > 0) {
-        display.setColor(DisplayDriver::GREEN);
+        lcd.setColor(DisplayDriver::GREEN);
       } else {
-        display.setColor(DisplayDriver::RED);
+        lcd.setColor(DisplayDriver::RED);
       }
 
       sprintf(buf, "%.2fdb", rep->snr);
-      display.drawTextRightAlign(display.width() - 2, 25 + i * UI_TEXT_LINE_HEIGHT, buf);
+      lcd.drawTextRightAlign(lcd.width() - 2, 25 + i * UI_TEXT_LINE_HEIGHT, buf);
     }
 
     return 1000;

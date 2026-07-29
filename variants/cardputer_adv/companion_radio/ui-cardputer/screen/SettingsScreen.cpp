@@ -1,6 +1,9 @@
 #include "SettingsScreen.h"
 
-void SettingsScreen::renderItem(DisplayDriver &display, SettingsItem item, int x, int y) {
+#include "helpers.h"
+
+
+void SettingsScreen::renderItem(CardputerDisplay &lcd, SettingsItem item, int x, int y) {
   char tmp[64] = { 0 };
   DisplayDriver::Color text_color = DisplayDriver::YELLOW;
 
@@ -84,8 +87,8 @@ void SettingsScreen::renderItem(DisplayDriver &display, SettingsItem item, int x
       break;
   }
 
-  display.setColor(text_color);
-  display.drawTextEllipsized(x, y, display.width() - x, tmp);
+  lcd.setColor(text_color);
+  lcd.drawTextEllipsized(x, y, lcd.width() - x, tmp);
 }
 
 bool SettingsScreen::enterItemEdit(SettingsItem item) {
@@ -296,7 +299,7 @@ void SettingsScreen::handleEditInput(SettingsItem item, Keyboard::Event &e) {
     case SettingsItem::RadioBw:
 
       if (e.key == Keyboard::KEY_BACKSPACE) {
-        _task->removeLastStringChar(edit_buffer);
+        Helpers::removeLastStringChar(edit_buffer);
       } else if (e.key == Keyboard::KEY_PERIOD && edit_buffer.indexOf('.') == -1) {
         edit_buffer.concat('.');
       } else {
@@ -308,7 +311,7 @@ void SettingsScreen::handleEditInput(SettingsItem item, Keyboard::Event &e) {
       break;
     case SettingsItem::DeviceBatteryCorrection:
       if (e.key == Keyboard::KEY_BACKSPACE) {
-        _task->removeLastStringChar(edit_buffer);
+        Helpers::removeLastStringChar(edit_buffer);
       } else {
         const char ch = _task->getBoard()->getLayout()->lookupDefault(e)[0];
         if (ch && isdigit(ch) && edit_buffer.length() < 4) {
@@ -318,7 +321,7 @@ void SettingsScreen::handleEditInput(SettingsItem item, Keyboard::Event &e) {
       break;
     case SettingsItem::PublicInfoName:
       if (e.key == Keyboard::KEY_BACKSPACE) {
-        _task->removeLastStringChar(edit_buffer);
+        Helpers::removeLastStringChar(edit_buffer);
       } else if (edit_buffer.length() < sizeof(_node_prefs->node_name) - 2) {
         const char *ch = _task->getBoard()->getLayout()->lookup(e);
         if (ch[0]) {
@@ -328,7 +331,7 @@ void SettingsScreen::handleEditInput(SettingsItem item, Keyboard::Event &e) {
       break;
     case SettingsItem::MeshDefaultScope:
       if (e.key == Keyboard::KEY_BACKSPACE) {
-        _task->removeLastStringChar(edit_buffer);
+        Helpers::removeLastStringChar(edit_buffer);
       } else {
         const char ch = _task->getBoard()->getLayout()->lookupDefault(e)[0];
         if (ch && (isalnum(ch) || ch == '_' || ch == '-') &&
@@ -363,7 +366,7 @@ bool SettingsScreen::inputParsePositiveFloat(float &val) {
   return true;
 }
 
-int SettingsScreen::render(DisplayDriver &display) {
+int SettingsScreen::render(CardputerDisplay &display) {
   char buf[64];
 
   display.setTextSize(1);

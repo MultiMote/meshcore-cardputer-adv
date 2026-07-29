@@ -24,4 +24,20 @@ public:
 
     return false;
   }
+
+  // In case if input has utf-8 multibyte characters
+  static void removeLastStringChar(String &str) {
+    unsigned int len = str.length();
+    if (len == 0) {
+      return;
+    }
+
+    unsigned int bytesToRemove = 1;
+
+    while (len - bytesToRemove > 0 && ((uint8_t)str.charAt(len - bytesToRemove) & 0xC0) == 0x80) {
+      bytesToRemove++;
+    }
+
+    str.remove(len - bytesToRemove, bytesToRemove);
+  }
 };

@@ -11,7 +11,7 @@ class NewMessageScreen : public CardputerScreen {
 public:
   NewMessageScreen(CardputerUITask *task) : _task(task) {}
   void newMessage(const char *from, const char *msg);
-  int render(DisplayDriver &display) override;
+  int render(CardputerDisplay &lcd) override;
   bool handleInput(Keyboard::Event &e) override;
   void poll() override;
 };

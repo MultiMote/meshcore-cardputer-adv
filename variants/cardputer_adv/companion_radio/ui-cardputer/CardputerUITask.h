@@ -12,12 +12,11 @@
 #include <helpers/ContactInfo.h>
 #include <helpers/SensorManager.h>
 #include <helpers/sensors/LPPDataHelpers.h>
-#include <helpers/ui/DisplayDriver.h>
 
 #define LONG_PRESS_MILLIS 1200
 
 class CardputerUITask : public AbstractUITask {
-  DisplayDriver *_display;
+  CardputerDisplay *_display;
   SensorManager *_sensors;
   CardputerAdvBoard *_board;
   NodePrefs *_node_prefs;
@@ -58,6 +57,8 @@ public:
   inline int getMsgCount() const { return unsynced_msg_count; }
   inline bool hasDisplay() const { return _display != NULL; }
   inline bool isBuzzerQuiet() { return _node_prefs->buzzer_quiet; }
+  inline const char* getNodeName() { return _node_prefs->node_name; }
+  inline uint16_t getBattMilliVoltsCorrected() { return (float)getBattMilliVolts() * _custom_prefs->battery_correction; }
   void toggleBuzzer();
   void togglePowerSave();
   bool getGPSState();
@@ -79,7 +80,6 @@ public:
   void loop() override;
   void shutdown(bool restart = false);
   CardputerAdvBoard *getBoard() { return _board; }
-  void removeLastStringChar(String &str);
   inline void extendAutoOff() { auto_off_time = millis() + AUTO_OFF_MILLIS; }
   inline void scheduleRefresh(unsigned long ms = 0) { next_refresh = millis() + ms; }
 };

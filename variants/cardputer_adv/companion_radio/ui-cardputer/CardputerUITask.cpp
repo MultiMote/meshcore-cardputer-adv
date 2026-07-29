@@ -6,10 +6,11 @@
 #include "screen/SplashScreen.h"
 #include "screen/ToolsScreen.h"
 #include "target.h"
+#include "helpers.h"
 
 void CardputerUITask::begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs,
                             CustomNodePrefs *custom_prefs) {
-  _display = display;
+  _display = static_cast<CardputerDisplay *>(display);
   _sensors = sensors;
   extendAutoOff();
 
@@ -147,22 +148,6 @@ void CardputerUITask::shutdown(bool restart) {
     radio_driver.powerOff();
     _board->powerOff();
   }
-}
-
-// In case if input has utf-8 multibyte characters
-void CardputerUITask::removeLastStringChar(String &str) {
-  unsigned int len = str.length();
-  if (len == 0) {
-    return;
-  }
-
-  unsigned int bytesToRemove = 1;
-
-  while (len - bytesToRemove > 0 && ((uint8_t)str.charAt(len - bytesToRemove) & 0xC0) == 0x80) {
-    bytesToRemove++;
-  }
-
-  str.remove(len - bytesToRemove, bytesToRemove);
 }
 
 void CardputerUITask::loop() {

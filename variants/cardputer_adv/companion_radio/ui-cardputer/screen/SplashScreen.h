@@ -10,6 +10,6 @@ class SplashScreen : public CardputerScreen {
 
 public:
   SplashScreen(CardputerUITask *task);
-  int render(DisplayDriver &display) override;
+  int render(CardputerDisplay &lcd) override;
   void poll() override;
 };

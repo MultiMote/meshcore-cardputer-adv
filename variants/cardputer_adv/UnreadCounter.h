@@ -54,7 +54,7 @@ public:
     return false;
   }
 
-  void reset(bool is_channel, LookupPkey pkey) {
+  void reset(bool is_channel, const LookupPkey pkey) {
     for (uint16_t i = 0; i < _count; i++) {
       if (_items[i].is_channel == is_channel && memcmp(_items[i].pkey, pkey, CONTACT_LOOKUP_BYTES) == 0) {
         // Swap the target item with the last active item
@@ -73,7 +73,7 @@ public:
 
   inline void addContact(const LookupPkey pkey, int count) { add(false, pkey, count); }
 
-  inline void resetChannel(LookupPkey pkey) { reset(true, pkey); }
+  inline void resetChannel(const LookupPkey pkey) { reset(true, pkey); }
 
-  inline void resetContact(LookupPkey pkey) { reset(false, pkey); }
+  inline void resetContact(const LookupPkey pkey) { reset(false, pkey); }
 };

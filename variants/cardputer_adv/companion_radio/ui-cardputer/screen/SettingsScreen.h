@@ -35,7 +35,7 @@ class SettingsScreen : public CardputerScreen {
   String edit_buffer;
   uint8_t edit_u8;
 
-  void renderItem(DisplayDriver &display, SettingsItem item, int x, int y);
+  void renderItem(CardputerDisplay &display, SettingsItem item, int x, int y);
   bool enterItemEdit(SettingsItem item);
   void cancelItemEdit(SettingsItem item);
   bool commitItemEdit(SettingsItem item);
@@ -46,6 +46,6 @@ public:
   SettingsScreen(CardputerUITask *task, mesh::RTCClock *rtc, NodePrefs *node_prefs,
                  CustomNodePrefs *custom_prefs, CardputerAdvBoard *board)
       : _task(task), _rtc(rtc), _node_prefs(node_prefs), _custom_prefs(custom_prefs) {}
-  int render(DisplayDriver &display) override;
+  int render(CardputerDisplay &lcd) override;
   bool handleInput(Keyboard::Event &e) override;
 };

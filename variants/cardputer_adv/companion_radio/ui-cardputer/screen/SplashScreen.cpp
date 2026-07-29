@@ -14,21 +14,21 @@ SplashScreen::SplashScreen(CardputerUITask *task) : _task(task) {
   dismiss_after = millis() + BOOT_SCREEN_MILLIS;
 }
 
-int SplashScreen::render(DisplayDriver &display) {
+int SplashScreen::render(CardputerDisplay &lcd) {
   int logoWidth = 128;
   // meshcore logo
-  display.setColor(DisplayDriver::BLUE);
-  display.drawXbm((display.width() - logoWidth) / 2, 3, meshcore_logo, logoWidth, 13);
+  lcd.setColor(DisplayDriver::BLUE);
+  lcd.drawXbm((lcd.width() - logoWidth) / 2, 3, meshcore_logo, logoWidth, 13);
 
   // version info
-  display.setColor(DisplayDriver::LIGHT);
-  display.setTextSize(2);
-  display.drawTextCentered(display.width() / 2, 22, version_info);
+  lcd.setColor(DisplayDriver::LIGHT);
+  lcd.setTextSize(2);
+  lcd.drawTextCentered(lcd.width() / 2, 22, version_info);
 
-  display.setTextSize(1);
-  display.drawTextCentered(display.width() / 2, 52, FIRMWARE_BUILD_DATE);
+  lcd.setTextSize(1);
+  lcd.drawTextCentered(lcd.width() / 2, 52, FIRMWARE_BUILD_DATE);
 
-  display.drawTextCentered(display.width() / 2, 72, "for Cardputer ADV");
+  lcd.drawTextCentered(lcd.width() / 2, 72, "for Cardputer ADV");
 
   return 5000;
 }
