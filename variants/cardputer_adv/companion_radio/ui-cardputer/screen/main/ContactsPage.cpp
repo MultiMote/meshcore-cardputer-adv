@@ -93,9 +93,15 @@ int ContactsPage::render(CardputerDisplay &lcd) {
   }
 
   lcd.drawRect(1, lcd.height() - UI_TEXT_LINE_HEIGHT - 4, lcd.width() - 1, 1);
-  lcd.setColor(DisplayDriver::LIGHT);
-  lcd.drawTextLeftAlignWithScroll(5, lcd.height() - UI_TEXT_LINE_HEIGHT - 4, lcd.width() - 10,
-                                  contact_search_box.c_str());
+  if (contact_search_box.isEmpty()) {
+    lcd.setColor(TFT_GRAY);
+    lcd.drawTextLeftAlign(5, lcd.height() - UI_TEXT_LINE_HEIGHT - 4, "Search");
+  } else {
+    lcd.setColor(DisplayDriver::LIGHT);
+    lcd.drawTextLeftAlignWithScroll(5, lcd.height() - UI_TEXT_LINE_HEIGHT - 4, lcd.width() - 10,
+                                    contact_search_box.c_str());
+
+  }
   return 5000;
 }
 

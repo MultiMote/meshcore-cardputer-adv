@@ -77,8 +77,13 @@ int ChatPage::render(CardputerDisplay &lcd) {
 
   int available_width = display.width() - start_x;
 
-  display.drawTextLeftAlignWithScroll(start_x, display.height() - UI_TEXT_LINE_HEIGHT - 4, available_width,
-                                      chat_text_box.c_str());
+  if (chat_text_box.isEmpty()) {
+    lcd.setColor(TFT_GRAY);
+    lcd.drawTextLeftAlign(5, lcd.height() - UI_TEXT_LINE_HEIGHT - 4, "Write a message...");
+  } else {
+    display.drawTextLeftAlignWithScroll(start_x, display.height() - UI_TEXT_LINE_HEIGHT - 4, available_width,
+                                        chat_text_box.c_str());
+  }
 
   return 15000;
 }

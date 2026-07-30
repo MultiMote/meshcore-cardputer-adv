@@ -172,7 +172,11 @@ void CardputerDisplay::setTextSize(int sz) {
 }
 
 void CardputerDisplay::setColor(Color c) {
-  _lastColor = convertColor(c);
+  setColor(convertColor(c));
+}
+
+void CardputerDisplay::setColor(uint16_t c) {
+  _lastColor = c;
   LCD.setColor(_lastColor);
   LCD.setTextColor(_lastColor);
 }
