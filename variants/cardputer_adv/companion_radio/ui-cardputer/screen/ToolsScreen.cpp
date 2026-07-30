@@ -4,7 +4,7 @@ int ToolsScreen::render(CardputerDisplay &lcd) {
   char buf[64];
 
   lcd.setTextSize(1);
-  lcd.setColor(DisplayDriver::GREEN);
+  lcd.setColor(CardputerDisplay::P_GREEN);
   if (page == ToolsPage::MenuPage) {
     lcd.drawTextCentered(lcd.width() / 2, 5, "Tools");
 
@@ -20,11 +20,11 @@ int ToolsScreen::render(CardputerDisplay &lcd) {
       }
 
       const char *label = menu_item_labels[real_idx];
-      lcd.setColor(label[0] == '-' ? DisplayDriver::GREEN : DisplayDriver::YELLOW);
+      lcd.setColor(label[0] == '-' ? CardputerDisplay::P_GREEN : CardputerDisplay::P_YELLOW);
       lcd.drawTextLeftAlign(15, 20 + i * UI_TEXT_LINE_HEIGHT, label);
 
       if (i == list_idx) {
-        lcd.setColor(DisplayDriver::GREEN);
+        lcd.setColor(CardputerDisplay::P_GREEN);
         lcd.drawTextLeftAlign(5, 20 + i * UI_TEXT_LINE_HEIGHT, ">");
       }
     }
@@ -34,13 +34,13 @@ int ToolsScreen::render(CardputerDisplay &lcd) {
     for (int i = 0; i < discovered_repeaters_count; i++) {
       DiscoveredRepeater *rep = &discovered_repeaters[i];
 
-      lcd.setColor(DisplayDriver::YELLOW);
+      lcd.setColor(CardputerDisplay::P_YELLOW);
       lcd.drawTextLeftAlign(0, 25 + i * UI_TEXT_LINE_HEIGHT, rep->name);
 
       if (rep->snr > 0) {
-        lcd.setColor(DisplayDriver::GREEN);
+        lcd.setColor(CardputerDisplay::P_GREEN);
       } else {
-        lcd.setColor(DisplayDriver::RED);
+        lcd.setColor(CardputerDisplay::P_RED);
       }
 
       sprintf(buf, "%.2fdb", rep->snr);

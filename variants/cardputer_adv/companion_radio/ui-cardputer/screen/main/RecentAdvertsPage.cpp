@@ -5,7 +5,7 @@ int RecentAdvertsPage::render(CardputerDisplay &lcd) {
   AdvertPath recent[UI_RECENT_LIST_SIZE];
 
   the_mesh_cp.getRecentlyHeard(recent, UI_RECENT_LIST_SIZE);
-  lcd.setColor(DisplayDriver::GREEN);
+  lcd.setColor(CardputerDisplay::P_GREEN);
 
   int y = 20;
   lcd.drawTextCentered(lcd.width() / 2, y, "Recent adverts");

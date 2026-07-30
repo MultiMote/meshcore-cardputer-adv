@@ -15,7 +15,7 @@ int ChannelsPage::getChannelCount() { // not sure if there is no gaps
 }
 
 int ChannelsPage::render(CardputerDisplay &lcd) {
-  lcd.setColor(DisplayDriver::GREEN);
+  lcd.setColor(CardputerDisplay::P_GREEN);
   lcd.drawTextCentered(lcd.width() / 2, 20, "Channels");
 
   int real_idx = 0;
@@ -24,7 +24,7 @@ int ChannelsPage::render(CardputerDisplay &lcd) {
   char buf[6];
 
   for (int i = 0; i < UI_CHANNEL_LIST_SIZE; i++) {
-    lcd.setColor(DisplayDriver::GREEN);
+    lcd.setColor(CardputerDisplay::P_GREEN);
 
     ChannelDetails channel;
     real_idx = list_page * UI_CHANNEL_LIST_SIZE + i;
@@ -52,7 +52,7 @@ int ChannelsPage::render(CardputerDisplay &lcd) {
     if (unread_count > 0) {
       snprintf(buf, sizeof(buf), "%d", unread_count);
       right_pad = lcd.getTextWidth(buf) + 5;
-      lcd.setColor(DisplayDriver::ORANGE);
+      lcd.setColor(CardputerDisplay::P_ORANGE);
       lcd.drawTextRightAlign(lcd.width() - 1, 30 + i * UI_TEXT_LINE_HEIGHT, buf);
     }
 

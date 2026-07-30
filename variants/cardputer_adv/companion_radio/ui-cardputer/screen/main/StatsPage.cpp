@@ -6,7 +6,7 @@ int StatsPage::render(CardputerDisplay &lcd) {
   int y = 20;
   display.drawTextCentered(display.width() / 2, y, "Stats");
 
-  display.setColor(DisplayDriver::YELLOW);
+  display.setColor(CardputerDisplay::P_YELLOW);
 
   y += UI_TEXT_LINE_HEIGHT;
   sprintf(tmp, "Radio noise floor: %d", radio_driver.getNoiseFloor());

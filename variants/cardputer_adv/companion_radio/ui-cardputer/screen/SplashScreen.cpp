@@ -17,11 +17,11 @@ SplashScreen::SplashScreen(CardputerUITask *task) : _task(task) {
 int SplashScreen::render(CardputerDisplay &lcd) {
   int logoWidth = 128;
   // meshcore logo
-  lcd.setColor(DisplayDriver::BLUE);
+  lcd.setColor(CardputerDisplay::P_BLUE);
   lcd.drawXbm((lcd.width() - logoWidth) / 2, 3, meshcore_logo, logoWidth, 13);
 
   // version info
-  lcd.setColor(DisplayDriver::LIGHT);
+  lcd.setColor(CardputerDisplay::P_WHITE);
   lcd.setTextSize(2);
   lcd.drawTextCentered(lcd.width() / 2, 22, version_info);
 

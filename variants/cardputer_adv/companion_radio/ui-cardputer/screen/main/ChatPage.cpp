@@ -5,10 +5,10 @@
 int ChatPage::render(CardputerDisplay &lcd) {
   char buf[64];
 
-  display.setColor(DisplayDriver::GREEN);
+  display.setColor(CardputerDisplay::P_GREEN);
 
   if (current_contact_idx == -1 && current_channel_idx == -1) {
-    display.setColor(DisplayDriver::ORANGE);
+    display.setColor(CardputerDisplay::P_ORANGE);
     display.drawTextCentered(display.width() / 2, 20, "Contact/Channel not selected");
   } else if (current_contact_idx != -1) {
     if (current_contact.out_path_len == OUT_PATH_UNKNOWN) {
@@ -23,7 +23,7 @@ int ChatPage::render(CardputerDisplay &lcd) {
     display.drawTextCentered(display.width() / 2, 20, current_channel.name);
   }
 
-  display.setColor(DisplayDriver::GREEN);
+  display.setColor(CardputerDisplay::P_GREEN);
 
   int current_y = 35 + (UI_CHAT_HISTORY_LIST_SIZE - 1) * display.getFontLineHeight();
   int total_lines_drawn = 0;
@@ -73,12 +73,12 @@ int ChatPage::render(CardputerDisplay &lcd) {
   int start_x = 5;
   display.drawRect(1, display.height() - UI_TEXT_LINE_HEIGHT - 4, display.width() - 1, 1);
 
-  display.setColor(DisplayDriver::LIGHT);
+  display.setColor(CardputerDisplay::P_WHITE);
 
   int available_width = display.width() - start_x;
 
   if (chat_text_box.isEmpty()) {
-    lcd.setColor(TFT_GRAY);
+    lcd.setColor(CardputerDisplay::P_GRAY);
     lcd.drawTextLeftAlign(5, lcd.height() - UI_TEXT_LINE_HEIGHT - 4, "Write a message...");
   } else {
     display.drawTextLeftAlignWithScroll(start_x, display.height() - UI_TEXT_LINE_HEIGHT - 4, available_width,

@@ -10,12 +10,12 @@ int NewMessageScreen::render(CardputerDisplay &lcd) {
   lcd.setTextSize(1);
 
   // origin
-  lcd.setColor(DisplayDriver::YELLOW);
+  lcd.setColor(CardputerDisplay::P_YELLOW);
   lcd.drawTextLeftAlign(0, 0, origin);
 
   // message
   lcd.setCursor(0, UI_TEXT_LINE_HEIGHT);
-  lcd.setColor(DisplayDriver::LIGHT);
+  lcd.setColor(CardputerDisplay::P_WHITE);
   lcd.printWordWrap(message, lcd.width());
 
   return NEW_MESSAGE_DISPLAY_MILLIS;

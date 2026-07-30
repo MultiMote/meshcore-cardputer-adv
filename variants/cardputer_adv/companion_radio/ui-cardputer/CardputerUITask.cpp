@@ -175,9 +175,9 @@ void CardputerUITask::loop() {
         _display->setTextSize(1);
         int y = _display->height() / 3;
         int p = _display->height() / 32;
-        _display->setColor(DisplayDriver::DARK);
+        _display->setColor(CardputerDisplay::P_BLACK);
         _display->fillRect(p, y, _display->width() - p * 2, y);
-        _display->setColor(DisplayDriver::LIGHT); // draw box border
+        _display->setColor(CardputerDisplay::P_WHITE); // draw box border
         _display->drawRect(p, y, _display->width() - p * 2, y);
         _display->drawTextCentered(_display->width() / 2, y + p * 3, alert_text);
         next_refresh = alert_expiry; // will need refresh when alert is dismissed

@@ -117,7 +117,7 @@ void CardputerDisplay::clear() {
 
 void CardputerDisplay::startFrame(Color bkg) {
   LCD.startWrite();
-  LCD.clear(convertColor(bkg));
+  LCD.clear(P_BLACK);
 }
 
 void CardputerDisplay::endFrame() {
@@ -171,11 +171,7 @@ void CardputerDisplay::setTextSize(int sz) {
   LCD.setTextSize(sz);
 }
 
-void CardputerDisplay::setColor(Color c) {
-  setColor(convertColor(c));
-}
-
-void CardputerDisplay::setColor(uint16_t c) {
+void CardputerDisplay::setColor(PaletteColor c) {
   _lastColor = c;
   LCD.setColor(_lastColor);
   LCD.setTextColor(_lastColor);

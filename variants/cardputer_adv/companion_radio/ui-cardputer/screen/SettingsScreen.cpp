@@ -5,26 +5,26 @@
 
 void SettingsScreen::renderItem(CardputerDisplay &lcd, SettingsItem item, int x, int y) {
   char tmp[64] = { 0 };
-  DisplayDriver::Color text_color = DisplayDriver::YELLOW;
+  CardputerDisplay::PaletteColor text_color = CardputerDisplay::P_YELLOW;
 
   switch (item) {
     case SettingsItem::HdrRadio:
-      text_color = DisplayDriver::GREEN;
+      text_color = CardputerDisplay::P_GREEN;
       snprintf(tmp, sizeof(tmp), "---- RADIO ----");
       break;
 
     case SettingsItem::HdrDevice:
-      text_color = DisplayDriver::GREEN;
+      text_color = CardputerDisplay::P_GREEN;
       snprintf(tmp, sizeof(tmp), "---- DEVICE ----");
       break;
 
     case SettingsItem::HdrMesh:
-      text_color = DisplayDriver::GREEN;
+      text_color = CardputerDisplay::P_GREEN;
       snprintf(tmp, sizeof(tmp), "---- MESH ----");
       break;
 
     case SettingsItem::HdrPublicInfo:
-      text_color = DisplayDriver::GREEN;
+      text_color = CardputerDisplay::P_GREEN;
       snprintf(tmp, sizeof(tmp), "---- PUBLIC INFO ----");
       break;
 
@@ -82,7 +82,7 @@ void SettingsScreen::renderItem(CardputerDisplay &lcd, SettingsItem item, int x,
       break;
 
     default:
-      text_color = DisplayDriver::RED;
+      text_color = CardputerDisplay::P_RED;
       snprintf(tmp, sizeof(tmp), "???");
       break;
   }
@@ -371,14 +371,14 @@ int SettingsScreen::render(CardputerDisplay &display) {
 
   display.setTextSize(1);
   if (restart_required) {
-    display.setColor(DisplayDriver::RED);
+    display.setColor(CardputerDisplay::P_RED);
     display.drawTextCentered(display.width() / 2, 5, "Settings | Restart required");
   } else {
-    display.setColor(DisplayDriver::GREEN);
+    display.setColor(CardputerDisplay::P_GREEN);
     display.drawTextCentered(display.width() / 2, 5, "Settings");
   }
 
-  display.setColor(DisplayDriver::YELLOW);
+  display.setColor(CardputerDisplay::P_YELLOW);
   display.setTextSize(1);
 
   int real_idx = 0;
@@ -395,7 +395,7 @@ int SettingsScreen::render(CardputerDisplay &display) {
     renderItem(display, static_cast<SettingsItem>(real_idx), 15, 20 + i * UI_TEXT_LINE_HEIGHT);
 
     if (i == list_idx) {
-      display.setColor(DisplayDriver::GREEN);
+      display.setColor(CardputerDisplay::P_GREEN);
       display.drawTextLeftAlign(5, 20 + i * UI_TEXT_LINE_HEIGHT, ">");
     }
   }
@@ -403,9 +403,9 @@ int SettingsScreen::render(CardputerDisplay &display) {
   if (is_editing) {
     int x_margin = 5;
     int y_margin = 40;
-    display.setColor(DisplayDriver::DARK);
+    display.setColor(CardputerDisplay::P_BLACK);
     display.fillRect(x_margin, y_margin, display.width() - x_margin * 2, display.height() - y_margin * 2);
-    display.setColor(DisplayDriver::LIGHT);
+    display.setColor(CardputerDisplay::P_WHITE);
     display.drawRect(x_margin, y_margin, display.width() - x_margin * 2, display.height() - y_margin * 2);
     display.setTextSize(2);
 

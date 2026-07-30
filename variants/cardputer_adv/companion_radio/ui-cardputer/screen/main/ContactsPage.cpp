@@ -43,7 +43,7 @@ bool ContactsPage::getFilteredContactIndex(int list_idx, int &real_idx) {
 }
 
 int ContactsPage::render(CardputerDisplay &lcd) {
-  lcd.setColor(DisplayDriver::GREEN);
+  lcd.setColor(CardputerDisplay::P_GREEN);
   lcd.drawTextCentered(lcd.width() / 2, 20, "Contacts");
   int real_idx = 0;
   int list_page = contact_list_idx / UI_CONTACT_LIST_SIZE;
@@ -51,7 +51,7 @@ int ContactsPage::render(CardputerDisplay &lcd) {
   char buf[6];
 
   for (int i = 0; i < UI_CONTACT_LIST_SIZE; i++) {
-    lcd.setColor(DisplayDriver::GREEN);
+    lcd.setColor(CardputerDisplay::P_GREEN);
 
     ContactInfo contact;
     int display_idx = list_page * UI_CONTACT_LIST_SIZE + i;
@@ -81,7 +81,7 @@ int ContactsPage::render(CardputerDisplay &lcd) {
     if (unread_count > 0) {
       snprintf(buf, sizeof(buf), "%d", unread_count);
       right_pad = lcd.getTextWidth(buf) + 5;
-      lcd.setColor(DisplayDriver::ORANGE);
+      lcd.setColor(CardputerDisplay::P_ORANGE);
       lcd.drawTextRightAlign(lcd.width() - 1, 30 + i * UI_TEXT_LINE_HEIGHT, buf);
     }
 
@@ -94,10 +94,10 @@ int ContactsPage::render(CardputerDisplay &lcd) {
 
   lcd.drawRect(1, lcd.height() - UI_TEXT_LINE_HEIGHT - 4, lcd.width() - 1, 1);
   if (contact_search_box.isEmpty()) {
-    lcd.setColor(TFT_GRAY);
+    lcd.setColor(CardputerDisplay::P_GRAY);
     lcd.drawTextLeftAlign(5, lcd.height() - UI_TEXT_LINE_HEIGHT - 4, "Search");
   } else {
-    lcd.setColor(DisplayDriver::LIGHT);
+    lcd.setColor(CardputerDisplay::P_WHITE);
     lcd.drawTextLeftAlignWithScroll(5, lcd.height() - UI_TEXT_LINE_HEIGHT - 4, lcd.width() - 10,
                                     contact_search_box.c_str());
 

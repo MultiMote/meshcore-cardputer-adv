@@ -38,7 +38,7 @@ void MainScreen::renderStatusIcons(CardputerDisplay &lcd) {
   int iconHeight = 14;
   int iconX = lcd.width() - iconWidth - 5; // Position the icon near the top-right corner
   int iconY = 2;
-  lcd.setColor(DisplayDriver::GREEN);
+  lcd.setColor(CardputerDisplay::P_GREEN);
 
   // battery outline
   lcd.drawRect(iconX, iconY, iconWidth, iconHeight);
@@ -52,13 +52,13 @@ void MainScreen::renderStatusIcons(CardputerDisplay &lcd) {
 
   sprintf(tmp, "%d", batteryPercentage);
   lcd.drawTextCentered(iconX + 2 + iconWidth / 2, 0, tmp);
-  lcd.setColor(DisplayDriver::DARK);
+  lcd.setColor(CardputerDisplay::P_BLACK);
   lcd.drawTextCentered(iconX + 2 + iconWidth / 2 - 1, 0, tmp);
 
   iconX = 3;
   iconY = 5;
 
-  lcd.setColor(DisplayDriver::GREEN);
+  lcd.setColor(CardputerDisplay::P_GREEN);
 
   CardputerLayout *lay = _task->getBoard()->getLayout();
 
@@ -91,7 +91,7 @@ int MainScreen::render(CardputerDisplay &lcd) {
 
   renderStatusIcons(lcd);
 
-  lcd.setColor(DisplayDriver::GREEN);
+  lcd.setColor(CardputerDisplay::P_GREEN);
 
   // curr page indicator
   int y = 16;
