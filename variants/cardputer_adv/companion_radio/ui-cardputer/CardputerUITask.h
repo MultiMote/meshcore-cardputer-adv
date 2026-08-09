@@ -8,7 +8,7 @@
 #include <AbstractUITask.h>
 #include <Arduino.h>
 #include <MeshCore.h>
-#include <helpers/BaseSerialInterface.h>
+#include <helpers/MultiSerialInterface.h>
 #include <helpers/ContactInfo.h>
 #include <helpers/SensorManager.h>
 #include <helpers/sensors/LPPDataHelpers.h>
@@ -42,7 +42,7 @@ class CardputerUITask : public AbstractUITask {
   void setCurrScreen(CardputerScreen *c);
 
 public:
-  CardputerUITask(CardputerAdvBoard *board, BaseSerialInterface *serial)
+  CardputerUITask(CardputerAdvBoard *board, MultiSerialInterface *serial)
       : AbstractUITask(board, serial), _display(NULL), _sensors(NULL), _board(board) {}
 
   void begin(DisplayDriver *display, SensorManager *sensors, NodePrefs *node_prefs,

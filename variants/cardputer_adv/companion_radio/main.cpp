@@ -16,6 +16,7 @@
 
 #include <Arduino.h>
 #include <Mesh.h>
+#include <helpers/MultiSerialInterface.h>
 #include <helpers/esp32/SerialBLEInterface.h>
 
 static uint32_t _atoi(const char *sp) {
@@ -35,9 +36,10 @@ CardputerDataStore store(SD, rtc_clock);
 CardputerDataStore store(SPIFFS, rtc_clock);
 #endif
 
-SerialBLEInterface serial_interface;
+MultiSerialInterface interface_manager;
+SerialBLEInterface bluetooth_interface;
 
-TASK_CLASS ui_task(&board, &serial_interface);
+TASK_CLASS ui_task(&board, &interface_manager);
 
 StdRNG fast_rng;
 SimpleMeshTables tables;
@@ -97,8 +99,10 @@ void setup() {
   store.begin();
   THE_MESH_OBJ.begin(true);
 
-  serial_interface.begin(BLE_NAME_PREFIX, THE_MESH_OBJ.getNodePrefs()->node_name, THE_MESH_OBJ.getBLEPin());
-  THE_MESH_OBJ.startInterface(serial_interface);
+  bluetooth_interface.begin(BLE_NAME_PREFIX, THE_MESH_OBJ.getNodePrefs()->node_name, THE_MESH_OBJ.getBLEPin());
+  interface_manager.addInterface(InterfaceType::Bluetooth, &bluetooth_interface);
+
+  THE_MESH_OBJ.startInterface(interface_manager);
   sensors.begin();
 
 #if ENV_INCLUDE_GPS == 1

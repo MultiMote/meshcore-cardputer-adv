@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  MESHCORE_VERSION: v1.16.0
+  MESHCORE_VERSION: v1.17.0
 
 jobs:
   build:

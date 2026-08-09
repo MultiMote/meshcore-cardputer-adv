@@ -61,7 +61,7 @@ void SettingsScreen::renderItem(CardputerDisplay &lcd, SettingsItem item, int x,
       break;
 
     case SettingsItem::DeviceBluetooth:
-      snprintf(tmp, sizeof(tmp), "Bluetooth: %s", _task->isSerialEnabled() ? "ON" : "OFF");
+      snprintf(tmp, sizeof(tmp), "Bluetooth: %s", _task->isBluetoothEnabled() ? "ON" : "OFF");
       break;
 
     case SettingsItem::DevicePowersave:
@@ -107,10 +107,10 @@ bool SettingsScreen::enterItemEdit(SettingsItem item) {
       return true;
 
     case SettingsItem::DeviceBluetooth:
-      if (_task->isSerialEnabled()) {
-        _task->disableSerial();
+      if (_task->isBluetoothEnabled()) {
+        _task->disableBluetooth();
       } else {
-        _task->enableSerial();
+        _task->enableBluetooth();
       }
       the_mesh_cp.savePrefs();
       return true;

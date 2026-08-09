@@ -5,6 +5,8 @@
 
 #include <MeshCore.h>
 
+ColorVal UIColor::window_bkg = CardputerDisplay::PaletteColor::P_BLACK;
+
 int32_t emoji_draw_callback(lgfx::LGFXBase *gfx, int32_t x, int32_t y, uint32_t code, int32_t font_height) {
   int w = gfx->textWidth("O");
   int h = gfx->fontHeight();
@@ -115,7 +117,7 @@ void CardputerDisplay::clear() {
   LCD.clear();
 }
 
-void CardputerDisplay::startFrame(Color bkg) {
+void CardputerDisplay::startFrame(ColorVal bkg) {
   LCD.startWrite();
   LCD.clear(P_BLACK);
 }
@@ -171,7 +173,7 @@ void CardputerDisplay::setTextSize(int sz) {
   LCD.setTextSize(sz);
 }
 
-void CardputerDisplay::setColor(PaletteColor c) {
+void CardputerDisplay::setColor(ColorVal c) {
   _lastColor = c;
   LCD.setColor(_lastColor);
   LCD.setTextColor(_lastColor);
