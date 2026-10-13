@@ -12,7 +12,7 @@ This variant designed to not change the original codebase. I tried to make the i
 
 ### Building
 
-1. Get a copy of [MeshCore](https://github.com/meshcore-dev/MeshCore). Current development is based on v1.16.0.
+1. Get a copy of [MeshCore](https://github.com/meshcore-dev/MeshCore). Current development is based on v1.17.1.
 
 2. Copy the `variants/cardputer_adv` directory from this repository into the `variants` directory of the MeshCore source tree.
 
