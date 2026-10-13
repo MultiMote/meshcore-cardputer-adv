@@ -1,3 +1,7 @@
+# recent
+
+* Fix tools actions order
+
 # 2026.7.3
 
 * Add default scope (region) option to the settings

@@ -10,8 +10,8 @@ class ToolsScreen : public CardputerScreen {
     AdvertZeroHop,
     AdvertFlood,
     DiscoverRepeaters,
-    PowerOff,
     DeviceSeparator,
+    PowerOff,
     Restart,
     Count
   };
