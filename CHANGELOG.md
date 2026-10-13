@@ -1,5 +1,6 @@
-# recent
+# 2026.10.0
 
+* Update MeshCore to 1.17.1
 * Fix tools actions order
 * `Ctrl+R` to reset path (instead of `R`)
 * Block keys if message is sending
