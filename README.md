@@ -67,7 +67,7 @@ Currently implemented (companion):
 - Contacts list
    * Press `Enter` on repeater/room to ping
    * Press `Enter` on contact to start conversation
-   * Press `r` to reset path
+   * Press `Ctrl+R` to reset path
 - Compose and send messages
    * After sending group message, "Heard repeats" appears (if any)
    * After sending direct message, "Message delivered" appears (if ACK received)

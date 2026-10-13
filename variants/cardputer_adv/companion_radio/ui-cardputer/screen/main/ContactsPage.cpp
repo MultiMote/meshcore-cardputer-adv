@@ -151,7 +151,7 @@ bool ContactsPage::handleInput(Keyboard::Event &e) {
     return true;
   }
 
-  if (e.key == Keyboard::KEY_R) { // reset path
+  if (e.modifiers.ctrl && e.key == Keyboard::KEY_R) { // reset path
     int real_idx = -1;
     if (getFilteredContactIndex(contact_list_idx, real_idx)) {
       ContactInfo c;
