@@ -134,6 +134,15 @@ void ChatPage::sendChatMessage() {
 bool ChatPage::handleInput(Keyboard::Event &e) {
   CardputerLayout *lay = _p->getUiTask()->getBoard()->getLayout();
 
+  if (e.modifiers.ctrl && e.key == Keyboard::KEY_T) {
+    the_mesh_cp.cancelResending();
+    return true;
+  }
+
+  if (the_mesh_cp.isMessageSending()) {
+    return true;
+  }
+
   if (e.key == Keyboard::KEY_BACKSPACE) {
     Helpers::removeLastStringChar(chat_text_box);
     return true;
@@ -146,11 +155,6 @@ bool ChatPage::handleInput(Keyboard::Event &e) {
 
   if (e.modifiers.ctrl && e.key == Keyboard::ARROW_UP && chat_text_box.isEmpty()) {
     chat_text_box = last_sent_message;
-    return true;
-  }
-
-  if (e.modifiers.ctrl && e.key == Keyboard::KEY_T) {
-    the_mesh_cp.cancelResending();
     return true;
   }
 

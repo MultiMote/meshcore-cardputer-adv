@@ -60,6 +60,7 @@ public:
   void loadMessageHistory(const uint8_t pkey[PUB_KEY_SIZE], bool is_channel, ChatHistory &history);
   void loop();
   void cancelResending();
+  bool isMessageSending() { return last_msg.state == MESSAGE_SENDING; }
 };
 
 extern CardputerMesh the_mesh_cp;

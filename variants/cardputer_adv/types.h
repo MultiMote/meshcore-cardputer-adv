@@ -27,6 +27,6 @@ struct LastSentMessage {
   uint8_t total_attempts = 0;
   uint32_t expected_ack;
   char text[MAX_MESSAGE_LENGTH + 1] = { 0 };
-  MessageSendState state = MESSAGE_SENDING;
+  MessageSendState state = MESSAGE_DELIVERED;
   bool need_direct = false;
 };

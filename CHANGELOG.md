@@ -2,6 +2,7 @@
 
 * Fix tools actions order
 * `Ctrl+R` to reset path (instead of `R`)
+* Block keys if message is sending
 
 # 2026.7.3
 
