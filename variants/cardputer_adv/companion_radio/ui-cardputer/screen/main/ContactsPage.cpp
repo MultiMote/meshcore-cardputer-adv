@@ -5,8 +5,8 @@
 int ContactsPage::getFilteredContactCount() {
   ContactInfo contact;
   int num = 0;
-
-  for (int i = 0; i < the_mesh_cp.getNumContacts(); i++) {
+  // Start iterating from MAX_ANON_CONTACTS to skip anonymous contacts
+  for (int i = MAX_ANON_CONTACTS; i < the_mesh_cp.getTotalContactSlots(); i++) {
     if (!the_mesh_cp.getContactByIdx(i, contact)) {
       break;
     }
@@ -23,8 +23,8 @@ int ContactsPage::getFilteredContactCount() {
 bool ContactsPage::getFilteredContactIndex(int list_idx, int &real_idx) {
   ContactInfo contact;
   int match_count = 0;
-
-  for (int i = 0; i < the_mesh_cp.getNumContacts(); i++) {
+  // Start iterating from MAX_ANON_CONTACTS to skip anonymous contacts
+  for (int i = MAX_ANON_CONTACTS; i < the_mesh_cp.getTotalContactSlots(); i++) {
     if (!the_mesh_cp.getContactByIdx(i, contact)) {
       break;
     }
