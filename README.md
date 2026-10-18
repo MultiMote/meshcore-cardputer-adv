@@ -12,11 +12,13 @@ This variant designed to not change the original codebase. I tried to make the i
 
 ### Building
 
-1. Get a copy of [MeshCore](https://github.com/meshcore-dev/MeshCore). Current development is based on v1.17.1.
+MeshCore is included as a git submodule, so clone with submodules (or fetch them first):
 
-2. Copy the `variants/cardputer_adv` directory from this repository into the `variants` directory of the MeshCore source tree.
-
-3. Run in the MeshCore directory:
+```bash
+git clone --recurse-submodules https://github.com/MultiMote/meshcore-cardputer-adv.git
+# or, in an existing clone:
+git submodule update --init --recursive
+```
 
 Build:
 
@@ -105,7 +107,6 @@ Currently implemented (companion):
 
 Todo:
 
-- Find a way to include MeshCore as submodule in this repository and build it from here
 - Change display brightness
 - Custom notification sounds (.wav files from SD card)
 - Import contacts from SD card

@@ -6,9 +6,6 @@ on:
       - '*'
   workflow_dispatch:
 
-env:
-  MESHCORE_VERSION: v1.17.1
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,17 +13,17 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          repository: 'meshcore-dev/meshcore'
-          ref: companion-${{ env.MESHCORE_VERSION }}
-          path: MeshCore
+          submodules: recursive
 
-      - uses: actions/checkout@v6
-        with:
-          path: meshcore-cardputer-adv
-
-      - name: Copy variant
+      - name: Get MeshCore version
         run: |
-          cp -r meshcore-cardputer-adv/variants/cardputer_adv MeshCore/variants/
+          VERSION=$(sed -nE 's/^#define[[:space:]]+FIRMWARE_VERSION[[:space:]]+"([^"]+)".*/\1/p' MeshCore/examples/companion_radio/MyMesh.h)
+          if [ -z "$VERSION" ]; then
+            echo "Could not determine FIRMWARE_VERSION from MeshCore/examples/companion_radio/MyMesh.h" >&2
+            exit 1
+          fi
+          echo "MESHCORE_VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "MeshCore version: $VERSION"
 
       - uses: actions/cache@v4
         with:
@@ -50,19 +47,18 @@ jobs:
         env:
           FIRMWARE_VERSION: ${{ env.MESHCORE_VERSION }}
           DISABLE_DEBUG: 1
-        run: /usr/bin/env bash build.sh build-firmware cardputer_adv_companion_radio_ble
-        working-directory: MeshCore
+        run: /usr/bin/env bash MeshCore/build.sh build-firmware cardputer_adv_companion_radio_ble
 
       - name: Update GitHub "latest" release
         if: github.repository == 'MultiMote/meshcore-cardputer-adv'
-        run: gh release upload latest MeshCore/out/* --repo MultiMote/meshcore-cardputer-adv --clobber
+        run: gh release upload latest out/* --repo MultiMote/meshcore-cardputer-adv --clobber
         env:
           GH_TOKEN: ${{ github.token }}
 
       - name: Replace "latest" with current tag in file names
         if: github.ref_type == 'tag'
         run: |
-          cd MeshCore/out
+          cd out
           for file in *latest*; do
             mv "$file" "${file//latest/${{ github.ref_name }}}"
           done
@@ -74,4 +70,4 @@ jobs:
           name: Firmware ${{ github.ref_name }}
           body: ""
           draft: true
-          files: MeshCore/out/*
+          files: out/*
