@@ -1,3 +1,9 @@
+# 2026.10.1
+
+* Fix contact hop count display.
+* Fix direct message ACK handling.
+* Other small fixes.
+
 # 2026.10.0
 
 * Update MeshCore to 1.17.1

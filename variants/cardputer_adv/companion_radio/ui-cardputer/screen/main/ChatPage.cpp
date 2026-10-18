@@ -11,12 +11,14 @@ int ChatPage::render(CardputerDisplay &lcd) {
     display.setColor(CardputerDisplay::P_ORANGE);
     display.drawTextCentered(display.width() / 2, 20, "Contact/Channel not selected");
   } else if (current_contact_idx != -1) {
+    // out_path_len packs the path hash count in the lower 6 bits, and (hash size - 1) in the upper 2 bits
+    uint8_t path_hops = current_contact.out_path_len & 63;
     if (current_contact.out_path_len == OUT_PATH_UNKNOWN) {
       snprintf(buf, sizeof(buf), "%s F", current_contact.name);
-    } else if (current_contact.out_path_len == 0) {
+    } else if (path_hops == 0) {
       snprintf(buf, sizeof(buf), "%s D", current_contact.name);
     } else {
-      snprintf(buf, sizeof(buf), "%s %uH", current_contact.name, current_contact.out_path_len);
+      snprintf(buf, sizeof(buf), "%s %uH", current_contact.name, path_hops);
     }
     display.drawTextCentered(display.width() / 2, 20, buf);
   } else if (current_channel_idx != -1) {
