@@ -96,8 +96,6 @@ void ChatPage::sendChatMessage() {
   uint32_t ts = the_mesh_cp.getRTCClock()->getCurrentTime();
 
   if (current_contact_idx != -1 && current_contact.type == ADV_TYPE_CHAT) { // direct msg
-    uint32_t est_timeout;
-
     int result = the_mesh_cp.sendDirectMessage(current_contact, ts, chat_text_box.c_str());
 
     if (result != MSG_SEND_FAILED) {
@@ -218,7 +216,7 @@ void ChatPage::selectContact(const ContactInfo &contact, int idx) {
 
 void ChatPage::selectChannel(const ChannelDetails &channel, int idx) {
   current_channel = channel;
-  current_channel_idx = INCLUDE_xTaskAbortDelay;
+  current_channel_idx = idx;
   current_contact_idx = -1;
   the_mesh_cp.loadMessageHistory(channel.channel.secret, true, chat_history);
   chat_history_offset = 0;

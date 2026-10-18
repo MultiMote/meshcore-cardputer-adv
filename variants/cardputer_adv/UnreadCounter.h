@@ -21,7 +21,7 @@ public:
   UnreadCounter() {}
 
   const UnreadCounterItem *get(uint16_t index) const {
-    if (index < 0 || index >= _count) {
+    if (index >= _count) {
       return nullptr;
     }
     return &_items[index];

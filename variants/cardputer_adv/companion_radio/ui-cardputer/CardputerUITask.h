@@ -26,7 +26,7 @@ class CardputerUITask : public AbstractUITask {
   bool sleep_enabled = false;
   char alert_text[80];
   unsigned long alert_expiry = 0;
-  int unsynced_msg_count;
+  int unsynced_msg_count = 0;
   unsigned long ui_started_at = 0;
   unsigned long next_batt_chck = 0;
 

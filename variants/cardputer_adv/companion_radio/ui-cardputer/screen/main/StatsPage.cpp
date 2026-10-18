@@ -13,12 +13,12 @@ int StatsPage::render(CardputerDisplay &lcd) {
   display.drawTextLeftAlign(5, y, tmp);
 
   y += UI_TEXT_LINE_HEIGHT;
-  sprintf(tmp, "Heap usage: %d/%d (%d%%)", ESP.getFreeHeap(), ESP.getHeapSize(),
-          (ESP.getHeapSize() - ESP.getFreeHeap()) * 100 / ESP.getHeapSize());
+  sprintf(tmp, "Heap usage: %u/%u (%u%%)", (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getHeapSize(),
+          (unsigned)((ESP.getHeapSize() - ESP.getFreeHeap()) * 100 / ESP.getHeapSize()));
   display.drawTextLeftAlign(5, y, tmp);
 
   y += UI_TEXT_LINE_HEIGHT;
-  sprintf(tmp, "Packets received: %u", the_mesh_cp.receivedPacketsCount());
+  sprintf(tmp, "Packets received: %llu", (unsigned long long)the_mesh_cp.receivedPacketsCount());
   display.drawTextLeftAlign(5, y, tmp);
 
   y += UI_TEXT_LINE_HEIGHT;

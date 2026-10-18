@@ -126,8 +126,9 @@ ContactInfo *CardputerMesh::processAck(const uint8_t *data) {
   memcpy(&hash, data, 4);
   // _ui->onAckRecv(hash);
 
-  if (last_msg.expected_ack == hash) {
+  if (last_msg.state == MESSAGE_SENDING && last_msg.expected_ack == hash) {
     last_msg.state = MESSAGE_DELIVERED;
+    last_msg.expected_ack = 0; // ignore duplicate ACKs
     _ui->onMessageSendAttempt(last_msg.attempt + 1, last_msg.total_attempts, last_msg.state);
   }
 
@@ -232,7 +233,6 @@ void CardputerMesh::checkResend() {
   }
 
   if (last_msg.attempt < last_msg.total_attempts) {
-    uint32_t expected_ack;
     uint32_t est_timeout;
 
     _ui->onMessageSendAttempt(last_msg.attempt + 1, last_msg.total_attempts, last_msg.state);
@@ -243,8 +243,9 @@ void CardputerMesh::checkResend() {
       resend_timeout = futureMillis(DIRECT_SEND_ROUTE_RESEND_RELAY);
     }
 
-    MyMesh::sendMessage(last_msg.recipient, last_msg.timestamp, last_msg.attempt, last_msg.text, expected_ack,
-                        est_timeout);
+    // expected_ack is derived from the attempt number, so it must be refreshed on every resend
+    MyMesh::sendMessage(last_msg.recipient, last_msg.timestamp, last_msg.attempt, last_msg.text,
+                        last_msg.expected_ack, est_timeout);
 
     last_msg.attempt++;
   } else {

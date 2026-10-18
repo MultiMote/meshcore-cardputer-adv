@@ -427,6 +427,7 @@ int SettingsScreen::render(CardputerDisplay &display) {
         }
         sprintf(buf, "%s_", edit_buffer.c_str());
         display.drawTextCentered(display.width() / 2, display.height() / 2 - 8, buf);
+        break;
       default:
         break;
     }

@@ -84,7 +84,9 @@ void CardputerUITask::newMsg(uint8_t path_len, const char *from_name, const char
   bool onFirstPage =
       (current_screen == main_screen && ((MainScreen *)main_screen)->getCurrentPage() == MainScreen::FIRST);
 
-  if (!_display->isOn() || current_screen == new_message_screen || onFirstPage) {
+  bool display_off = (_display != NULL && !_display->isOn());
+
+  if (display_off || current_screen == new_message_screen || onFirstPage) {
     ((NewMessageScreen *)new_message_screen)->newMessage(from_name, text);
     setCurrScreen(new_message_screen);
   }
