@@ -66,16 +66,16 @@ void SettingsScreen::renderItem(CardputerDisplay &lcd, SettingsItem item, int x,
       break;
 
     case SettingsItem::DeviceConnection:
-      snprintf(tmp, sizeof(tmp), "Connection: %s", _custom_prefs->wifi_enabled ? "Wi-Fi" : "Bluetooth");
+      snprintf(tmp, sizeof(tmp), "Connection: %s", _node_prefs->wifi_enabled ? "Wi-Fi" : "Bluetooth");
       break;
 
     case SettingsItem::DeviceWifiSsid:
-      snprintf(tmp, sizeof(tmp), "Wi-Fi SSID: %s", _custom_prefs->wifi_ssid);
+      snprintf(tmp, sizeof(tmp), "Wi-Fi SSID: %s", _node_prefs->wifi_ssid);
       break;
 
     case SettingsItem::DeviceWifiPassword:
       snprintf(tmp, sizeof(tmp), "Wi-Fi password: %s",
-               _custom_prefs->wifi_password[0] ? "********" : "(open)");
+               _node_prefs->wifi_pwd[0] ? "********" : "(open)");
       break;
 
     case SettingsItem::DevicePowersave:
@@ -135,11 +135,11 @@ bool SettingsScreen::enterItemEdit(SettingsItem item) {
       return true;
 
     case SettingsItem::DeviceConnection:
-      if (!_custom_prefs->wifi_enabled && !_custom_prefs->wifi_ssid[0]) {
+      if (!_node_prefs->wifi_enabled && !_node_prefs->wifi_ssid[0]) {
         _task->showAlert("Set Wi-Fi SSID first", 2000);
         return true;
       }
-      _custom_prefs->wifi_enabled = !_custom_prefs->wifi_enabled;
+      _node_prefs->wifi_enabled = !_node_prefs->wifi_enabled;
       the_mesh_cp.savePrefs();
       restart_required = true;
       confirm_restart = true;
@@ -147,12 +147,12 @@ bool SettingsScreen::enterItemEdit(SettingsItem item) {
       return true;
 
     case SettingsItem::DeviceWifiSsid:
-      edit_buffer = String(_custom_prefs->wifi_ssid);
+      edit_buffer = String(_node_prefs->wifi_ssid);
       is_editing = true;
       return true;
 
     case SettingsItem::DeviceWifiPassword:
-      edit_buffer = String(_custom_prefs->wifi_password);
+      edit_buffer = String(_node_prefs->wifi_pwd);
       is_editing = true;
       return true;
 
@@ -220,10 +220,10 @@ bool SettingsScreen::commitItemEdit(SettingsItem item) {
 
   switch (item) {
     case SettingsItem::DeviceWifiSsid:
-      if (edit_buffer.length() == 0 && _custom_prefs->wifi_enabled) {
+      if (edit_buffer.length() == 0 && _node_prefs->wifi_enabled) {
         return false;
       }
-      snprintf(_custom_prefs->wifi_ssid, sizeof(_custom_prefs->wifi_ssid), "%s", edit_buffer.c_str());
+      snprintf(_node_prefs->wifi_ssid, sizeof(_node_prefs->wifi_ssid), "%s", edit_buffer.c_str());
       the_mesh_cp.savePrefs();
       restart_required = true;
       return true;
@@ -233,7 +233,7 @@ bool SettingsScreen::commitItemEdit(SettingsItem item) {
       if (edit_buffer.length() != 0 && edit_buffer.length() < 8) {
         return false;
       }
-      snprintf(_custom_prefs->wifi_password, sizeof(_custom_prefs->wifi_password),
+      snprintf(_node_prefs->wifi_pwd, sizeof(_node_prefs->wifi_pwd),
                "%s", edit_buffer.c_str());
       the_mesh_cp.savePrefs();
       restart_required = true;
@@ -333,8 +333,8 @@ void SettingsScreen::handleEditInput(SettingsItem item, Keyboard::Event &e) {
       } else {
         const char *ch = _task->getBoard()->getLayout()->lookup(e);
         size_t capacity = item == SettingsItem::DeviceWifiSsid
-                              ? sizeof(_custom_prefs->wifi_ssid)
-                              : sizeof(_custom_prefs->wifi_password);
+                              ? sizeof(_node_prefs->wifi_ssid)
+                              : sizeof(_node_prefs->wifi_pwd);
         if (ch[0] && edit_buffer.length() + strlen(ch) < capacity) {
           edit_buffer.concat(ch);
         }

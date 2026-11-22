@@ -8,9 +8,6 @@
 struct __attribute__((packed)) CustomNodePrefs {
   uint8_t power_save;
   float battery_correction;
-  uint8_t wifi_enabled;
-  char wifi_ssid[33];
-  char wifi_password[64];
 };
 
 struct HistoryMessage {

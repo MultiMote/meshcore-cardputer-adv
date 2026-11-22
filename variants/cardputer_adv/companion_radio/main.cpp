@@ -19,7 +19,7 @@
 #include <helpers/MultiSerialInterface.h>
 #include <helpers/esp32/SerialBLEInterface.h>
 #if CUSTOM_CARDPUTER_UI
-#include <helpers/esp32/SerialWifiInterface.h>
+#include <helpers/wifi/SerialWifiInterface.h>
 #endif
 
 static uint32_t _atoi(const char *sp) {
@@ -55,7 +55,7 @@ SimpleMeshTables tables;
 #if CUSTOM_CARDPUTER_UI
 CardputerMesh the_mesh_cp(radio_driver, fast_rng, rtc_clock, tables, store, &ui_task);
 #else
-MyMesh the_mesh(radio_driver, fast_rng, rtc_clock, tables, store, &ui_task);
+MyMesh the_mesh(radio_driver, fast_rng, rtc_clock, tables, store);
 #endif
 
 void displayMessage(DisplayDriver *disp, const char *msg) {
@@ -105,16 +105,25 @@ void setup() {
 #endif
 
   store.begin();
-  THE_MESH_OBJ.begin(true);
+  THE_MESH_OBJ.begin();
+
+  // MeshCore 1.18 leaves the active BLE PIN setup to the application.
+#ifdef BLE_PIN_CODE
+  uint32_t pin = THE_MESH_OBJ.getNodePrefs()->ble_pin;
+  if (pin == 0) {
+    pin = disp != NULL && BLE_PIN_CODE == 123456 ? fast_rng.nextInt(100000, 999999) : BLE_PIN_CODE;
+  }
+  THE_MESH_OBJ.setBLEPin(pin);
+#endif
 
 #if CUSTOM_CARDPUTER_UI
-  CustomNodePrefs *prefs = THE_MESH_OBJ.getCustomNodePrefs();
-  wifi_active = prefs->wifi_enabled && prefs->wifi_ssid[0];
+  NodePrefs *prefs = THE_MESH_OBJ.getNodePrefs();
+  wifi_active = prefs->wifi_enabled && prefs->getWifiSSID()[0];
   if (wifi_active) {
     board.setInhibitSleep(true);
     WiFi.mode(WIFI_STA);
     WiFi.setAutoReconnect(true);
-    WiFi.begin(prefs->wifi_ssid, prefs->wifi_password);
+    WiFi.begin(prefs->getWifiSSID(), prefs->wifi_pwd);
     wifi_interface.begin(TCP_PORT);
     interface_manager.addInterface(InterfaceType::WiFi, &wifi_interface);
     last_wifi_reconnect = millis();
@@ -138,13 +147,17 @@ void setup() {
 #else
   ui_task.begin(disp, &sensors, THE_MESH_OBJ.getNodePrefs());
 #endif
+  THE_MESH_OBJ.setListener(&ui_task);
+  board.onBootComplete();
 }
 
 void loop() {
   THE_MESH_OBJ.loop();
+  interface_manager.loop();
   sensors.loop();
   ui_task.loop();
   rtc_clock.tick();
+  board.loop();
 
 #if CUSTOM_CARDPUTER_UI
   // Wi-Fi must stay awake to accept companion connections, including after a link loss.

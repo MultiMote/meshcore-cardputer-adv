@@ -6,9 +6,6 @@
 
 #include <MyMesh.h>
 
-#define CTL_TYPE_NODE_DISCOVER_REQ  0x80
-#define CTL_TYPE_NODE_DISCOVER_RESP 0x90
-
 class CardputerMesh : public MyMesh {
   CardputerUITask *_ui;
   CardputerDataStore *_store;
@@ -24,7 +21,11 @@ class CardputerMesh : public MyMesh {
 public:
   CardputerMesh(mesh::Radio &radio, mesh::RNG &rng, mesh::RTCClock &rtc, SimpleMeshTables &tables,
                 CardputerDataStore &store, CardputerUITask *ui)
-      : MyMesh(radio, rng, rtc, tables, store, ui), _ui(ui), _store(&store) {}
+      : MyMesh(radio, rng, rtc, tables, store), _ui(ui), _store(&store) {
+#ifdef ENABLE_WIFI_INTERFACE
+    getNodePrefs()->wifi_enabled = 0; // Keep Bluetooth as the default for this variant.
+#endif
+  }
 
   void onTraceRecv(mesh::Packet *packet, uint32_t tag, uint32_t auth_code, uint8_t flags,
                    const uint8_t *path_snrs, const uint8_t *path_hashes, uint8_t path_len) override;
@@ -50,7 +51,7 @@ public:
 
   inline uint64_t receivedPacketsCount() const { return rx_packet_count; }
 
-  void begin(bool has_display);
+  void begin();
   void savePrefs();
   bool sendPing(ContactInfo &contact);
   bool sendAdvert(bool flood);

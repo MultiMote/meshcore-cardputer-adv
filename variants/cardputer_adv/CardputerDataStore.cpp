@@ -1,7 +1,6 @@
 #include "CardputerDataStore.h"
 
 #include "globals.h"
-#include <stddef.h>
 
 static void buf_to_hex_fast(const unsigned char *src, size_t src_len, char *dst) {
   static const char hex_digits[] = "0123456789abcdef";
@@ -27,16 +26,10 @@ void CardputerDataStore::loadCustomPrefs(CustomNodePrefs &prefs) {
 
   File file = _fs->open(CUSTOM_PREFS_FILE, FILE_READ);
 
-  // Older files contain only power_save and battery_correction. Keep the new defaults.
-  size_t size = file.size();
-  if (size == sizeof(prefs) || size == offsetof(CustomNodePrefs, wifi_enabled)) {
+  // Read file only if it exactly matches struct size, otherwise keep default values.
+  if (file.size() == sizeof(prefs)) {
     CustomNodePrefs loaded = prefs;
-    if (file.read((uint8_t *)&loaded, size) == size) {
-      loaded.wifi_ssid[sizeof(loaded.wifi_ssid) - 1] = '\0';
-      loaded.wifi_password[sizeof(loaded.wifi_password) - 1] = '\0';
-      if (loaded.wifi_enabled > 1 || !loaded.wifi_ssid[0]) {
-        loaded.wifi_enabled = 0;
-      }
+    if (file.read((uint8_t *)&loaded, sizeof(loaded)) == sizeof(loaded)) {
       prefs = loaded;
     }
   }

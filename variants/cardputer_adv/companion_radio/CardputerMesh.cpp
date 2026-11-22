@@ -135,8 +135,8 @@ ContactInfo *CardputerMesh::processAck(const uint8_t *data) {
   return MyMesh::processAck(data);
 }
 
-void CardputerMesh::begin(bool has_display) {
-  MyMesh::begin(has_display);
+void CardputerMesh::begin() {
+  MyMesh::begin();
   _store->loadCustomPrefs(_custom_prefs);
 }
 

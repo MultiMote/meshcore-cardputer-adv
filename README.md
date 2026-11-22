@@ -124,8 +124,11 @@ select **Bluetooth** under **Connection** and restart. Only the selected transpo
 Wi-Fi automatically retries lost connections; light sleep is suspended in Wi-Fi mode
 so companion connections remain available. The display still turns off normally.
 
-Settings are stored on the SD card with the other custom preferences. Existing power-save
-and battery-correction settings are preserved when upgrading. Passwords are visible while editing,
+Wi-Fi settings use MeshCore 1.18's standard preferences in `/prefs.json` on the SD card,
+so they can also be edited using the companion's `wifi.ssid`, `wifi.pwd` and `wifi.enabled`
+commands. Changes take effect after restarting. Existing power-save and battery-correction
+settings are preserved.
+Passwords are visible while editing,
 masked in the settings list, and stored unencrypted on the card. The TCP connection uses
 upstream MeshCore's transport,
 without BLE pairing or encryption; use a trusted network and do not expose the port publicly.
