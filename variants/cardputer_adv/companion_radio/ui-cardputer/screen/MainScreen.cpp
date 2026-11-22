@@ -1,4 +1,5 @@
 #include "MainScreen.h"
+#include <WiFi.h>
 
 #include "helpers.h"
 #include "main/ChannelsPage.h"
@@ -75,7 +76,7 @@ void MainScreen::renderStatusIcons(CardputerDisplay &lcd) {
     iconX += 11;
   }
 
-  if (_task->powerSaveEnabled()) {
+  if (_task->powerSaveEnabled() && WiFi.getMode() == WIFI_OFF) {
     lcd.drawXbm(iconX, iconY, sleep_icon, 8, 8);
     iconX += 11;
   }

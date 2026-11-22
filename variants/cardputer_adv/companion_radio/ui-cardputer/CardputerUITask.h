@@ -65,8 +65,12 @@ public:
   void toggleGPS();
   inline unsigned long getAutoOffTime() const { return auto_off_time; }
   inline bool powerSaveEnabled() const { return _custom_prefs->power_save; }
-  void msgRead(int msgcount) override;
-  void newMsg(uint8_t path_len, const char *from_name, const char *text, int msgcount) override;
+  void onQueueSizeChanged(int msgcount) override;
+  void onMessageRecv(mesh::Packet *pkt, const ContactInfo &from, uint8_t txt_type,
+                     uint32_t sender_timestamp, const char *text) override;
+  void onChannelMessageRecv(mesh::Packet *pkt, ChannelDetails &channel,
+                            const char *text) override;
+  void newMsg(const char *from_name, const char *text);
 
   void onChannelMessageRecv(const mesh::GroupChannel &channel, const char *text);
   void onContactMessageRecv(const ContactInfo &contact, const char *text);

@@ -71,15 +71,33 @@ void CardputerUITask::playSound(SoundType t) {
   }
 }
 
-void CardputerUITask::msgRead(int msgcount) {
+void CardputerUITask::onQueueSizeChanged(int msgcount) {
   unsynced_msg_count = msgcount;
   if (msgcount == 0) {
     gotoMainScreen();
   }
 }
 
-void CardputerUITask::newMsg(uint8_t path_len, const char *from_name, const char *text, int msgcount) {
-  unsynced_msg_count = msgcount;
+void CardputerUITask::onMessageRecv(mesh::Packet *pkt, const ContactInfo &from, uint8_t txt_type,
+                                    uint32_t sender_timestamp, const char *text) {
+  if (txt_type != TXT_TYPE_PLAIN && txt_type != TXT_TYPE_SIGNED_PLAIN) {
+    return;
+  }
+  newMsg(from.name, text);
+  if (!hasConnection()) {
+    notify(UIEventType::contactMessage);
+  }
+}
+
+void CardputerUITask::onChannelMessageRecv(mesh::Packet *pkt, ChannelDetails &channel,
+                                           const char *text) {
+  newMsg(channel.name, text);
+  if (!hasConnection()) {
+    notify(UIEventType::channelMessage);
+  }
+}
+
+void CardputerUITask::newMsg(const char *from_name, const char *text) {
 
   bool onFirstPage =
       (current_screen == main_screen && ((MainScreen *)main_screen)->getCurrentPage() == MainScreen::FIRST);

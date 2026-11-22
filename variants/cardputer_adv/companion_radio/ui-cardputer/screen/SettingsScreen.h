@@ -15,6 +15,9 @@ class SettingsScreen : public CardputerScreen {
     HdrDevice,
     DeviceBeep,
     DeviceBluetooth,
+    DeviceConnection,
+    DeviceWifiSsid,
+    DeviceWifiPassword,
     DeviceGps,
     DevicePowersave,
     DeviceBatteryCorrection,
@@ -32,6 +35,7 @@ class SettingsScreen : public CardputerScreen {
   int menu_index = 0;
   bool is_editing = false;
   bool restart_required = false;
+  bool confirm_restart = false;
   String edit_buffer;
   uint8_t edit_u8;
 

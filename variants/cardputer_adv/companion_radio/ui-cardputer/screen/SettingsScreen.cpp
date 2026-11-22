@@ -1,6 +1,7 @@
 #include "SettingsScreen.h"
 
 #include "helpers.h"
+#include <WiFi.h>
 
 
 void SettingsScreen::renderItem(CardputerDisplay &lcd, SettingsItem item, int x, int y) {
@@ -64,8 +65,22 @@ void SettingsScreen::renderItem(CardputerDisplay &lcd, SettingsItem item, int x,
       snprintf(tmp, sizeof(tmp), "Bluetooth: %s", _task->isBluetoothEnabled() ? "ON" : "OFF");
       break;
 
+    case SettingsItem::DeviceConnection:
+      snprintf(tmp, sizeof(tmp), "Connection: %s", _node_prefs->wifi_enabled ? "Wi-Fi" : "Bluetooth");
+      break;
+
+    case SettingsItem::DeviceWifiSsid:
+      snprintf(tmp, sizeof(tmp), "Wi-Fi SSID: %s", _node_prefs->wifi_ssid);
+      break;
+
+    case SettingsItem::DeviceWifiPassword:
+      snprintf(tmp, sizeof(tmp), "Wi-Fi password: %s",
+               _node_prefs->wifi_pwd[0] ? "********" : "(open)");
+      break;
+
     case SettingsItem::DevicePowersave:
-      snprintf(tmp, sizeof(tmp), "Power save: %s", _task->powerSaveEnabled() ? "ON" : "OFF");
+      snprintf(tmp, sizeof(tmp), "Power save: %s", !_task->powerSaveEnabled() ? "OFF" :
+               WiFi.getMode() == WIFI_OFF ? "ON" : "PAUSED (Wi-Fi)");
       break;
 
     case SettingsItem::DeviceBatteryCorrection:
@@ -107,12 +122,38 @@ bool SettingsScreen::enterItemEdit(SettingsItem item) {
       return true;
 
     case SettingsItem::DeviceBluetooth:
+      if (!_task->isBluetoothEnabled() && WiFi.getMode() != WIFI_OFF) {
+        _task->showAlert("Select Bluetooth and restart", 2000);
+        return true;
+      }
       if (_task->isBluetoothEnabled()) {
         _task->disableBluetooth();
       } else {
         _task->enableBluetooth();
       }
       the_mesh_cp.savePrefs();
+      return true;
+
+    case SettingsItem::DeviceConnection:
+      if (!_node_prefs->wifi_enabled && !_node_prefs->wifi_ssid[0]) {
+        _task->showAlert("Set Wi-Fi SSID first", 2000);
+        return true;
+      }
+      _node_prefs->wifi_enabled = !_node_prefs->wifi_enabled;
+      the_mesh_cp.savePrefs();
+      restart_required = true;
+      confirm_restart = true;
+      _task->dismissAlert();
+      return true;
+
+    case SettingsItem::DeviceWifiSsid:
+      edit_buffer = String(_node_prefs->wifi_ssid);
+      is_editing = true;
+      return true;
+
+    case SettingsItem::DeviceWifiPassword:
+      edit_buffer = String(_node_prefs->wifi_pwd);
+      is_editing = true;
       return true;
 
     case SettingsItem::DevicePowersave:
@@ -178,6 +219,26 @@ void SettingsScreen::cancelItemEdit(SettingsItem item) {
 bool SettingsScreen::commitItemEdit(SettingsItem item) {
 
   switch (item) {
+    case SettingsItem::DeviceWifiSsid:
+      if (edit_buffer.length() == 0 && _node_prefs->wifi_enabled) {
+        return false;
+      }
+      snprintf(_node_prefs->wifi_ssid, sizeof(_node_prefs->wifi_ssid), "%s", edit_buffer.c_str());
+      the_mesh_cp.savePrefs();
+      restart_required = true;
+      return true;
+
+    case SettingsItem::DeviceWifiPassword:
+      // Empty passwords are allowed for open networks; WPA passphrases need 8-63 bytes.
+      if (edit_buffer.length() != 0 && edit_buffer.length() < 8) {
+        return false;
+      }
+      snprintf(_node_prefs->wifi_pwd, sizeof(_node_prefs->wifi_pwd),
+               "%s", edit_buffer.c_str());
+      the_mesh_cp.savePrefs();
+      restart_required = true;
+      return true;
+
     case SettingsItem::PublicInfoName:
       strncpy(_node_prefs->node_name, edit_buffer.c_str(), sizeof(_node_prefs->node_name) - 1);
       _node_prefs->node_name[sizeof(_node_prefs->node_name) - 1] = '\0';
@@ -265,6 +326,21 @@ bool SettingsScreen::commitItemEdit(SettingsItem item) {
 
 void SettingsScreen::handleEditInput(SettingsItem item, Keyboard::Event &e) {
   switch (item) {
+    case SettingsItem::DeviceWifiSsid:
+    case SettingsItem::DeviceWifiPassword:
+      if (e.key == Keyboard::KEY_BACKSPACE) {
+        Helpers::removeLastStringChar(edit_buffer);
+      } else {
+        const char *ch = _task->getBoard()->getLayout()->lookup(e);
+        size_t capacity = item == SettingsItem::DeviceWifiSsid
+                              ? sizeof(_node_prefs->wifi_ssid)
+                              : sizeof(_node_prefs->wifi_pwd);
+        if (ch[0] && edit_buffer.length() + strlen(ch) < capacity) {
+          edit_buffer.concat(ch);
+        }
+      }
+      break;
+
     case SettingsItem::RadioSf:
       if (e.key == Keyboard::ARROW_LEFT && edit_u8 > 5) {
         edit_u8--;
@@ -400,16 +476,36 @@ int SettingsScreen::render(CardputerDisplay &display) {
     }
   }
 
-  if (is_editing) {
+  if (is_editing || confirm_restart) {
     int x_margin = 5;
     int y_margin = 40;
     display.setColor(CardputerDisplay::P_BLACK);
     display.fillRect(x_margin, y_margin, display.width() - x_margin * 2, display.height() - y_margin * 2);
     display.setColor(CardputerDisplay::P_WHITE);
     display.drawRect(x_margin, y_margin, display.width() - x_margin * 2, display.height() - y_margin * 2);
+    if (confirm_restart) {
+      display.setTextSize(1);
+      display.drawTextCentered(display.width() / 2, y_margin + 5, "Restart required");
+      display.drawTextCentered(display.width() / 2, y_margin + 21, "Restart now? Y / N");
+      display.drawTextCentered(display.width() / 2, y_margin + 37, "Esc: restart later");
+      return 5000;
+    }
     display.setTextSize(2);
 
     switch (menu_index) {
+      case SettingsItem::DeviceWifiSsid:
+      case SettingsItem::DeviceWifiPassword: {
+        display.setTextSize(1);
+        String text = edit_buffer;
+        // Keep the cursor visible even for a full-length SSID or passphrase.
+        if (text.length() > 25) {
+          text = text.substring(text.length() - 25);
+        }
+        snprintf(buf, sizeof(buf), "%s_", text.c_str());
+        display.drawTextCentered(display.width() / 2, display.height() / 2 - 8, buf);
+        break;
+      }
+
       case SettingsItem::RadioSf:
       case SettingsItem::RadioCr:
       case SettingsItem::RadioPwr:
@@ -453,6 +549,15 @@ int SettingsScreen::render(CardputerDisplay &display) {
 }
 
 bool SettingsScreen::handleInput(Keyboard::Event &e) {
+  if (confirm_restart) {
+    if (e.key == Keyboard::KEY_Y) {
+      _task->shutdown(true);
+    } else if (e.key == Keyboard::KEY_N || e.key == Keyboard::KEY_ESC) {
+      confirm_restart = false;
+    }
+    return true;
+  }
+
   if (is_editing) {
     if (e.key == Keyboard::KEY_RETURN) {
       if (!commitItemEdit(static_cast<SettingsItem>(menu_index))) {

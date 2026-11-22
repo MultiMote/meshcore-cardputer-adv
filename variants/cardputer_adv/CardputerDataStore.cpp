@@ -26,9 +26,12 @@ void CardputerDataStore::loadCustomPrefs(CustomNodePrefs &prefs) {
 
   File file = _fs->open(CUSTOM_PREFS_FILE, FILE_READ);
 
-  // Read file only if it exactly matches struct size, otherwise keep default values
+  // Read file only if it exactly matches struct size, otherwise keep default values.
   if (file.size() == sizeof(prefs)) {
-    file.read((uint8_t *)&prefs, sizeof(prefs));
+    CustomNodePrefs loaded = prefs;
+    if (file.read((uint8_t *)&loaded, sizeof(loaded)) == sizeof(loaded)) {
+      prefs = loaded;
+    }
   }
 
   file.close();
