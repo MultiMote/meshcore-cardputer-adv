@@ -46,6 +46,7 @@ Currently implemented (companion):
 
 - Cap LoRa-1262 initialization (+ port extender)
 - BLE connection
+- Wi-Fi companion connection (TCP)
 - GPS support
 - GPS power management with CAS commands (Cap LoRa-1262 does not have a GPS switch pin)
 - Store data to SD card
@@ -104,6 +105,30 @@ Currently implemented (companion):
    * Ready to use: [keyboard_layouts](keyboard_layouts)
    * More info: https://github.com/MultiMote/meshcore-cardputer-adv/wiki/Keyboard-layout-format
 
+
+### Wi-Fi companion connection
+
+The existing `cardputer_adv_companion_radio_ble` build supports both Bluetooth and Wi-Fi.
+Bluetooth remains the default. With the custom UI enabled:
+
+1. Press `OPT` and set **Wi-Fi SSID** and **Wi-Fi password** under DEVICE.
+   SSIDs support up to 32 bytes; passwords support 8-63 bytes, or empty for an open network.
+2. Set **Connection** to **Wi-Fi**. At the restart prompt, press **Y** to restart now,
+   or **N** / **Esc** to restart later using the Tools menu.
+3. The main screen shows the device's IP address and TCP port (default **5000**).
+4. Connect a TCP-capable MeshCore companion client on the same network to that address.
+   A phone hotspot can also provide the network. The Cardputer does not create an access point.
+
+Connection and credential changes take effect after restarting. To return to Bluetooth,
+select **Bluetooth** under **Connection** and restart. Only the selected transport starts.
+Wi-Fi automatically retries lost connections; light sleep is suspended in Wi-Fi mode
+so companion connections remain available. The display still turns off normally.
+
+Settings are stored on the SD card with the other custom preferences. Existing power-save
+and battery-correction settings are preserved when upgrading. Passwords are visible while editing,
+masked in the settings list, and stored unencrypted on the card. The TCP connection uses
+upstream MeshCore's transport,
+without BLE pairing or encryption; use a trusted network and do not expose the port publicly.
 
 Todo:
 

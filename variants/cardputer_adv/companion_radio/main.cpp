@@ -18,6 +18,9 @@
 #include <Mesh.h>
 #include <helpers/MultiSerialInterface.h>
 #include <helpers/esp32/SerialBLEInterface.h>
+#if CUSTOM_CARDPUTER_UI
+#include <helpers/esp32/SerialWifiInterface.h>
+#endif
 
 static uint32_t _atoi(const char *sp) {
   uint32_t n = 0;
@@ -38,6 +41,11 @@ CardputerDataStore store(SPIFFS, rtc_clock);
 
 MultiSerialInterface interface_manager;
 SerialBLEInterface bluetooth_interface;
+#if CUSTOM_CARDPUTER_UI
+SerialWifiInterface wifi_interface;
+bool wifi_active = false;
+unsigned long last_wifi_reconnect = 0;
+#endif
 
 TASK_CLASS ui_task(&board, &interface_manager);
 
@@ -99,8 +107,24 @@ void setup() {
   store.begin();
   THE_MESH_OBJ.begin(true);
 
-  bluetooth_interface.begin(BLE_NAME_PREFIX, THE_MESH_OBJ.getNodePrefs()->node_name, THE_MESH_OBJ.getBLEPin());
-  interface_manager.addInterface(InterfaceType::Bluetooth, &bluetooth_interface);
+#if CUSTOM_CARDPUTER_UI
+  CustomNodePrefs *prefs = THE_MESH_OBJ.getCustomNodePrefs();
+  wifi_active = prefs->wifi_enabled && prefs->wifi_ssid[0];
+  if (wifi_active) {
+    board.setInhibitSleep(true);
+    WiFi.mode(WIFI_STA);
+    WiFi.setAutoReconnect(true);
+    WiFi.begin(prefs->wifi_ssid, prefs->wifi_password);
+    wifi_interface.begin(TCP_PORT);
+    interface_manager.addInterface(InterfaceType::WiFi, &wifi_interface);
+    last_wifi_reconnect = millis();
+  } else
+#endif
+  {
+    bluetooth_interface.begin(BLE_NAME_PREFIX, THE_MESH_OBJ.getNodePrefs()->node_name,
+                              THE_MESH_OBJ.getBLEPin());
+    interface_manager.addInterface(InterfaceType::Bluetooth, &bluetooth_interface);
+  }
 
   THE_MESH_OBJ.startInterface(interface_manager);
   sensors.begin();
@@ -123,7 +147,13 @@ void loop() {
   rtc_clock.tick();
 
 #if CUSTOM_CARDPUTER_UI
-  if (ui_task.powerSaveEnabled() && millis() > ui_task.getAutoOffTime()) {
+  // Wi-Fi must stay awake to accept companion connections, including after a link loss.
+  if (wifi_active && WiFi.status() != WL_CONNECTED &&
+      millis() - last_wifi_reconnect >= 10000) {
+    WiFi.reconnect();
+    last_wifi_reconnect = millis();
+  }
+  if (!wifi_active && ui_task.powerSaveEnabled() && millis() > ui_task.getAutoOffTime()) {
     board.enterLightSleep();
   }
 #endif

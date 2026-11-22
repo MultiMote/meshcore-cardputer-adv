@@ -27,6 +27,10 @@
 
 #define AUTO_OFF_MILLIS                          15000 // 15 seconds
 
+#ifndef TCP_PORT
+#define TCP_PORT                                 5000
+#endif
+
 #define MAX_UNREAD_MSGS                          32
 #define BOOT_SCREEN_MILLIS                       2000
 #define NEW_MESSAGE_DISPLAY_MILLIS               AUTO_OFF_MILLIS
